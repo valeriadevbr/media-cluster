@@ -1,0 +1,52 @@
+{
+  // Use o IntelliSense para saber mais sobre os atributos possíveis.
+  // Focalizar para exibir as descrições dos atributos existentes.
+  // Para obter mais informações, acesse: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "bashdb",
+      "request": "launch",
+      "name": "CLI Mode",
+      "program": "sonarr_transcode.sh",
+      "env": {},
+      "args": [
+        "-in",
+        "/Users/valeria/Downloads/Torrent/www.UIndex.org    -    The Simpsons S37E02 The Yellow Lotus 1080p DSNP WEB-DL DD 5 1 H 264-playWEB/The Simpsons S37E02 The Yellow Lotus 1080p DSNP WEB-DL DD 5 1 H 264-playWEB.mkv",
+        "-out",
+        "/Volumes/Plex/TV Series/The Simpsons (1989)/S37/S37E02 - Keep Chalm and Gary On - WEBDL-1080p.mkv",
+        "-keep",
+        "pt-BR"
+      ]
+    },
+    {
+      "type": "bashdb",
+      "request": "launch",
+      "name": "CLI Mode - Dry Run",
+      "program": "sonarr_transcode.sh",
+      "env": {},
+      "args": [
+        "-in",
+        "/Users/valeria/Downloads/Torrent/www.UIndex.org    -    The Simpsons S37E02 The Yellow Lotus 1080p DSNP WEB-DL DD 5 1 H 264-playWEB/The Simpsons S37E02 The Yellow Lotus 1080p DSNP WEB-DL DD 5 1 H 264-playWEB.mkv",
+        "-out",
+        "/Volumes/Plex/TV Series/The Simpsons (1989)/S37/S37E02 - Keep Chalm and Gary On - WEBDL-1080p.mkv",
+        "-d",
+        "-keep",
+        "pt-BR"
+      ]
+    },
+    {
+      "type": "bashdb",
+      "request": "launch",
+      "name": "Sonarr Mode",
+      "program": "sonarr_transcode.sh",
+      "env": {
+        "sonarr_eventtype": "Download",
+        "sonarr_episodefile_sourcepath": "/Users/valeria/Downloads/Torrent/www.UIndex.org    -    The Simpsons S37E02 The Yellow Lotus 1080p DSNP WEB-DL DD 5 1 H 264-playWEB/The Simpsons S37E02 The Yellow Lotus 1080p DSNP WEB-DL DD 5 1 H 264-playWEB.mkv",
+        "sonarr_episodefile_path": "/Volumes/Plex/TV Series/The Simpsons (1989)/S37/S37E02 - Keep Chalm and Gary On - WEBDL-1080p.mkv",
+        "sonarr_series_title": "The Simpsons (1989)",
+      },
+      "args": []
+    }
+  ]
+}
