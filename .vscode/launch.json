@@ -12,11 +12,11 @@
       "env": {},
       "args": [
         "-in",
-        "/Users/valeria/Downloads/Torrent/www.UIndex.org    -    The Simpsons S37E02 The Yellow Lotus 1080p DSNP WEB-DL DD 5 1 H 264-playWEB/The Simpsons S37E02 The Yellow Lotus 1080p DSNP WEB-DL DD 5 1 H 264-playWEB.mkv",
+        "~/Downloads/Torrent/test.mkv",
         "-out",
-        "/Volumes/Plex/TV Series/The Simpsons (1989)/S37/S37E02 - Keep Chalm and Gary On - WEBDL-1080p.mkv",
+        "~/Downloads/Torrent/test-output.mkv",
         "-keep",
-        "pt-BR"
+        "por,eng"
       ]
     },
     {
@@ -27,12 +27,12 @@
       "env": {},
       "args": [
         "-in",
-        "/Users/valeria/Downloads/Torrent/www.UIndex.org    -    The Simpsons S37E02 The Yellow Lotus 1080p DSNP WEB-DL DD 5 1 H 264-playWEB/The Simpsons S37E02 The Yellow Lotus 1080p DSNP WEB-DL DD 5 1 H 264-playWEB.mkv",
+        "~/Downloads/Torrent/test.mkv",
         "-out",
-        "/Volumes/Plex/TV Series/The Simpsons (1989)/S37/S37E02 - Keep Chalm and Gary On - WEBDL-1080p.mkv",
+        "~/Downloads/Torrent/test-output.mkv",
         "-d",
         "-keep",
-        "pt-BR"
+        "por,eng"
       ]
     },
     {
@@ -42,8 +42,8 @@
       "program": "sonarr_transcode.sh",
       "env": {
         "sonarr_eventtype": "Download",
-        "sonarr_episodefile_sourcepath": "/Users/valeria/Downloads/Torrent/www.UIndex.org    -    The Simpsons S37E02 The Yellow Lotus 1080p DSNP WEB-DL DD 5 1 H 264-playWEB/The Simpsons S37E02 The Yellow Lotus 1080p DSNP WEB-DL DD 5 1 H 264-playWEB.mkv",
-        "sonarr_episodefile_path": "/Volumes/Plex/TV Series/The Simpsons (1989)/S37/S37E02 - Keep Chalm and Gary On - WEBDL-1080p.mkv",
+        "sonarr_episodefile_sourcepath": "/Users/valeria/Downloads/Torrent/test.mkv",
+        "sonarr_episodefile_path": "/Users/valeria/Downloads/Torrent/test-output.mkv",
         "sonarr_series_title": "The Simpsons (1989)",
       },
       "args": []

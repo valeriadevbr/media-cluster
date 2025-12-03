@@ -717,6 +717,11 @@ cli_mode() {
   # Verificar dependências
   check_dependencies
 
+  # Log das variáveis (útil para debug)
+  log_universal "Arquivo fonte: $INPUT"
+  log_universal "Destino final: $OUTPUT"
+  log_universal ""
+
   # Processar arquivo
   process_file "$INPUT" "$OUTPUT"
 
