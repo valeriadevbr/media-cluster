@@ -11,6 +11,7 @@
 # 3  - Dependência ou erro de processamento
 # 4  - Erro ao copiar arquivo
 # 5  - Arquivo não é MKV
+# 6  - Falha na execução do mkvmerge
 # 10+ - Outros erros específicos
 
 # ================================================
@@ -68,7 +69,7 @@ log_universal() {
 # Retorno: encerra o script com exit 1
 handle_interrupt() {
   log_universal ""
-  log_universal "⏹️  Interrupção detectada. Abortando processo..."
+  log_universal "⏹ Interrupção detectada. Abortando processo..."
   INTERRUPTED=true
 
   if [[ -n "$CURRENT_NEW_FILE" && -f "$CURRENT_NEW_FILE" ]]; then
@@ -258,24 +259,6 @@ has_subtitles_to_keep() {
   [[ -n "$subtitles_to_keep" ]]
 }
 
-# count_subtitles_to_remove: Conta quantas legendas serão removidas
-# Parâmetros: $1 = arquivo
-# Retorno: número de legendas
-count_subtitles_to_remove() {
-  local file="$1"
-  local subs_to_remove
-  subs_to_remove=$(get_subtitles_to_remove "$file")
-  local count=0
-
-  while IFS=: read -r track_id language track_name; do
-    if [[ -n "$track_id" && "$track_id" =~ ^[0-9]+$ ]]; then
-      ((count++))
-    fi
-  done <<<"$subs_to_remove"
-
-  echo $count
-}
-
 # build_mkvmerge_command: Monta comando mkvmerge para processar arquivo
 # Parâmetros: $1 = arquivo, $2 = saída
 # Retorno: comando mkvmerge
@@ -318,90 +301,21 @@ execute_mkvmerge() {
   local mkvmerge_cmd=$(build_mkvmerge_command "$file" "$output_file")
 
   if [[ "$DRY_RUN" == true ]]; then
-    log_universal "🔍 MODO SIMULAÇÃO - Nenhum arquivo será modificado"
-    log_universal "📝 Comando que seria executado: $mkvmerge_cmd"
+    log_universal ""
+    log_universal "MODO SIMULAÇÃO - Nenhum arquivo será modificado"
+    log_universal "Comando que seria executado: $mkvmerge_cmd"
     return 0
   fi
 
+  log_universal ""
   log_universal "Executando: $mkvmerge_cmd"
 
-  # Cria pipes nomeados para capturar output em tempo real
-  local tmp_dir=$(mktemp -d)
-  local raw_output="${tmp_dir}/raw"
-  local exit_file="${tmp_dir}/exit"
+  # Cria pasta de saída se não existir
+  mkdir -p "$(dirname "$output_file")"
 
-  if ! mkfifo "$raw_output" 2>/dev/null; then
-    log_universal "ERRO: Não foi possível criar pipe nomeado"
-    rm -rf "$tmp_dir"
-    return 1
-  fi
-
-  # Função para processar output em tempo real, convertendo \r para \n
-  process_and_log_output() {
-    local pipe="$1"
-    local buffer=""
-
-    # Lê byte a byte para processar \r corretamente
-    while IFS= read -r -n1 char; do
-      # Se for carriage return (\r), loga o buffer atual
-      if [[ "$char" == $'\r' ]]; then
-        if [[ -n "$buffer" ]]; then
-          log_universal "[mkvmerge] $buffer"
-          buffer=""
-        fi
-      # Se for newline (\n), loga o buffer e reseta
-      elif [[ "$char" == $'\n' ]]; then
-        if [[ -n "$buffer" ]]; then
-          log_universal "[mkvmerge] $buffer"
-          buffer=""
-        fi
-      # Se for EOF (char vazio), finaliza
-      elif [[ -z "$char" ]]; then
-        if [[ -n "$buffer" ]]; then
-          log_universal "[mkvmerge] $buffer"
-        fi
-        break
-      else
-        # Adiciona caractere ao buffer
-        buffer="${buffer}${char}"
-      fi
-    done <"$pipe"
-  }
-
-  # Executa o comando em background, redirecionando output para o pipe
-  {
-    eval "$mkvmerge_cmd" >"$raw_output" 2>&1
-    echo $? >"$exit_file"
-  } &
-
-  local cmd_pid=$!
-
-  # Processa o output em tempo real
-  process_and_log_output "$raw_output" &
-  local processor_pid=$!
-
-  # Aguarda o comando terminar
-  wait $cmd_pid 2>/dev/null
-
-  # Aguarda o processador terminar
-  wait $processor_pid 2>/dev/null
-
-  # Lê exit code
-  local exit_code=1
-  if [[ -f "$exit_file" ]]; then
-    exit_code=$(cat "$exit_file")
-  fi
-
-  # Limpeza
-  rm -rf "$tmp_dir"
-
-  if [[ $exit_code -eq 0 ]]; then
-    log_universal "mkvmerge executado com sucesso"
-  else
-    log_universal "ERRO: mkvmerge falhou com código $exit_code"
-  fi
-
-  return $exit_code
+  # Executa mkvmerge e loga direto no console
+  eval "$mkvmerge_cmd"
+  return $?
 }
 
 # validate_file: Valida arquivo de entrada e parâmetros
@@ -436,44 +350,43 @@ log_kept_tracks() {
   local kept_tracks_ids=$(get_track_ids_by_type "$input_file" "subtitles" "keep")
   if [[ -n "$kept_tracks_ids" ]]; then
     log_universal ""
-    log_universal "Tracks de legenda que serão mantidas:"
+    log_universal "Faixas de legenda mantidas:"
     local info_json=$(mkvmerge -J "$input_file" 2>/dev/null)
     for tid in $kept_tracks_ids; do
       local lang=$(echo "$info_json" | jq -r ".tracks[] | select(.id==$tid and .type==\"subtitles\") | .properties.language // \"\"")
       local name=$(echo "$info_json" | jq -r ".tracks[] | select(.id==$tid and .type==\"subtitles\") | .properties.track_name // \"\"")
       if [[ -n "$lang" && "$lang" != "null" ]]; then
         if [[ -n "$name" && "$name" != "null" && "$name" != "unknown" ]]; then
-          log_universal "  - Track $tid: $lang ($name)"
+          log_universal "  - Faixa $tid: $lang ($name)"
         else
-          log_universal "  - Track $tid: $lang"
+          log_universal "  - Faixa $tid: $lang"
         fi
       else
-        log_universal "  - Track $tid: (sem linguagem especificada)"
+        log_universal "  - Faixa $tid: (sem linguagem especificada)"
       fi
     done
   else
-    log_universal "Nenhuma track de legenda será mantida."
+    log_universal "Nenhuma faixa de legenda será mantida."
   fi
 }
 
-# log_removed_tracks: Loga tracks de legenda que serão removidas
+# log_removed_tracks: Loga faixas de legenda que serão removidas
 # Parâmetros: $1 = arquivo
 # Retorno: nenhum
 log_removed_tracks() {
   local input_file="$1"
-  local remove_count=$(count_subtitles_to_remove "$input_file")
   local subs_to_remove=$(get_subtitles_to_remove "$input_file")
 
   log_universal ""
-  log_universal "Tracks de legenda a remover: $remove_count"
+  log_universal "Faixas de legenda a remover:"
 
   if [[ -n "$subs_to_remove" ]]; then
     while IFS=: read -r track_id language track_name; do
       if [[ -n "$track_id" && "$track_id" =~ ^[0-9]+$ ]]; then
         if [[ -n "$track_name" && "$track_name" != "unknown" && "$track_name" != "" ]]; then
-          log_universal "  - Track $track_id: $language ($track_name)"
+          log_universal "  - Faixa $track_id: $language ($track_name)"
         else
-          log_universal "  - Track $track_id: $language"
+          log_universal "  - Faixa $track_id: $language"
         fi
       fi
     done <<<"$subs_to_remove"
@@ -516,16 +429,6 @@ Exemplos:
 
   # Manter português e inglês
   $0 -in /tmp/video.mkv -out /media/series/video.mkv -keep pt-br,eng
-
-Configuração no Sonarr:
-  1. Salve este script em /opt/scripts/sonarr-transcode.sh
-  2. chmod +x /opt/scripts/sonarr-transcode.sh
-  3. No Sonarr: Settings -> Connect -> Add -> Custom Script
-  4. Configure:
-     - Name: Transcode MKV
-     - On Import: ☑️
-     - On Upgrade: ☑️
-     - Path: /opt/scripts/sonarr-transcode.sh
 EOF
 }
 
@@ -558,7 +461,6 @@ validate_output_file() {
 process_file() {
   local input_file="$1"
   local output_file="$2"
-  local output_dir=$(dirname "$output_file")
 
   CURRENT_NEW_FILE="$output_file"
 
@@ -575,11 +477,13 @@ process_file() {
   log_kept_tracks "$input_file"
   log_removed_tracks "$input_file"
 
-  log_universal ""
-  log_universal "Criando arquivo transcodado..."
-
-  mkdir -p "$output_dir"
   execute_mkvmerge "$input_file" "$output_file"
+  local mkvmerge_result=$?
+  if [[ $mkvmerge_result -ne 0 ]]; then
+    log_universal "KO: mkvmerge falhou com código ($mkvmerge_result). Abortando."
+    exit 6
+  fi
+
   if [[ -f "$output_file" && -s "$output_file" ]]; then
     log_universal "OK: Arquivo transcodado criado com sucesso"
     validate_output_file "$output_file"
@@ -726,6 +630,7 @@ sonarr_mode() {
   log_universal "Destino final: $sonarr_episodefile_path"
 
   # Verificar dependências
+  log_universal ""
   log_universal "Verificando dependências..."
   check_dependencies
 

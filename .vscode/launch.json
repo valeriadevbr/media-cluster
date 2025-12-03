@@ -8,13 +8,13 @@
       "type": "bashdb",
       "request": "launch",
       "name": "CLI Mode",
-      "program": "sonarr_transcode.sh",
+      "program": "./scripts/sonarr_transcode.sh",
       "env": {},
       "args": [
         "-in",
-        "~/Downloads/Torrent/test.mkv",
+        "./media/test.mkv",
         "-out",
-        "~/Downloads/Torrent/test-output.mkv",
+        "./media/test-output.mkv",
         "-keep",
         "por,eng"
       ]
@@ -23,13 +23,13 @@
       "type": "bashdb",
       "request": "launch",
       "name": "CLI Mode - Dry Run",
-      "program": "sonarr_transcode.sh",
+      "program": "./scripts/sonarr_transcode.sh",
       "env": {},
       "args": [
         "-in",
-        "~/Downloads/Torrent/test.mkv",
+        "./media/test.mkv",
         "-out",
-        "~/Downloads/Torrent/test-output.mkv",
+        "./media/test-output.mkv",
         "-d",
         "-keep",
         "por,eng"
@@ -39,11 +39,11 @@
       "type": "bashdb",
       "request": "launch",
       "name": "Sonarr Mode",
-      "program": "sonarr_transcode.sh",
+      "program": "./scripts/sonarr_transcode.sh",
       "env": {
         "sonarr_eventtype": "Download",
-        "sonarr_episodefile_sourcepath": "/Users/valeria/Downloads/Torrent/test.mkv",
-        "sonarr_episodefile_path": "/Users/valeria/Downloads/Torrent/test-output.mkv",
+        "sonarr_episodefile_sourcepath": "./media/test.mkv",
+        "sonarr_episodefile_path": "./media/test-output.mkv",
         "sonarr_series_title": "The Simpsons (1989)",
       },
       "args": []
