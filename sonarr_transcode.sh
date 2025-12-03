@@ -23,12 +23,10 @@ export PATH="$PATH:/opt/homebrew/bin"
 # Variáveis internas (preenchidas por ENV ou CLI)
 CURRENT_NEW_FILE=""
 DRY_RUN=false
-INPUT="${INPUT:-}"
 INTERRUPTED=false
 KEEP_LANGS="${KEEP_LANGS:-por,eng}"
 LOG_FILE="${LOG_FILE:-/tmp/sonar_transcode.log}"
 LOG_TO_FILE=false
-OUTPUT="${OUTPUT:-}"
 
 # ================================================
 # Funções Auxiliares
@@ -319,21 +317,22 @@ execute_mkvmerge() {
   local output_file="$2"
   local mkvmerge_cmd=$(build_mkvmerge_command "$file" "$output_file")
 
-  log_universal "Executando: $mkvmerge_cmd"
-
   if [[ "$DRY_RUN" == true ]]; then
+    log_universal "🔍 MODO SIMULAÇÃO - Nenhum arquivo será modificado"
+    log_universal "📝 Comando que seria executado: $mkvmerge_cmd"
     return 0
   fi
 
+  log_universal "Executando: $mkvmerge_cmd"
+
   # Cria pipes nomeados para capturar output em tempo real
-  local tmpdir
-  tmpdir=$(mktemp -d)
-  local raw_output="${tmpdir}/raw"
-  local exit_file="${tmpdir}/exit"
+  local tmp_dir=$(mktemp -d)
+  local raw_output="${tmp_dir}/raw"
+  local exit_file="${tmp_dir}/exit"
 
   if ! mkfifo "$raw_output" 2>/dev/null; then
     log_universal "ERRO: Não foi possível criar pipe nomeado"
-    rm -rf "$tmpdir"
+    rm -rf "$tmp_dir"
     return 1
   fi
 
@@ -394,7 +393,7 @@ execute_mkvmerge() {
   fi
 
   # Limpeza
-  rm -rf "$tmpdir"
+  rm -rf "$tmp_dir"
 
   if [[ $exit_code -eq 0 ]]; then
     log_universal "mkvmerge executado com sucesso"
@@ -436,6 +435,7 @@ log_kept_tracks() {
   local input_file="$1"
   local kept_tracks_ids=$(get_track_ids_by_type "$input_file" "subtitles" "keep")
   if [[ -n "$kept_tracks_ids" ]]; then
+    log_universal ""
     log_universal "Tracks de legenda que serão mantidas:"
     local info_json=$(mkvmerge -J "$input_file" 2>/dev/null)
     for tid in $kept_tracks_ids; do
@@ -454,7 +454,6 @@ log_kept_tracks() {
   else
     log_universal "Nenhuma track de legenda será mantida."
   fi
-
 }
 
 # log_removed_tracks: Loga tracks de legenda que serão removidas
@@ -464,8 +463,10 @@ log_removed_tracks() {
   local input_file="$1"
   local remove_count=$(count_subtitles_to_remove "$input_file")
   local subs_to_remove=$(get_subtitles_to_remove "$input_file")
+
   log_universal ""
   log_universal "Tracks de legenda a remover: $remove_count"
+
   if [[ -n "$subs_to_remove" ]]; then
     while IFS=: read -r track_id language track_name; do
       if [[ -n "$track_id" && "$track_id" =~ ^[0-9]+$ ]]; then
@@ -477,21 +478,6 @@ log_removed_tracks() {
       fi
     done <<<"$subs_to_remove"
   fi
-}
-
-# dry_run_action: Loga ação simulada sem modificar arquivos
-# Parâmetros: $1 = arquivo, $2 = saída
-# Retorno: nenhum
-dry_run_action() {
-  local input_file="$1"
-  local output_file="$2"
-  local mkvmerge_cmd=$(build_mkvmerge_command "$input_file" "$output_file")
-  log_universal ""
-  log_universal "🔍 MODO SIMULAÇÃO - Nenhum arquivo será modificado"
-  log_universal "📤 Arquivo de saída seria: $output_file"
-  log_universal "📝 Comando que seria executado:"
-  log_universal "   $mkvmerge_cmd"
-  CURRENT_NEW_FILE=""
 }
 
 # show_help: Exibe ajuda de uso do script
@@ -546,22 +532,6 @@ EOF
 # copy_input_to_output: Copia o arquivo de entrada para o arquivo de saída, criando o diretório se necessário
 # Parâmetros: $1 = arquivo de entrada, $2 = arquivo de saída
 # Retorno: 0=sucesso, 4=erro ao copiar
-copy_input_to_output() {
-  local input_file="$1"
-  local output_file="$2"
-  local output_dir
-  output_dir=$(dirname "$output_file")
-  mkdir -p "$output_dir"
-  if cp "$input_file" "$output_file"; then
-    log_universal "✅ Arquivo copiado com sucesso"
-    CURRENT_NEW_FILE=""
-    return 0
-  else
-    log_universal "❌ Erro ao copiar arquivo"
-    CURRENT_NEW_FILE=""
-    return 4
-  fi
-}
 
 # validate_output_file: Verifica se o arquivo de saída existe e não está vazio
 # Parâmetros: $1 = arquivo de saída
@@ -569,11 +539,11 @@ copy_input_to_output() {
 validate_output_file() {
   local output_file="$1"
   if [[ -f "$output_file" && -s "$output_file" ]]; then
-    log_universal "✅ Processamento concluído!"
+    log_universal "OK: Processamento concluído!"
     CURRENT_NEW_FILE=""
     return 0
   else
-    log_universal "❌ Erro: Arquivo processado está vazio"
+    log_universal "Erro: Arquivo processado está vazio"
     if [[ -f "$output_file" ]]; then
       rm -f "$output_file"
     fi
@@ -588,12 +558,13 @@ validate_output_file() {
 process_file() {
   local input_file="$1"
   local output_file="$2"
+  local output_dir=$(dirname "$output_file")
 
   CURRENT_NEW_FILE="$output_file"
 
+  log_universal ""
   log_universal "=== Processando arquivo ==="
   log_universal "Linguagens a manter: $KEEP_LANGS"
-  log_universal ""
 
   validate_file "$input_file" "$output_file"
   local valid_result=$?
@@ -602,43 +573,19 @@ process_file() {
   fi
 
   log_kept_tracks "$input_file"
-
-  if ! has_subtitles_to_keep "$input_file"; then
-    log_universal "ℹ️  Nenhuma legenda para manter encontrada (linguagens: $KEEP_LANGS)"
-    log_universal "🔒 Não será processado"
-    if [[ "$DRY_RUN" == true ]]; then
-      dry_run_action "$input_file" "$output_file"
-      return 0
-    fi
-    copy_input_to_output "$input_file" "$output_file"
-    return $?
-  fi
-
   log_removed_tracks "$input_file"
 
-  if [[ "$DRY_RUN" == true ]]; then
-    dry_run_action "$input_file" "$output_file"
-    return 0
-  fi
+  log_universal ""
+  log_universal "Criando arquivo transcodado..."
 
-  local remove_count=$(count_subtitles_to_remove "$input_file")
-  if [[ $remove_count -eq 0 ]]; then
-    log_universal "✅ Nenhuma legenda para remover encontrada. Copiando arquivo..."
-    copy_input_to_output "$input_file" "$output_file"
-    return $?
-  fi
-
-  log_universal "🛠️  Criando arquivo processado..."
-  local output_dir
-  output_dir=$(dirname "$output_file")
   mkdir -p "$output_dir"
   execute_mkvmerge "$input_file" "$output_file"
   if [[ -f "$output_file" && -s "$output_file" ]]; then
-    log_universal "✅ Arquivo processado criado com sucesso"
+    log_universal "OK: Arquivo transcodado criado com sucesso"
     validate_output_file "$output_file"
     return $?
   else
-    log_universal "❌ Erro ao criar arquivo processado"
+    log_universal "KO: Erro ao criar arquivo transcodado"
     if [[ -f "$output_file" ]]; then
       rm -f "$output_file"
     fi
@@ -698,19 +645,19 @@ cli_mode() {
 
   # Validar parâmetros
   if [[ -z "$INPUT" ]]; then
-    log_universal "❌ Erro: Parâmetro -in não especificado"
+    log_universal "Erro: Parâmetro -in não especificado"
     show_help
     exit 1
   fi
 
   if [[ -z "$OUTPUT" ]]; then
-    log_universal "❌ Erro: Parâmetro -out não especificado"
+    log_universal "Erro: Parâmetro -out não especificado"
     show_help
     exit 1
   fi
 
   if [[ ! -f "$INPUT" ]]; then
-    log_universal "❌ Erro: Arquivo de entrada não encontrado: $INPUT"
+    log_universal "Erro: Arquivo de entrada não encontrado: $INPUT"
     exit 1
   fi
 
@@ -720,7 +667,6 @@ cli_mode() {
   # Log das variáveis (útil para debug)
   log_universal "Arquivo fonte: $INPUT"
   log_universal "Destino final: $OUTPUT"
-  log_universal ""
 
   # Processar arquivo
   process_file "$INPUT" "$OUTPUT"
@@ -764,6 +710,11 @@ sonarr_mode() {
     exit 1
   fi
 
+  # Se não for MKV, apenas copia para o destino
+  if [[ "$sonarr_episodefile_sourcepath" != *.mkv ]]; then
+    exit 5
+  fi
+
   if [[ -z "$sonarr_episodefile_path" ]]; then
     log_universal "Erro: Variável 'sonarr_episodefile_path' não definida"
     exit 2
@@ -773,28 +724,12 @@ sonarr_mode() {
   log_universal "Evento: $sonarr_eventtype"
   log_universal "Arquivo fonte: $sonarr_episodefile_sourcepath"
   log_universal "Destino final: $sonarr_episodefile_path"
-  log_universal "Série: ${sonarr_series_title:-N/A}"
 
   # Verificar dependências
   log_universal "Verificando dependências..."
   check_dependencies
 
   log_universal "Iniciando processamento do arquivo..."
-
-  # Se não for MKV, apenas copia para o destino
-  if [[ "$sonarr_episodefile_sourcepath" != *.mkv ]]; then
-    log_universal "Arquivo não é MKV, copiando diretamente para o destino."
-    if cp "$sonarr_episodefile_sourcepath" "$sonarr_episodefile_path"; then
-      log_universal "Arquivo copiado com sucesso."
-      log_universal "✅ Arquivo copiado com sucesso"
-      exit 0
-    else
-      log_universal "Erro ao copiar arquivo para o destino."
-      log_universal "❌ Erro ao copiar arquivo"
-      exit 4
-    fi
-  fi
-
   process_file "$sonarr_episodefile_sourcepath" "$sonarr_episodefile_path"
 
   local result=$?
