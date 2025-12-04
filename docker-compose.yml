@@ -3,68 +3,149 @@ services:
   plex:
     image: lscr.io/linuxserver/plex:latest
     container_name: plex
-    # network_mode: "host"
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=America/Sao_Paulo
-      # - PLEX_CLAIM=claim-xxxxxxxxxxxx_xxxxxxx
+    hostname: plex.local
     volumes:
       - /Volumes/Plex/configs/plex:/config
       - /Volumes/Plex/media:/media
-    ports:
-      - 32400:32400
-    restart: unless-stopped
-  sonarr:
-    image: sonarr-mkvtoolnix
-    container_name: sonarr
     environment:
       - PUID=1000
       - PGID=1000
       - TZ=America/Sao_Paulo
+    ports:
+      - 32400:32400
+    networks:
+      - plex
+    restart: unless-stopped
+
+  sonarr:
+    image: sonarr-mkvtoolnix
+    container_name: sonarr
+    hostname: sonarr.local
     volumes:
       - /Volumes/Plex/configs/sonarr:/config
       - /Volumes/Plex/media:/media
       - /Volumes/Plex/scripts:/opt/scripts
       - /Users/valeria/Downloads/Torrent:/downloads
-    ports:
-      - 8989:8989
-    restart: unless-stopped
-  radarr:
-    image: radarr-mkvtoolnix
-    container_name: radarr
     environment:
       - PUID=1000
       - PGID=1000
       - TZ=America/Sao_Paulo
+    ports:
+      - 8989:8989
+    networks:
+      - plex
+    restart: unless-stopped
+
+  radarr:
+    image: radarr-mkvtoolnix
+    container_name: radarr
+    hostname: radarr.local
     volumes:
       - /Volumes/Plex/configs/radarr:/config
       - /Volumes/Plex/media:/media
       - /Volumes/Plex/scripts:/opt/scripts
       - /Users/valeria/Downloads/Torrent:/downloads
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Sao_Paulo
     ports:
       - 7878:7878
+    networks:
+      - plex
     restart: unless-stopped
+
+  jackett:
+    image: lscr.io/linuxserver/jackett:latest
+    container_name: jackett
+    hostname: jackett.local
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Sao_Paulo
+      - AUTO_UPDATE=true
+      # - RUN_OPTS=
+    volumes:
+      - /Volumes/Plex/configs/jackett:/config
+      - /Users/valeria/Downloads/Torrent:/downloads
+    ports:
+      - 9117:9117
+    networks:
+      - plex
+    restart: unless-stopped
+
+  flaresolverr:
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    container_name: flaresolverr
+    hostname: flaresolverr.local
+    environment:
+      - LOG_LEVEL=info
+      - LOG_HTML=false
+      - TZ=America/Sao_Paulo
+    ports:
+      - 8191:8191
+    networks:
+      - plex
+    restart: unless-stopped
+
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:latest
     container_name: prowlarr
-    environment:
-      - PUID=568
-      - PGID=568
-      - TZ=America/Sao_Paulo
+    hostname: prowlarr.local
     volumes:
       - /Volumes/Plex/configs/prowlarr:/config
       - /Volumes/Plex/media/:/media/
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Sao_Paulo
     ports:
       - 9696:9696
+    networks:
+      - plex
     restart: unless-stopped
+
   profilarr:
     image: santiagosayshey/profilarr:latest
     container_name: profilarr
-    ports:
-      - 6868:6868
+    hostname: profilarr.local
     volumes:
       - /Volumes/Plex/configs/profilarr:/config
     environment:
+      - PUID=1000
+      - PGID=1000
       - TZ=America/Sao_Paulo
+    ports:
+      - 6868:6868
+    networks:
+      - plex
     restart: unless-stopped
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx-proxy
+    hostname: nginx.local
+    volumes:
+      - ./configs/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./configs/nginx/proxy_common.conf:/etc/nginx/proxy_common.conf:ro
+    depends_on:
+      - plex
+      - sonarr
+      - radarr
+      - prowlarr
+      - profilarr
+    ports:
+      - 80:80
+    networks:
+      - plex
+    restart: unless-stopped
+
+networks:
+  plex:
+    driver: bridge
+    attachable: true
+    ipam:
+      driver: default
+      config:
+        - subnet: "172.16.0.0/24"
+          gateway: "172.16.0.254"
