@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Carrega variáveis compartilhadas
-source "$(dirname -- "$0")/setup_vars.sh"
+source "$(dirname -- "$0")/includes/setup_vars.sh"
 
 # Build das imagens customizadas Sonarr e Radarr com mkvtoolnix CLI
 echo "Construindo imagem $SONARR_IMAGE..."
