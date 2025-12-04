@@ -5,8 +5,8 @@ services:
     container_name: plex
     hostname: plex.local
     volumes:
-      - /Volumes/Plex/configs/plex:/config
-      - /Volumes/Plex/media:/media
+      - ../configs/plex:/config
+      - ../media:/media
     environment:
       - PUID=1000
       - PGID=1000
@@ -17,14 +17,32 @@ services:
       - plex
     restart: unless-stopped
 
+  emby:
+    image: lscr.io/linuxserver/emby:latest
+    container_name: emby
+    hostname: emby.local
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Sao_Paulo
+    volumes:
+      - ../configs/emby:/config
+      - ../media:/media
+    ports:
+      - 8096:8096
+      - 8920:8920
+    networks:
+      - plex
+    restart: unless-stopped
+
   sonarr:
     image: sonarr-mkvtoolnix
     container_name: sonarr
     hostname: sonarr.local
     volumes:
-      - /Volumes/Plex/configs/sonarr:/config
-      - /Volumes/Plex/media:/media
-      - /Volumes/Plex/scripts:/opt/scripts
+      - ../configs/sonarr:/config
+      - ../media:/media
+      - ../scripts:/opt/scripts
       - /Users/valeria/Downloads/Torrent:/downloads
     environment:
       - PUID=1000
@@ -41,9 +59,9 @@ services:
     container_name: radarr
     hostname: radarr.local
     volumes:
-      - /Volumes/Plex/configs/radarr:/config
-      - /Volumes/Plex/media:/media
-      - /Volumes/Plex/scripts:/opt/scripts
+      - ../configs/radarr:/config
+      - ../media:/media
+      - ../scripts:/opt/scripts
       - /Users/valeria/Downloads/Torrent:/downloads
     environment:
       - PUID=1000
@@ -66,7 +84,7 @@ services:
       - AUTO_UPDATE=true
       # - RUN_OPTS=
     volumes:
-      - /Volumes/Plex/configs/jackett:/config
+      - ../configs/jackett:/config
       - /Users/valeria/Downloads/Torrent:/downloads
     ports:
       - 9117:9117
@@ -93,8 +111,8 @@ services:
     container_name: prowlarr
     hostname: prowlarr.local
     volumes:
-      - /Volumes/Plex/configs/prowlarr:/config
-      - /Volumes/Plex/media/:/media/
+      - ../configs/prowlarr:/config
+      - ../media/:/media/
     environment:
       - PUID=1000
       - PGID=1000
@@ -110,7 +128,7 @@ services:
     container_name: profilarr
     hostname: profilarr.local
     volumes:
-      - /Volumes/Plex/configs/profilarr:/config
+      - ../configs/profilarr:/config
     environment:
       - PUID=1000
       - PGID=1000
@@ -126,8 +144,8 @@ services:
     container_name: nginx-proxy
     hostname: nginx.local
     volumes:
-      - ./configs/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./configs/nginx/proxy_common.conf:/etc/nginx/proxy_common.conf:ro
+      - ../configs/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ../configs/nginx/proxy_common.conf:/etc/nginx/proxy_common.conf:ro
     depends_on:
       - plex
       - sonarr

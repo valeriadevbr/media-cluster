@@ -1,6 +1,10 @@
+# Ignora tudo
+/*
+
+# Exceto setup e scripts
+!/setup/
+!/scripts/
+
+# Ignora arquivos de sistema
 .DS_Store
 .nomedia
-.Trashes
-.Spotlight-V100
-media/**
-configs/**
