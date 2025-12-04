@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Script de importação para Sonarr - Remove legendas não-desejadas de arquivos MKV
-# Modo Sonarr: Variáveis de ambiente do Sonarr (sonarr_episodefile_sourcepath, sonarr_episodefile_path)
+# Script de importação para Remove legendas não-desejadas de arquivos MKV
+# Modo *Arr: Variáveis de ambiente do servidor
 # Modo CLI: Argumentos de linha de comando (-in, -out)
 
 # Exit codes do script:
@@ -26,8 +26,13 @@ CURRENT_NEW_FILE=""
 DRY_RUN=false
 INTERRUPTED=false
 KEEP_LANGS="${KEEP_LANGS:-por,eng}"
-LOG_FILE="${LOG_FILE:-/tmp/sonar_transcode.log}"
+LOG_FILE="${LOG_FILE:-/tmp/arr_transcode.log}"
 LOG_TO_FILE=false
+
+# *Arr Server
+EVENT_TYPE="${sonarr_eventtype:-$radarr_eventtype}"
+SOURCE_PATH="${sonarr_episodefile_sourcepath:-$radarr_moviefile_sourcepath}"
+OUTPUT_PATH="${sonarr_episodefile_path:-$radarr_moviefile_path}"
 
 # ================================================
 # Funções Auxiliares
@@ -398,17 +403,22 @@ log_removed_tracks() {
 # Retorno: nenhum
 show_help() {
   cat <<EOF
-Script de importação para Sonarr - Remove legendas não-desejadas de arquivos MKV
+Script de importação para remover legendas não-desejadas de arquivos MKV
 
-Uso como script de importação Sonarr:
-  Configure no Sonarr como Custom Script com os triggers:
+Uso como script de importação *Arr:
+  Configure como Custom Script com os triggers:
     - On Import
     - On Upgrade
 
-  O Sonarr passará as variáveis de ambiente:
+  O Sonar passará as variáveis de ambiente:
     sonarr_eventtype: Tipo de evento (Download, Upgrade, Test, etc.)
     sonarr_episodefile_sourcepath: Caminho do arquivo baixado (pasta temporária)
     sonarr_episodefile_path: Caminho de destino final
+
+  O Radarr passará as variáveis de ambiente:
+    radarr_eventtype: Tipo de evento (Download, Upgrade, Test, etc.)
+    radarr_moviefile_sourcepath: Caminho do arquivo baixado (pasta temporária)
+    radarr_moviefile_path: Caminho de destino final
 
 Uso via linha de comando (para testes):
   $0 -in <arquivo_entrada> -out <arquivo_saida> [opções]
@@ -508,18 +518,15 @@ process_file() {
 cli_mode() {
   log_universal "=== Modo CLI ==="
 
-  local INPUT=""
-  local OUTPUT=""
-
   # Processar argumentos
   while [[ $# -gt 0 ]]; do
     case $1 in
     -in)
-      INPUT="$2"
+      SOURCE_PATH="$2"
       shift 2
       ;;
     -out)
-      OUTPUT="$2"
+      OUTPUT_PATH="$2"
       shift 2
       ;;
     -keep)
@@ -548,20 +555,20 @@ cli_mode() {
   done
 
   # Validar parâmetros
-  if [[ -z "$INPUT" ]]; then
+  if [[ -z "$SOURCE_PATH" ]]; then
     log_universal "Erro: Parâmetro -in não especificado"
     show_help
     exit 1
   fi
 
-  if [[ -z "$OUTPUT" ]]; then
+  if [[ -z "$OUTPUT_PATH" ]]; then
     log_universal "Erro: Parâmetro -out não especificado"
     show_help
     exit 1
   fi
 
-  if [[ ! -f "$INPUT" ]]; then
-    log_universal "Erro: Arquivo de entrada não encontrado: $INPUT"
+  if [[ ! -f "$SOURCE_PATH" ]]; then
+    log_universal "Erro: Arquivo de entrada não encontrado: $SOURCE_PATH"
     exit 1
   fi
 
@@ -569,12 +576,11 @@ cli_mode() {
   check_dependencies
 
   # Log das variáveis (útil para debug)
-  log_universal "Arquivo fonte: $INPUT"
-  log_universal "Destino final: $OUTPUT"
+  log_universal "Arquivo fonte: $SOURCE_PATH"
+  log_universal "Destino final: $OUTPUT_PATH"
 
   # Processar arquivo
-  process_file "$INPUT" "$OUTPUT"
-
+  process_file "$SOURCE_PATH" "$OUTPUT_PATH"
   local result=$?
   if [[ $result -eq 0 ]]; then
     exit 0
@@ -584,50 +590,50 @@ cli_mode() {
 }
 
 # ================================================
-# MODO SONARR (Variáveis de Ambiente)
+# MODO ARR (Variáveis de Ambiente)
 # ================================================
 
-# sonarr_mode: Modo de execução via Sonarr
-# Parâmetros: variáveis de ambiente do Sonarr
+# arr_mode: Modo de execução via *Arr
+# Parâmetros: variáveis de ambiente do *Arr
 # Retorno: exit 0=sucesso, exit 3=erro
-sonarr_mode() {
-  rotate_log_if_needed
+arr_mode() {
   LOG_TO_FILE=true
-  log_universal "=== Modo Sonarr (Evento: ${sonarr_eventtype}) ==="
+  rotate_log_if_needed
+  log_universal "=== Modo *Arr (Evento: ${EVENT_TYPE}) ==="
 
   # Verificar se é evento suportado
-  if [[ "$sonarr_eventtype" != "Download" && "$sonarr_eventtype" != "Upgrade" && "$sonarr_eventtype" != "Test" ]]; then
-    log_universal "Evento não suportado: $sonarr_eventtype"
+  if [[ "$EVENT_TYPE" != "Download" && "$EVENT_TYPE" != "Upgrade" && "$EVENT_TYPE" != "Test" ]]; then
+    log_universal "Evento não suportado: $EVENT_TYPE"
     log_universal "Eventos suportados: Download, Upgrade, Test"
     exit 0
   fi
 
   # Sair sem erro ao receber o evento de teste
-  if [[ "$sonarr_eventtype" == "Test" ]]; then
+  if [[ "$EVENT_TYPE" == "Test" ]]; then
     log_universal "Evento de teste recebido. Encerrando."
     exit 0
   fi
 
-  # Verificar variáveis obrigatórias do Sonarr
-  if [[ -z "$sonarr_episodefile_sourcepath" ]]; then
-    log_universal "Erro: Variável 'sonarr_episodefile_sourcepath' não definida"
+  # Verificar variáveis obrigatórias do servidor
+  if [[ -z "$SOURCE_PATH" ]]; then
+    log_universal "Erro: Arquivo de origem não definido"
     exit 1
   fi
 
   # Se não for MKV, apenas copia para o destino
-  if [[ "$sonarr_episodefile_sourcepath" != *.mkv ]]; then
+  if [[ "$SOURCE_PATH" != *.mkv ]]; then
     exit 5
   fi
 
-  if [[ -z "$sonarr_episodefile_path" ]]; then
-    log_universal "Erro: Variável 'sonarr_episodefile_path' não definida"
+  if [[ -z "$OUTPUT_PATH" ]]; then
+    log_universal "Erro: Arquivo de destino não definido"
     exit 2
   fi
 
   # Log das variáveis (útil para debug)
-  log_universal "Evento: $sonarr_eventtype"
-  log_universal "Arquivo fonte: $sonarr_episodefile_sourcepath"
-  log_universal "Destino final: $sonarr_episodefile_path"
+  log_universal "Evento: $EVENT_TYPE"
+  log_universal "Arquivo fonte: $SOURCE_PATH"
+  log_universal "Destino final: $OUTPUT_PATH"
 
   # Verificar dependências
   log_universal ""
@@ -635,7 +641,7 @@ sonarr_mode() {
   check_dependencies
 
   log_universal "Iniciando processamento do arquivo..."
-  process_file "$sonarr_episodefile_sourcepath" "$sonarr_episodefile_path"
+  process_file "$SOURCE_PATH" "$OUTPUT_PATH"
 
   local result=$?
   if [[ $result -eq 0 ]]; then
@@ -651,11 +657,8 @@ sonarr_mode() {
 
 trap handle_interrupt SIGINT
 
-# Determinar modo de execução
-if [[ -n "$sonarr_eventtype" ]]; then
-  # Modo Sonarr (variável sonarr_eventtype definida)
-  sonarr_mode
+if [[ -n "$EVENT_TYPE" ]]; then
+  arr_mode
 else
-  # Modo CLI (sem variável sonarr_eventtype)
   cli_mode "$@"
 fi
