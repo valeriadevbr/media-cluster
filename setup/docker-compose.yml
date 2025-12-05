@@ -1,7 +1,7 @@
 name: plex
 services:
   plex:
-    image: lscr.io/linuxserver/plex:latest
+    image: plexinc/pms-docker:latest
     container_name: plex
     hostname: plex.local
     volumes:
@@ -10,15 +10,28 @@ services:
     environment:
       - PUID=1000
       - PGID=1000
+      - VERSION=docker
+      - ADVERTISE_IP=http://192.168.2.1:32400/
+      - HOSTNAME=MacBook Pro
       - TZ=America/Sao_Paulo
+      - NVIDIA_DRIVER_CAPABILITIES=compute,video,utility
+      - NVIDIA_VISIBLE_DEVICES=all
     ports:
       - 32400:32400
+      - 1900:1900/udp
+      - 5354:5353/udp
+      - 8324:8324
+      - 32410:32410/udp
+      - 32412:32412/udp
+      - 32413:32413/udp
+      - 32414:32414/udp
+      - 32469:32469
     networks:
       - plex
-    restart: unless-stopped
+    restart: on-failure
 
   emby:
-    image: lscr.io/linuxserver/emby:latest
+    image: emby/embyserver_arm64v8:latest
     container_name: emby
     hostname: emby.local
     environment:
@@ -32,7 +45,7 @@ services:
       - 8096:8096
     networks:
       - plex
-    restart: unless-stopped
+    restart: on-failure
 
   sonarr:
     image: sonarr-mkvtoolnix
