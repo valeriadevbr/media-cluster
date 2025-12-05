@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 # Carrega variáveis compartilhadas
 source "$(dirname -- "$0")/includes/setup_vars.sh"
@@ -24,3 +25,10 @@ generate_cert \
   "$SSL_CONFIG_DIR/ca/ca.key" \
   "$SSL_CONFIG_DIR/local/san/prowlarr.local-san.cnf" \
   "$SSL_CONFIG_DIR/local/prowlarr.local.pfx"
+
+generate_cert \
+  "emby.local" \
+  "$SSL_CONFIG_DIR/ca/ca.crt" \
+  "$SSL_CONFIG_DIR/ca/ca.key" \
+  "$SSL_CONFIG_DIR/local/san/emby.local-san.cnf" \
+  "$SSL_CONFIG_DIR/local/emby.local.pfx"

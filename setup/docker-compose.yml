@@ -27,6 +27,7 @@ services:
       - TZ=America/Sao_Paulo
     volumes:
       - ../configs/emby:/config
+      - ../configs/ssl/wan/apedamo.tplinkdns.com.pfx:/config/ssl.pfx:ro
       - ../media:/media
     ports:
       - 8096:8096
@@ -41,7 +42,7 @@ services:
     hostname: sonarr.local
     volumes:
       - ../configs/sonarr:/config
-      - ../configs/ssl/local/sonarr.local.pfx:/config/sonarr.local.pfx:ro
+      - ../configs/ssl/local/sonarr.local.pfx:/config/ssl.pfx:ro
       - ../scripts:/opt/scripts
       - ../media:/media
       - /Users/valeria/Downloads/Torrent:/downloads
@@ -62,7 +63,7 @@ services:
     hostname: radarr.local
     volumes:
       - ../configs/radarr:/config
-      - ../configs/ssl/local/radarr.local.pfx:/config/radarr.local.pfx:ro
+      - ../configs/ssl/local/radarr.local.pfx:/config/ssl.pfx:ro
       - ../scripts:/opt/scripts
       - ../media:/media
       - /Users/valeria/Downloads/Torrent:/downloads
@@ -83,7 +84,7 @@ services:
     hostname: prowlarr.local
     volumes:
       - ../configs/prowlarr:/config
-      - ../configs/ssl/local/prowlarr.local.pfx:/config/prowlarr.local.pfx:ro
+      - ../configs/ssl/local/prowlarr.local.pfx:/config/ssl.pfx:ro
       - ../media/:/media/
     environment:
       - PUID=1000
@@ -158,6 +159,8 @@ services:
       - ../configs/ssl/local/radarr.local.crt:/config/radarr.local.crt:ro
       - ../configs/ssl/local/sonarr.local.key:/config/sonarr.local.key:ro
       - ../configs/ssl/local/sonarr.local.crt:/config/sonarr.local.crt:ro
+      - ../configs/ssl/local/emby.local.key:/config/emby.local.key:ro
+      - ../configs/ssl/local/emby.local.crt:/config/emby.local.crt:ro
     depends_on:
       - plex
       - sonarr
