@@ -27,11 +27,9 @@ services:
       - TZ=America/Sao_Paulo
     volumes:
       - ../configs/emby:/config
-      - ../configs/ssl/wan/apedamo.tplinkdns.com.pfx:/config/ssl.pfx:ro
       - ../media:/media
     ports:
       - 8096:8096
-      - 8920:8920
     networks:
       - plex
     restart: unless-stopped
@@ -42,7 +40,6 @@ services:
     hostname: sonarr.local
     volumes:
       - ../configs/sonarr:/config
-      - ../configs/ssl/local/sonarr.local.pfx:/config/ssl.pfx:ro
       - ../scripts:/opt/scripts
       - ../media:/media
       - /Users/valeria/Downloads/Torrent:/downloads
@@ -52,7 +49,6 @@ services:
       - TZ=America/Sao_Paulo
     ports:
       - 8989:8989
-      - 9898:9898
     networks:
       - plex
     restart: unless-stopped
@@ -63,7 +59,6 @@ services:
     hostname: radarr.local
     volumes:
       - ../configs/radarr:/config
-      - ../configs/ssl/local/radarr.local.pfx:/config/ssl.pfx:ro
       - ../scripts:/opt/scripts
       - ../media:/media
       - /Users/valeria/Downloads/Torrent:/downloads
@@ -73,7 +68,6 @@ services:
       - TZ=America/Sao_Paulo
     ports:
       - 7878:7878
-      - 8787:8787
     networks:
       - plex
     restart: unless-stopped
@@ -84,7 +78,6 @@ services:
     hostname: prowlarr.local
     volumes:
       - ../configs/prowlarr:/config
-      - ../configs/ssl/local/prowlarr.local.pfx:/config/ssl.pfx:ro
       - ../media/:/media/
     environment:
       - PUID=1000
@@ -92,7 +85,6 @@ services:
       - TZ=America/Sao_Paulo
     ports:
       - 9696:9696
-      - 6969:6969
     networks:
       - plex
     restart: unless-stopped
@@ -153,20 +145,18 @@ services:
     volumes:
       - ../configs/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ../configs/nginx/proxy_common.conf:/etc/nginx/proxy_common.conf:ro
-      - ../configs/ssl/local/prowlarr.local.key:/config/prowlarr.local.key:ro
-      - ../configs/ssl/local/prowlarr.local.crt:/config/prowlarr.local.crt:ro
-      - ../configs/ssl/local/radarr.local.key:/config/radarr.local.key:ro
-      - ../configs/ssl/local/radarr.local.crt:/config/radarr.local.crt:ro
-      - ../configs/ssl/local/sonarr.local.key:/config/sonarr.local.key:ro
-      - ../configs/ssl/local/sonarr.local.crt:/config/sonarr.local.crt:ro
-      - ../configs/ssl/local/emby.local.key:/config/emby.local.key:ro
-      - ../configs/ssl/local/emby.local.crt:/config/emby.local.crt:ro
+      - ../configs/ssl/local/localhost.crt:/config/ssl.lan.crt:ro
+      - ../configs/ssl/local/localhost.key:/config/ssl.lan.key:ro
+      - ../configs/ssl/wan/apedamo.duckdns.org.crt:/config/ssl.wan.crt:ro
+      - ../configs/ssl/wan/apedamo.duckdns.org.key:/config/ssl.wan.key:ro
     depends_on:
+      - emby
+      - jackett
       - plex
-      - sonarr
-      - radarr
-      - prowlarr
       - profilarr
+      - prowlarr
+      - radarr
+      - sonarr
     ports:
       - 80:80
       - 443:443
