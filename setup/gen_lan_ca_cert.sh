@@ -2,9 +2,11 @@
 set -e
 
 # Carrega variáveis compartilhadas
-source "$(dirname -- "$0")/includes/setup_vars.sh"
+source "$(dirname -- "$0")/.env"
 
-openssl genrsa -out $CONFIGS_DIR/ssl/ca/ca.key 4096
+SSL_CONFIG_PATH="${CONFIGS_PATH}/ssl"
+
+openssl genrsa -out $SSL_CONFIG_PATH/ca/ca.key 4096
 openssl req \
   -x509 \
   -new \
@@ -12,7 +14,7 @@ openssl req \
   -sha256 \
   -days 1825 \
   -subj "/CN=DevilCOM Network" \
-  -key $CONFIGS_DIR/ssl/ca/ca.key \
-  -out $CONFIGS_DIR/ssl/ca/ca.crt
+  -key $CONFIGS_PATH/ssl/ca/ca.key \
+  -out $CONFIGS_PATH/ssl/ca/ca.crt
 
-sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain $CONFIGS_DIR/ssl/ca/ca.crt
+sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain $CONFIGS_PATH/ssl/ca/ca.crt

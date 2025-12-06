@@ -1,0 +1,60 @@
+(proxy_headers) {
+  flush_interval -1
+}
+
+plex.apedamo.duckdns.org {
+  tls /certs/wan/apedamo.duckdns.org.crt /certs/wan/apedamo.duckdns.org.key
+
+  reverse_proxy plex:32400 {
+    import proxy_headers
+  }
+}
+
+emby.apedamo.duckdns.org {
+  tls /certs/wan/apedamo.duckdns.org.crt /certs/wan/apedamo.duckdns.org.key
+
+  reverse_proxy emby:8096 {
+    import proxy_headers
+  }
+}
+
+*.lan {
+  tls /certs/lan/localhost.crt /certs/lan/localhost.key
+
+  @plex host plex.lan
+  reverse_proxy @plex plex:32400 {
+    import proxy_headers
+  }
+
+  @emby host emby.lan
+  reverse_proxy @emby emby:8096 {
+    import proxy_headers
+  }
+
+  @sonarr host sonarr.lan
+  reverse_proxy @sonarr sonarr:8989
+
+  @radarr host radarr.lan
+  reverse_proxy @radarr radarr:7878
+
+  @bazarr host bazarr.lan
+  reverse_proxy @bazarr bazarr:6767
+
+  @prowlarr host prowlarr.lan
+  reverse_proxy @prowlarr prowlarr:9696
+
+  @profilarr host profilarr.lan
+  reverse_proxy @profilarr profilarr:6868
+
+  @jackett host jackett.lan
+  reverse_proxy @jackett jackett:9117
+
+  @flaresolverr host flaresolverr.lan
+  reverse_proxy @flaresolverr flaresolverr:8191
+
+  @wisper host wisper.lan
+  reverse_proxy @wisper wisper:9000
+
+  @proxy host proxy.lan
+  reverse_proxy @proxy proxy:3128
+}

@@ -7,11 +7,10 @@ generate_local_cert() {
   local san_cnf="$4"
   local out_dir="$5"
 
-  local work_dir=$(dirname "$out_dir")
-  local csr_path="${work_dir}/${host}.csr"
-  local key_path="${work_dir}/${host}.key"
-  local crt_path="${work_dir}/${host}.crt"
-  local pfx_path="${work_dir}/${host}.pfx"
+  local csr_path="${out_dir}/${host}.csr"
+  local key_path="${out_dir}/${host}.key"
+  local crt_path="${out_dir}/${host}.crt"
+  local pfx_path="${out_dir}/${host}.pfx"
 
   # Gera a chave privada
   openssl genrsa -out "$key_path" 2048
