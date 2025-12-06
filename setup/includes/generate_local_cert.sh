@@ -1,16 +1,17 @@
 #!/bin/bash
 
-generate_cert() {
+generate_local_cert() {
   local host="$1"
   local ca_crt="$2"
   local ca_key="$3"
   local san_cnf="$4"
-  local pfx_path="$5"
+  local out_dir="$5"
 
-  local work_dir=$(dirname "$pfx_path")
+  local work_dir=$(dirname "$out_dir")
   local csr_path="${work_dir}/${host}.csr"
   local key_path="${work_dir}/${host}.key"
   local crt_path="${work_dir}/${host}.crt"
+  local pfx_path="${work_dir}/${host}.pfx"
 
   # Gera a chave privada
   openssl genrsa -out "$key_path" 2048
@@ -35,7 +36,7 @@ generate_cert() {
     -extfile "$san_cnf" \
     -out "$crt_path"
 
-  # Converte o certificado e a chave para o formato PFX
+  #Converte o certificado e a chave para o formato PFX
   openssl pkcs12 \
     -export \
     -certfile "$ca_crt" \

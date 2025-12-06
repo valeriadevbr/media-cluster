@@ -4,6 +4,7 @@
 # Exceto setup e scripts
 !/setup/
 !/scripts/
+.env
 
 # Ignora arquivos de sistema
 .DS_Store

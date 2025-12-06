@@ -3,37 +3,32 @@ services:
   plex:
     image: plexinc/pms-docker:latest
     container_name: plex
-    hostname: plex.local
+    hostname: plex.lan
     volumes:
       - ../configs/plex:/config
       - ../media:/media
     environment:
       - PUID=1000
       - PGID=1000
-      - VERSION=docker
-      - ADVERTISE_IP=http://192.168.2.1:32400/
-      - HOSTNAME=MacBook Pro
       - TZ=America/Sao_Paulo
-      - NVIDIA_DRIVER_CAPABILITIES=compute,video,utility
-      - NVIDIA_VISIBLE_DEVICES=all
+      - VERSION=docker
+      - PLEX_CLAIM=${PLEX_CLAIM:-}  # Recomendado: usar .env file
+      - ADVERTISE_IP=http://192.168.2.1:32400/
     ports:
-      - 32400:32400
-      - 1900:1900/udp
-      - 5354:5353/udp
-      - 8324:8324
-      - 32410:32410/udp
-      - 32412:32412/udp
-      - 32413:32413/udp
-      - 32414:32414/udp
-      - 32469:32469
+      - 32400:32400/tcp      # WEB/API/APPS
+      - 32410:32410/udp      # SERVER DISCOVERY
+      - 32412:32412/udp      # SERVER DISCOVERY
+      - 32413:32413/udp      # SERVER DISCOVERY
+      - 32414:32414/udp      # SERVER DISCOVERY
+      - 8324:8324/tcp        # REMOTE CONTROL
     networks:
-      - plex
+      - plex-network
     restart: on-failure
 
   emby:
     image: emby/embyserver_arm64v8:latest
     container_name: emby
-    hostname: emby.local
+    hostname: emby.lan
     environment:
       - PUID=1000
       - PGID=1000
@@ -41,16 +36,16 @@ services:
     volumes:
       - ../configs/emby:/config
       - ../media:/media
-    ports:
-      - 8096:8096
+    expose:
+      - 8096
     networks:
-      - plex
+      - plex-network
     restart: on-failure
 
   sonarr:
     image: sonarr-mkvtoolnix
     container_name: sonarr
-    hostname: sonarr.local
+    hostname: sonarr.lan
     volumes:
       - ../configs/sonarr:/config
       - ../scripts:/opt/scripts
@@ -60,16 +55,16 @@ services:
       - PUID=1000
       - PGID=1000
       - TZ=America/Sao_Paulo
-    ports:
-      - 8989:8989
+    expose:
+      - 8989
     networks:
-      - plex
-    restart: unless-stopped
+      - plex-network
+    restart: on-failure
 
   radarr:
     image: radarr-mkvtoolnix
     container_name: radarr
-    hostname: radarr.local
+    hostname: radarr.lan
     volumes:
       - ../configs/radarr:/config
       - ../scripts:/opt/scripts
@@ -79,87 +74,110 @@ services:
       - PUID=1000
       - PGID=1000
       - TZ=America/Sao_Paulo
-    ports:
-      - 7878:7878
+    expose:
+      - 7878
     networks:
-      - plex
-    restart: unless-stopped
+      - plex-network
+    restart: on-failure
 
-  prowlarr:
-    image: lscr.io/linuxserver/prowlarr:latest
-    container_name: prowlarr
-    hostname: prowlarr.local
-    volumes:
-      - ../configs/prowlarr:/config
-      - ../media/:/media/
+  bazarr:
+    image: lscr.io/linuxserver/bazarr:latest
+    container_name: bazarr
+    hostname: bazarr.lan
     environment:
       - PUID=1000
       - PGID=1000
       - TZ=America/Sao_Paulo
-    ports:
-      - 9696:9696
+    volumes:
+      - ../configs/bazarr:/config
+      - ../media:/media
+    expose:
+      - 6767
     networks:
-      - plex
-    restart: unless-stopped
+      - plex-network
+      - proxy-network
+    restart: on-failure
+
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    hostname: prowlarr.lan
+    volumes:
+      - ../configs/prowlarr:/config
+      - ../media:/media
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Sao_Paulo
+    expose:
+      - 9696
+    networks:
+      - plex-network
+      - proxy-network
+    restart: on-failure
 
   jackett:
     image: lscr.io/linuxserver/jackett:latest
     container_name: jackett
-    hostname: jackett.local
+    hostname: jackett.lan
     environment:
       - PUID=1000
       - PGID=1000
       - TZ=America/Sao_Paulo
       - AUTO_UPDATE=true
-      # - RUN_OPTS=
     volumes:
       - ../configs/jackett:/config
       - /Users/valeria/Downloads/Torrent:/downloads
-    ports:
-      - 9117:9117
+    expose:
+      - 9117
     networks:
-      - plex
-    restart: unless-stopped
+      - plex-network
+      - proxy-network
+    restart: on-failure
 
   flaresolverr:
     image: ghcr.io/flaresolverr/flaresolverr:latest
     container_name: flaresolverr
-    hostname: flaresolverr.local
+    hostname: flaresolverr.lan
     environment:
       - LOG_LEVEL=info
       - LOG_HTML=false
       - TZ=America/Sao_Paulo
-    ports:
-      - 8191:8191
+      - CAPTCHA_SOLVER=none
+      # - PROXY_URL=${PROXY_TYPE}://${PROXY_HOST}:${PROXY_PORT}
+      # - PROXY_USERNAME=${PROXY_USERNAME}
+      # - PROXY_PASSWORD=${PROXY_PASSWORD}
+    expose:
+      - 8191
     networks:
-      - plex
-    restart: unless-stopped
+      - plex-network
+    restart: on-failure
 
   profilarr:
     image: santiagosayshey/profilarr:latest
     container_name: profilarr
-    hostname: profilarr.local
+    hostname: profilarr.lan
     volumes:
       - ../configs/profilarr:/config
     environment:
       - PUID=1000
       - PGID=1000
       - TZ=America/Sao_Paulo
-    ports:
-      - 6868:6868
+    expose:
+      - 6868
     networks:
-      - plex
-    restart: unless-stopped
+      - plex-network
+    restart: on-failure
 
   nginx:
-    image: nginx:latest
+    image: nginx:alpine
     container_name: nginx-proxy
-    hostname: nginx.local
+    hostname: nginx.lan
     volumes:
       - ../configs/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ../configs/nginx/proxy_common.conf:/etc/nginx/proxy_common.conf:ro
-      - ../configs/ssl/local/localhost.crt:/config/ssl.lan.crt:ro
-      - ../configs/ssl/local/localhost.key:/config/ssl.lan.key:ro
+      - ../configs/ssl/lan/localhost.crt:/config/ssl.lan.crt:ro
+      - ../configs/ssl/lan/localhost.key:/config/ssl.lan.key:ro
       - ../configs/ssl/wan/apedamo.duckdns.org.crt:/config/ssl.wan.crt:ro
       - ../configs/ssl/wan/apedamo.duckdns.org.key:/config/ssl.wan.key:ro
     depends_on:
@@ -174,11 +192,40 @@ services:
       - 80:80
       - 443:443
     networks:
-      - plex
+      - plex-network
+    restart: on-failure
+
+  proxy:
+    image: ghcr.io/tarampampam/3proxy
+    container_name: proxy
+    hostname: proxy.lan
+    volumes:
+      - ../configs/3proxy/3proxy.cfg:/etc/3proxy/3proxy.cfg:rw
+    environment:
+      EXTRA_CONFIG: |
+        auth iponly
+        allow * * *.lan * *
+        allow * * *.plex.direct * *
+        allow * * 172.16.0.0/24 * *
+        allow * * 172.16.1.0/24 * *
+        parent 1000 connect+ 0.0.0.0 0
+        allow *
+        parent 1000 ${PROXY_TYPE} ${PROXY_HOST} ${PROXY_PORT} ${PROXY_USERNAME} ${PROXY_PASSWORD}
+        deny * * * * *
+      MAX_CONNECTIONS: 1024
+      PROXY_PORT: 3128
+      SOCKS_PORT: 1080
+      PRIMARY_RESOLVER: 127.0.0.11
+      SECONDARY_RESOLVER: 127.0.0.11
+    expose:
+      - 3128 # HTTP
+      - 1080 # SOCKS5
+    networks:
+      - plex-network
     restart: unless-stopped
 
 networks:
-  plex:
+  plex-network:
     driver: bridge
     attachable: true
     ipam:
@@ -186,3 +233,11 @@ networks:
       config:
         - subnet: "172.16.0.0/24"
           gateway: "172.16.0.254"
+
+  proxy-network:
+    driver: bridge
+    internal: true
+    ipam:
+      config:
+        - subnet: "172.16.1.0/24"
+          gateway: "172.16.1.254"
