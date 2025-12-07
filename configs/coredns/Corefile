@@ -1,0 +1,31 @@
+.:53 {
+  forward . {$PUBLIC_DNS_IP} {
+    max_concurrent 1000
+    health_check 5s
+  }
+
+  cache {
+    success 9984 3600
+    denial 9984 3600
+  }
+
+  log {
+    class denial
+    class error
+  }
+  errors
+  whoami
+  health :8080
+}
+
+media.lan:53 {
+  template IN A media.lan {
+    match "^(.*\.)?media\.lan\.$"
+    answer "{{ .Name }} 3600 IN A {$DOCKER_HOST_IP}"
+  }
+
+  log
+  errors {
+    consolidate 5m ".*"
+  }
+}

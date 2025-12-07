@@ -1,19 +1,21 @@
-name: plex
+name: media
+
 services:
+  # Public Media Services
   plex:
     image: plexinc/pms-docker:latest
     container_name: plex
-    hostname: plex.lan
+    hostname: plex
     volumes:
       - ${CONFIGS_PATH:-.}/plex:/config
       - media_data:/media
     environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=America/Sao_Paulo
-      - VERSION=docker
-      - PLEX_CLAIM=${PLEX_CLAIM:-}
-      - ADVERTISE_IP=${PLEX_ADVERTISE_IP:-}
+      ADVERTISE_IP: ${PLEX_ADVERTISE_IP:-}
+      PGID: 1000
+      PLEX_CLAIM: ${PLEX_CLAIM:-}
+      PUID: 1000
+      TZ: America/Sao_Paulo
+      VERSION: docker
     ports:
       - 32400:32400/tcp
       - 32410:32410/udp
@@ -22,49 +24,117 @@ services:
       - 32414:32414/udp
       - 8324:8324/tcp
     networks:
-      - plex-network
+      - media-network
     restart: on-failure
 
   emby:
     image: emby/embyserver_arm64v8:latest
     container_name: emby
-    hostname: emby.lan
+    hostname: emby
     environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=America/Sao_Paulo
+      PGID: 1000
+      PUID: 1000
+      TZ: America/Sao_Paulo
     volumes:
       - ${CONFIGS_PATH:-.}/emby:/config
       - media_data:/media
     ports:
       - 8096:8096
     networks:
-      - plex-network
+      - media-network
     restart: on-failure
 
-  sonarr:
-    image: sonarr-mkvtoolnix
-    container_name: sonarr
-    hostname: sonarr.lan
-    volumes:
-      - ${CONFIGS_PATH:-.}/sonarr:/config
-      - scripts_data:/opt/scripts
-      - media_data:/media
-      - downloads_data:/downloads
+  # Private Media Services
+  bazarr:
+    image: lscr.io/linuxserver/bazarr:latest
+    container_name: bazarr
+    hostname: bazarr
     environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=America/Sao_Paulo
+      PGID: 1000
+      PUID: 1000
+      TZ: America/Sao_Paulo
+    volumes:
+      - ${CONFIGS_PATH:-.}/bazarr:/config
+      - media_data:/media
     expose:
-      - 8989
+      - 6767
     networks:
-      - plex-network
+      - media-network
+      - proxy-network
+    restart: on-failure
+
+  flaresolverr:
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    container_name: flaresolverr
+    hostname: flaresolverr
+    environment:
+      CAPTCHA_SOLVER: none
+      LOG_HTML: false
+      LOG_LEVEL: info
+      TZ: America/Sao_Paulo
+    expose:
+      - 8191
+    networks:
+      - media-network
+    restart: on-failure
+
+  jackett:
+    image: lscr.io/linuxserver/jackett:latest
+    container_name: jackett
+    hostname: jackett
+    environment:
+      AUTO_UPDATE: true
+      PGID: 1000
+      PUID: 1000
+      TZ: America/Sao_Paulo
+    volumes:
+      - ${CONFIGS_PATH:-.}/jackett:/config
+      - downloads_data:/downloads
+    expose:
+      - 9117
+    networks:
+      - media-network
+      - proxy-network
+    restart: on-failure
+
+  profilarr:
+    image: santiagosayshey/profilarr:latest
+    container_name: profilarr
+    hostname: profilarr
+    volumes:
+      - ${CONFIGS_PATH:-.}/profilarr:/config
+    environment:
+      PGID: 1000
+      PUID: 1000
+      TZ: America/Sao_Paulo
+    expose:
+      - 6868
+    networks:
+      - media-network
+    restart: on-failure
+
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    hostname: prowlarr
+    volumes:
+      - ${CONFIGS_PATH:-.}/prowlarr:/config
+      - media_data:/media
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: America/Sao_Paulo
+    expose:
+      - 9696
+    networks:
+      - media-network
+      - proxy-network
     restart: on-failure
 
   radarr:
     image: radarr-mkvtoolnix
     container_name: radarr
-    hostname: radarr.lan
+    hostname: radarr
     volumes:
       - ${CONFIGS_PATH:-.}/radarr:/config
       - scripts_data:/opt/scripts
@@ -77,152 +147,35 @@ services:
     expose:
       - 7878
     networks:
-      - plex-network
+      - media-network
     restart: on-failure
 
-  bazarr:
-    image: lscr.io/linuxserver/bazarr:latest
-    container_name: bazarr
-    hostname: bazarr.lan
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=America/Sao_Paulo
+  sonarr:
+    image: sonarr-mkvtoolnix
+    container_name: sonarr
+    hostname: sonarr
     volumes:
-      - ${CONFIGS_PATH:-.}/bazarr:/config
+      - ${CONFIGS_PATH:-.}/sonarr:/config
+      - scripts_data:/opt/scripts
       - media_data:/media
-    expose:
-      - 6767
-    networks:
-      - plex-network
-      - proxy-network
-    restart: on-failure
-
-  prowlarr:
-    image: lscr.io/linuxserver/prowlarr:latest
-    container_name: prowlarr
-    hostname: prowlarr.lan
-    volumes:
-      - ${CONFIGS_PATH:-.}/prowlarr:/config
-      - media_data:/media
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=America/Sao_Paulo
-    expose:
-      - 9696
-    networks:
-      - plex-network
-      - proxy-network
-    restart: on-failure
-
-  jackett:
-    image: lscr.io/linuxserver/jackett:latest
-    container_name: jackett
-    hostname: jackett.lan
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=America/Sao_Paulo
-      - AUTO_UPDATE=true
-    volumes:
-      - ${CONFIGS_PATH:-.}/jackett:/config
       - downloads_data:/downloads
+    environment:
+      PGID: 1000
+      PUID: 1000
+      TZ: America/Sao_Paulo
     expose:
-      - 9117
+      - 8989
     networks:
-      - plex-network
-      - proxy-network
+      - media-network
     restart: on-failure
 
-  flaresolverr:
-    image: ghcr.io/flaresolverr/flaresolverr:latest
-    container_name: flaresolverr
-    hostname: flaresolverr.lan
-    environment:
-      - LOG_LEVEL=info
-      - LOG_HTML=false
-      - TZ=America/Sao_Paulo
-      - CAPTCHA_SOLVER=none
-    expose:
-      - 8191
-    networks:
-      - plex-network
-    restart: on-failure
-
-  profilarr:
-    image: santiagosayshey/profilarr:latest
-    container_name: profilarr
-    hostname: profilarr.lan
-    volumes:
-      - ${CONFIGS_PATH:-.}/profilarr:/config
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=America/Sao_Paulo
-    expose:
-      - 6868
-    networks:
-      - plex-network
-    restart: on-failure
-
-  wisper:
-    image: mccloud/subgen:latest
-    platform: linux/amd64
-    container_name: wisper
-    hostname: wisper.lan
-    volumes:
-      - ${CONFIGS_PATH:-.}/wisper/models:/subgen/models
-      - ${CONFIGS_PATH:-.}/wisper/subgen.env:/subgen/subgen.env:ro
-    environment:
-      LOG_LEVEL: info
-      NAME_SERVERS: 127.0.0.11
-      PROCADDEDMEDIA: true
-      PROCMEDIAONPLAY: false
-      PLEXTOKEN: ${PLEX_CLAIM:-}
-      PLEXSERVER: "http://plex.lan:32400"
-      CONCURRENT_TRANSCRIPTIONS: 2
-      USE_PATH_MAPPING: false
-      MODEL_PATH: ./models
-    expose:
-      - 9000
-    networks:
-      - plex-network
-    restart: on-failure
-
-  proxy:
-    image: ghcr.io/tarampampam/3proxy
-    container_name: proxy
-    hostname: proxy.lan
-    volumes:
-      - ${CONFIGS_PATH:-.}/3proxy/3proxy.cfg:/etc/3proxy/3proxy.cfg
-    environment:
-      EXTRA_CONFIG: |
-        auth iponly
-        allow * * *.lan * *
-        allow * * *.plex.direct * *
-        allow * * 172.16.0.0/24 * *
-        allow * * 172.16.1.0/24 * *
-        parent 1000 connect+ 0.0.0.0 0
-        allow *
-        parent 1000 ${PROXY_TYPE} ${PROXY_HOST} ${PROXY_PORT} ${PROXY_USERNAME} ${PROXY_PASSWORD}
-        deny * * * * *
-      MAX_CONNECTIONS: 1024
-      PROXY_PORT: 3128
-      SOCKS_PORT: 1080
-      PRIMARY_RESOLVER: 127.0.0.11
-      SECONDARY_RESOLVER: 127.0.0.11
-    expose:
-      - 3128
-      - 1080
-    networks:
-      - plex-network
-    restart: unless-stopped
-
+  # Infrastructure Services
   caddy:
     image: caddy:latest
-    container_name: caddy-proxy
-    hostname: caddy.lan
+    container_name: caddy
+    hostname: caddy
+    environment:
+      TZ: America/Sao_Paulo
     ports:
       - "80:80"
       - "443:443"
@@ -234,52 +187,99 @@ services:
       - certs_lan_data:/certs/lan:ro
       - certs_wan_data:/certs/wan:ro
     networks:
-      - plex-network
+      - media-network
+      - infra-network
     restart: on-failure
 
   dns:
-    image: 4km3/dnsmasq
+    image: coredns/coredns:latest
     container_name: dns
-    hostname: dns.lan
-    volumes:
-      - ${CONFIGS_PATH:-.}/dns/dnsmasq.conf:/etc/dnsmasq.conf:ro
+    hostname: dns
+    environment:
+      TZ: America/Sao_Paulo
+      DOCKER_HOST_IP: ${DOCKER_HOST_IP:-}
+      PUBLIC_DNS_IP: ${PUBLIC_DNS_IP:-}
     ports:
-      - "53:53/udp"
-      - "53:53/tcp"
-    cap_add:
-      - NET_ADMIN
-    restart: on-failure
+      - 53:53/udp
+    volumes:
+      - ${CONFIGS_PATH:-.}/coredns/Corefile:/Corefile
+      - ${CONFIGS_PATH:-.}/coredns/configs:/etc/coredns/
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    networks:
+      - infra-network
+      - media-network
+
+  proxy:
+    image: ghcr.io/tarampampam/3proxy
+    container_name: proxy
+    hostname: proxy
+    volumes:
+      - ${CONFIGS_PATH:-.}/3proxy/3proxy.cfg:/etc/3proxy/3proxy.cfg
+    environment:
+      EXTRA_CONFIG: |
+        auth iponly
+        allow * * *.media.lan * *
+        allow * * *.plex.direct * *
+        allow * * ${MEDIA_SUBNET_CIDR:-172.16.0.0/24} * *
+        allow * * ${PROXY_SUBNET_CIDR:-172.16.1.0/24} * *
+        parent 1000 connect+ 0.0.0.0 0
+        allow *
+        parent 1000 ${PROXY_TYPE} ${PROXY_HOST} ${PROXY_PORT} ${PROXY_USERNAME} ${PROXY_PASSWORD}
+        deny * * * * *
+      MAX_CONNECTIONS: 1024
+      PRIMARY_RESOLVER: ${DOCKER_INTERNAL_DNS:-}
+      PROXY_PORT: 3128
+      SECONDARY_RESOLVER: ${DOCKER_INTERNAL_DNS:-}
+      SOCKS_PORT: 1080
+      TZ: America/Sao_Paulo
+    expose:
+      - 3128
+      - 1080
+    networks:
+      - media-network
+      - infra-network
+    restart: unless-stopped
 
 networks:
-  plex-network:
+  media-network:
     driver: bridge
     attachable: true
     ipam:
       driver: default
       config:
-        - subnet: "172.16.0.0/24"
-          gateway: "172.16.0.254"
+        - subnet: "${MEDIA_SUBNET_CIDR:-172.16.0.0/24}"
+          gateway: "${MEDIA_SUBNET_GATEWAY:-172.16.0.254}"
   proxy-network:
     driver: bridge
     internal: true
     ipam:
       config:
-        - subnet: "172.16.1.0/24"
-          gateway: "172.16.1.254"
+        - subnet: "${PROXY_SUBNET_CIDR:-172.16.1.0/24}"
+          gateway: "${PROXY_SUBNET_GATEWAY:-172.16.1.254}"
+  infra-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: "${INFRA_SUBNET_CIDR:-172.16.2.0/24}"
+          gateway: "${INFRA_SUBNET_GATEWAY:-172.16.2.254}"
 
 volumes:
-  media_data:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ${MEDIA_PATH:-.}
   downloads_data:
     driver: local
     driver_opts:
       type: none
       o: bind
       device: ${DOWNLOADS_PATH:-.}
+  media_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${MEDIA_PATH:-.}
   scripts_data:
     driver: local
     driver_opts:

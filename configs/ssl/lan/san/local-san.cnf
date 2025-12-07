@@ -13,11 +13,4 @@ subjectAltName = @alt_names
 
 [ alt_names ]
 DNS.1 = localhost
-DNS.2 = emby.lan
-DNS.3 = plex.lan
-DNS.4 = sonarr.lan
-DNS.5 = radarr.lan
-DNS.6 = bazarr.lan
-DNS.7 = jackett.lan
-DNS.8 = prowlarr.lan
-DNS.9 = profilarr.lan
+DNS.2 = *.media.lan
