@@ -25,7 +25,6 @@ emby.apedamo.duckdns.org {
   tls /certs/lan/localhost.crt /certs/lan/localhost.key
 
   # Public Media Services
-
   @emby host emby.media.lan
   reverse_proxy @emby emby:8096 {
     import proxy_headers
@@ -40,7 +39,6 @@ emby.apedamo.duckdns.org {
   }
 
   # Private Media Services
-
   @bazarr host bazarr.media.lan
   reverse_proxy @bazarr bazarr:6767
 
@@ -58,4 +56,8 @@ emby.apedamo.duckdns.org {
 
   @sonarr host sonarr.media.lan
   reverse_proxy @sonarr sonarr:8989
+
+  # Torrenting Services
+  @qbittorrent host qbittorrent.media.lan
+  reverse_proxy @qbittorrent qbittorrent:8081
 }

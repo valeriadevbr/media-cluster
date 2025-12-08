@@ -1,32 +1,124 @@
 name: media
 
 services:
-  # Public Media Services
-  plex:
-    image: plexinc/pms-docker:latest
-    container_name: plex
-    hostname: plex
-    volumes:
-      - ${CONFIGS_PATH:-.}/plex:/config
-      - media_data:/media
+  # Infrastructure Services
+  caddy:
+    image: caddy:latest
+    container_name: caddy
+    hostname: caddy
     environment:
-      ADVERTISE_IP: ${PLEX_ADVERTISE_IP:-}
-      PGID: 1000
-      PLEX_CLAIM: ${PLEX_CLAIM:-}
-      PUID: 1000
       TZ: America/Sao_Paulo
-      VERSION: docker
     ports:
-      - 32400:32400/tcp
-      - 32410:32410/udp
-      - 32412:32412/udp
-      - 32413:32413/udp
-      - 32414:32414/udp
-      - 8324:8324/tcp
+      - "80:80"
+      - "443:443"
+      - "443:443/udp" # HTTP/3 (QUIC)
+    volumes:
+      - ${CONFIGS_PATH:-.}/caddy/data:/data:cached
+      - ${CONFIGS_PATH:-.}/caddy/config:/config:cached
+      - ${CONFIGS_PATH:-.}/caddy/Caddyfile:/etc/caddy/Caddyfile:ro,cached
+      - certs_lan_data:/certs/lan:ro,cached
+      - certs_wan_data:/certs/wan:ro,cached
     networks:
-      - media-network
-    restart: on-failure
+      media-network:
+        ipv4_address: 172.16.0.1
+      infra-network:
+        ipv4_address: 172.16.2.1
+    mem_limit: 256m
+    restart: unless-stopped
 
+  dns:
+    image: coredns/coredns:latest
+    container_name: dns
+    hostname: dns
+    environment:
+      TZ: America/Sao_Paulo
+      DOCKER_HOST_IP: ${DOCKER_HOST_IP:-}
+      PUBLIC_DNS_IP: ${PUBLIC_DNS_IP:-}
+    ports:
+      - 53:53
+      - 53:53/udp
+    volumes:
+      - ${CONFIGS_PATH:-.}/coredns/Corefile:/Corefile
+      - ${CONFIGS_PATH:-.}/coredns/configs:/etc/coredns
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:53535/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    # networks:
+    #   media-network:
+    #     ipv4_address: 172.16.0.253
+    #   infra-network:
+    #     ipv4_address: 172.16.2.253
+    mem_limit: 256m
+    restart: unless-stopped
+
+  3proxy:
+    image: ghcr.io/tarampampam/3proxy
+    container_name: 3proxy
+    hostname: proxy
+    volumes:
+      - ${CONFIGS_PATH:-.}/3proxy/3proxy.cfg:/etc/3proxy/3proxy.cfg
+    environment:
+      EXTRA_CONFIG: |
+        auth iponly
+        allow * * *.media.lan * *
+        allow * * *.plex.direct * *
+        allow * * 172.16.0.0/24 * *
+        allow * * 172.16.1.0/24 * *
+        allow * * 172.16.2.0/24 * *
+        allow * * 172.16.3.0/24 * *
+        parent 1000 connect+ 0.0.0.0 0
+        allow *
+        parent 1000 ${PROXY_TYPE} ${PROXY_HOST} ${PROXY_PORT} ${PROXY_USERNAME} ${PROXY_PASSWORD}
+        deny * * * * *
+      MAX_CONNECTIONS: 1024
+      PRIMARY_RESOLVER: ${DOCKER_INTERNAL_DNS:-8.8.8.8}
+      PROXY_PORT: 3128
+      SECONDARY_RESOLVER: ${DOCKER_INTERNAL_DNS:-8.8.4.4}
+      SOCKS_PORT: 1080
+      TZ: America/Sao_Paulo
+    expose:
+      - 3128
+      - 1080
+    networks:
+      - proxy-network
+    mem_limit: 256m
+    restart: unless-stopped
+
+  wireguard:
+    image: linuxserver/wireguard:latest
+    container_name: wireguard
+    hostname: wireguard
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    volumes:
+      - ${CONFIGS_PATH:-.}/wireguard/config:/config:cached
+      - /lib/modules:/lib/modules:ro,cached
+    ports:
+      - 51820:51820/udp
+    environment:
+      ALLOWEDIPS: 10.13.13.0/24, 172.16.2.0/24, 192.168.2.0/24, 192.168.65.254/32
+      LOG_CONFS: true
+      PEERDNS: 10.13.13.1
+      PERSISTENTKEEPALIVE_PEERS: all
+      PEERS: XiaomiMI9,PocoM4
+      PGID: 1000
+      PUID: 1000
+      SERVERPORT: 51820
+      SERVERURL: ${WAN_HOST:-}
+      TZ: America/Sao_Paulo
+    sysctls:
+      - net.ipv4.conf.all.src_valid_mark=1
+      - net.ipv4.ip_forward=1
+    networks:
+      infra-network:
+        ipv4_address: 172.16.2.252
+    mem_limit: 256m
+    restart: unless-stopped
+
+  # Public Media Services
   emby:
     image: emby/embyserver_arm64v8:latest
     container_name: emby
@@ -36,13 +128,15 @@ services:
       PUID: 1000
       TZ: America/Sao_Paulo
     volumes:
-      - ${CONFIGS_PATH:-.}/emby:/config
-      - media_data:/media
+      - ${CONFIGS_PATH:-.}/emby:/config:cached
+      - ${MEDIA_PATH:-.}:/media:cached
     ports:
       - 8096:8096
     networks:
-      - media-network
-    restart: on-failure
+      media-network:
+        ipv4_address: 172.16.0.11
+    restart: unless-stopped
+    mem_limit: 2g
 
   # Private Media Services
   bazarr:
@@ -54,14 +148,117 @@ services:
       PUID: 1000
       TZ: America/Sao_Paulo
     volumes:
-      - ${CONFIGS_PATH:-.}/bazarr:/config
-      - media_data:/media
+      - ${CONFIGS_PATH:-.}/bazarr:/config:cached
+      - ${MEDIA_PATH:-.}:/media:delegated
     expose:
       - 6767
     networks:
-      - media-network
-      - proxy-network
-    restart: on-failure
+      media-network:
+        ipv4_address: 172.16.0.12
+      proxy-network:
+    restart: unless-stopped
+    mem_limit: 512m
+
+  jackett:
+    image: lscr.io/linuxserver/jackett:latest
+    container_name: jackett
+    hostname: jackett
+    environment:
+      AUTO_UPDATE: true
+      PGID: 1000
+      PUID: 1000
+      TZ: America/Sao_Paulo
+    volumes:
+      - ${CONFIGS_PATH:-.}/jackett:/config:cached
+      # - ${DOWNLOADS_PATH:-.}:/downloads:delegated
+    expose:
+      - 9117
+    networks:
+      media-network:
+        ipv4_address: 172.16.0.13
+      proxy-network:
+    restart: unless-stopped
+    mem_limit: 256m
+
+  profilarr:
+    image: santiagosayshey/profilarr:latest
+    container_name: profilarr
+    hostname: profilarr
+    volumes:
+      - ${CONFIGS_PATH:-.}/profilarr:/config:cached
+    environment:
+      PGID: 1000
+      PUID: 1000
+      TZ: America/Sao_Paulo
+    expose:
+      - 6868
+    networks:
+      media-network:
+        ipv4_address: 172.16.0.14
+    restart: unless-stopped
+    mem_limit: 256m
+
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    hostname: prowlarr
+    volumes:
+      - ${CONFIGS_PATH:-.}/prowlarr:/config:cached
+      - ${MEDIA_PATH:-.}:/media:delegated
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: America/Sao_Paulo
+    expose:
+      - 9696
+    networks:
+      media-network:
+        ipv4_address: 172.16.0.15
+      proxy-network:
+    restart: unless-stopped
+    mem_limit: 256m
+
+  radarr:
+    image: radarr-mkvtoolnix
+    container_name: radarr
+    hostname: radarr
+    volumes:
+      - ${CONFIGS_PATH:-.}/radarr:/config:cached
+      - ${DOWNLOADS_PATH:-.}:/downloads:delegated
+      - ${MEDIA_PATH:-.}:/media:delegated
+      - scripts_data:/opt/scripts:ro
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Sao_Paulo
+    expose:
+      - 7878
+    networks:
+      media-network:
+        ipv4_address: 172.16.0.16
+    restart: unless-stopped
+    mem_limit: 512m
+
+  sonarr:
+    image: sonarr-mkvtoolnix
+    container_name: sonarr
+    hostname: sonarr
+    volumes:
+      - ${CONFIGS_PATH:-.}/sonarr:/config:cached
+      - ${DOWNLOADS_PATH:-.}:/downloads:delegated
+      - ${MEDIA_PATH:-.}:/media:delegated
+      - scripts_data:/opt/scripts:ro
+    environment:
+      PGID: 1000
+      PUID: 1000
+      TZ: America/Sao_Paulo
+    expose:
+      - 8989
+    networks:
+      media-network:
+        ipv4_address: 172.16.0.17
+    restart: unless-stopped
+    mem_limit: 512m
 
   flaresolverr:
     image: ghcr.io/flaresolverr/flaresolverr:latest
@@ -75,211 +272,59 @@ services:
     expose:
       - 8191
     networks:
-      - media-network
-    restart: on-failure
+      media-network:
+        ipv4_address: 172.16.0.100
+      proxy-network:
+    restart: unless-stopped
+    mem_limit: 256m
 
-  jackett:
-    image: lscr.io/linuxserver/jackett:latest
-    container_name: jackett
-    hostname: jackett
-    environment:
-      AUTO_UPDATE: true
-      PGID: 1000
-      PUID: 1000
-      TZ: America/Sao_Paulo
-    volumes:
-      - ${CONFIGS_PATH:-.}/jackett:/config
-      - downloads_data:/downloads
-    expose:
-      - 9117
-    networks:
-      - media-network
-      - proxy-network
-    restart: on-failure
-
-  profilarr:
-    image: santiagosayshey/profilarr:latest
-    container_name: profilarr
-    hostname: profilarr
-    volumes:
-      - ${CONFIGS_PATH:-.}/profilarr:/config
+  # Download Services
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    hostname: qbittorrent
     environment:
       PGID: 1000
       PUID: 1000
+      TORRENTING_PORT: 53471
       TZ: America/Sao_Paulo
-    expose:
-      - 6868
-    networks:
-      - media-network
-    restart: on-failure
-
-  prowlarr:
-    image: lscr.io/linuxserver/prowlarr:latest
-    container_name: prowlarr
-    hostname: prowlarr
+      WEBUI_PORT: 8081
     volumes:
-      - ${CONFIGS_PATH:-.}/prowlarr:/config
-      - media_data:/media
-    environment:
-      PUID: 1000
-      PGID: 1000
-      TZ: America/Sao_Paulo
+      - ${CONFIGS_PATH:-.}/qbittorrent:/config:cached
+      - ${DOWNLOADS_PATH:-.}:/downloads:delegated
     expose:
-      - 9696
-    networks:
-      - media-network
-      - proxy-network
-    restart: on-failure
-
-  radarr:
-    image: radarr-mkvtoolnix
-    container_name: radarr
-    hostname: radarr
-    volumes:
-      - ${CONFIGS_PATH:-.}/radarr:/config
-      - scripts_data:/opt/scripts
-      - media_data:/media
-      - downloads_data:/downloads
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=America/Sao_Paulo
-    expose:
-      - 7878
-    networks:
-      - media-network
-    restart: on-failure
-
-  sonarr:
-    image: sonarr-mkvtoolnix
-    container_name: sonarr
-    hostname: sonarr
-    volumes:
-      - ${CONFIGS_PATH:-.}/sonarr:/config
-      - scripts_data:/opt/scripts
-      - media_data:/media
-      - downloads_data:/downloads
-    environment:
-      PGID: 1000
-      PUID: 1000
-      TZ: America/Sao_Paulo
-    expose:
-      - 8989
-    networks:
-      - media-network
-    restart: on-failure
-
-  # Infrastructure Services
-  caddy:
-    image: caddy:latest
-    container_name: caddy
-    hostname: caddy
-    environment:
-      TZ: America/Sao_Paulo
+      - 8081
     ports:
-      - "80:80"
-      - "443:443"
-      - "443:443/udp" # HTTP/3 (QUIC)
-    volumes:
-      - ${CONFIGS_PATH:-.}/caddy/data:/data
-      - ${CONFIGS_PATH:-.}/caddy/config:/config
-      - ${CONFIGS_PATH:-.}/caddy/Caddyfile:/etc/caddy/Caddyfile:rw
-      - certs_lan_data:/certs/lan:ro
-      - certs_wan_data:/certs/wan:ro
+      - 53471:53471
+      - 53471:53471/udp
     networks:
-      - media-network
-      - infra-network
-    restart: on-failure
-
-  dns:
-    image: coredns/coredns:latest
-    container_name: dns
-    hostname: dns
-    environment:
-      TZ: America/Sao_Paulo
-      DOCKER_HOST_IP: ${DOCKER_HOST_IP:-}
-      PUBLIC_DNS_IP: ${PUBLIC_DNS_IP:-}
-    ports:
-      - 53:53/udp
-    volumes:
-      - ${CONFIGS_PATH:-.}/coredns/Corefile:/Corefile
-      - ${CONFIGS_PATH:-.}/coredns/configs:/etc/coredns/
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-    networks:
-      - infra-network
-      - media-network
-
-  proxy:
-    image: ghcr.io/tarampampam/3proxy
-    container_name: proxy
-    hostname: proxy
-    volumes:
-      - ${CONFIGS_PATH:-.}/3proxy/3proxy.cfg:/etc/3proxy/3proxy.cfg
-    environment:
-      EXTRA_CONFIG: |
-        auth iponly
-        allow * * *.media.lan * *
-        allow * * *.plex.direct * *
-        allow * * ${MEDIA_SUBNET_CIDR:-172.16.0.0/24} * *
-        allow * * ${PROXY_SUBNET_CIDR:-172.16.1.0/24} * *
-        parent 1000 connect+ 0.0.0.0 0
-        allow *
-        parent 1000 ${PROXY_TYPE} ${PROXY_HOST} ${PROXY_PORT} ${PROXY_USERNAME} ${PROXY_PASSWORD}
-        deny * * * * *
-      MAX_CONNECTIONS: 1024
-      PRIMARY_RESOLVER: ${DOCKER_INTERNAL_DNS:-}
-      PROXY_PORT: 3128
-      SECONDARY_RESOLVER: ${DOCKER_INTERNAL_DNS:-}
-      SOCKS_PORT: 1080
-      TZ: America/Sao_Paulo
-    expose:
-      - 3128
-      - 1080
-    networks:
-      - media-network
-      - infra-network
+      media-network:
+        ipv4_address: 172.16.0.101
+    mem_limit: 1g
     restart: unless-stopped
 
 networks:
   media-network:
     driver: bridge
-    attachable: true
     ipam:
       driver: default
       config:
-        - subnet: "${MEDIA_SUBNET_CIDR:-172.16.0.0/24}"
-          gateway: "${MEDIA_SUBNET_GATEWAY:-172.16.0.254}"
+        - subnet: "172.16.0.0/24"
+          gateway: "172.16.0.254"
   proxy-network:
     driver: bridge
-    internal: true
     ipam:
       config:
-        - subnet: "${PROXY_SUBNET_CIDR:-172.16.1.0/24}"
-          gateway: "${PROXY_SUBNET_GATEWAY:-172.16.1.254}"
+        - subnet: "172.16.1.0/24"
+          gateway: "172.16.1.254"
   infra-network:
     driver: bridge
     ipam:
       config:
-        - subnet: "${INFRA_SUBNET_CIDR:-172.16.2.0/24}"
-          gateway: "${INFRA_SUBNET_GATEWAY:-172.16.2.254}"
+        - subnet: "172.16.2.0/24"
+          gateway: "172.16.2.254"
 
 volumes:
-  downloads_data:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ${DOWNLOADS_PATH:-.}
-  media_data:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ${MEDIA_PATH:-.}
   scripts_data:
     driver: local
     driver_opts:

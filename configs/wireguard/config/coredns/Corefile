@@ -4,7 +4,7 @@
     consolidate 30s .* debug
   }
   whoami
-  health :53535
+  health
 
   forward . 8.8.8.8 8.8.4.4 {
     max_concurrent 1000
@@ -22,12 +22,27 @@ media.lan:53 {
     consolidate 30s .* debug
   }
 
+  # Responde subdomínios de media.lan
   template IN A media.lan {
-    match "^(.*\.)?media\.lan\.$"
-    answer "{{ .Name }} 3600 IN A 192.168.2.1"
+    match "^([^.]+\.)+media\.lan\.$"
+    answer "{{ .Name }} 3600 IN A 172.16.2.1"
+    fallthrough
   }
   template IN AAAA media.lan {
-    match "^(.*\.)?media\.lan\.$"
+    match "^([^.]+\.)+media\.lan\.$"
     answer "{{ .Name }} 3600 IN AAAA ::"
+    fallthrough
+  }
+
+  # Responde media.lan (raiz) com IP diferente
+  template IN A media.lan {
+    match "^media\.lan\.$"
+    answer "{{ .Name }} 3600 IN A 192.168.65.254"
+    fallthrough
+  }
+  template IN AAAA media.lan {
+    match "^media\.lan\.$"
+    answer "{{ .Name }} 3600 IN AAAA ::"
+    fallthrough
   }
 }
