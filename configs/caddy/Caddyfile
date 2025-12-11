@@ -45,6 +45,9 @@ emby.apedamo.duckdns.org {
   @jackett host jackett.media.lan
   reverse_proxy @jackett jackett:9117
 
+  @lidarr host lidarr.media.lan
+  reverse_proxy @lidarr lidarr:8686
+
   @profilarr host profilarr.media.lan
   reverse_proxy @profilarr profilarr:6868
 

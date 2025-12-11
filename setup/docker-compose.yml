@@ -45,11 +45,6 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
-    # networks:
-    #   media-network:
-    #     ipv4_address: 172.16.0.253
-    #   infra-network:
-    #     ipv4_address: 172.16.2.253
     mem_limit: 256m
     restart: unless-stopped
 
@@ -67,7 +62,6 @@ services:
         allow * * 172.16.0.0/24 * *
         allow * * 172.16.1.0/24 * *
         allow * * 172.16.2.0/24 * *
-        allow * * 172.16.3.0/24 * *
         parent 1000 connect+ 0.0.0.0 0
         allow *
         parent 1000 ${PROXY_TYPE} ${PROXY_HOST} ${PROXY_PORT} ${PROXY_USERNAME} ${PROXY_PASSWORD}
@@ -135,6 +129,33 @@ services:
     networks:
       media-network:
         ipv4_address: 172.16.0.11
+    restart: unless-stopped
+    mem_limit: 2g
+
+  plex:
+    image: plexinc/pms-docker:latest
+    container_name: plex
+    hostname: plex
+    volumes:
+      - ${CONFIGS_PATH:-.}/plex:/config:cached
+      - ${MEDIA_PATH:-.}:/media:cached
+    environment:
+      ADVERTISE_IP: ${PLEX_ADVERTISE_IP:-}
+      PGID: 1000
+      PLEX_CLAIM: ${PLEX_CLAIM:-}
+      PUID: 1000
+      TZ: America/Sao_Paulo
+      VERSION: docker
+    ports:
+      - 32400:32400/tcp
+      - 32410:32410/udp
+      - 32412:32412/udp
+      - 32413:32413/udp
+      - 32414:32414/udp
+      - 8324:8324/tcp
+    networks:
+      media-network:
+        ipv4_address: 172.16.0.19
     restart: unless-stopped
     mem_limit: 2g
 
@@ -326,6 +347,8 @@ services:
 networks:
   media-network:
     driver: bridge
+    driver_opts:
+      com.docker.network.driver.mtu: 1492
     ipam:
       driver: default
       config:
@@ -333,12 +356,16 @@ networks:
           gateway: "172.16.0.254"
   proxy-network:
     driver: bridge
+    driver_opts:
+      com.docker.network.driver.mtu: 1492
     ipam:
       config:
         - subnet: "172.16.1.0/24"
           gateway: "172.16.1.254"
   infra-network:
     driver: bridge
+    driver_opts:
+      com.docker.network.driver.mtu: 1492
     ipam:
       config:
         - subnet: "172.16.2.0/24"
