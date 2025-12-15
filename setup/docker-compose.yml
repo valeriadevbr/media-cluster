@@ -9,9 +9,9 @@ services:
     environment:
       TZ: America/Sao_Paulo
     ports:
-      - "80:80"
-      - "443:443"
-      - "443:443/udp" # HTTP/3 (QUIC)
+      - 80:80
+      - 443:443
+      - 443:443/udp # HTTP/3 (QUIC)
     volumes:
       - ${CONFIGS_PATH:-.}/caddy/data:/data:cached
       - ${CONFIGS_PATH:-.}/caddy/config:/config:cached
@@ -19,9 +19,9 @@ services:
       - certs_lan_data:/certs/lan:ro,cached
       - certs_wan_data:/certs/wan:ro,cached
     networks:
-      media-network:
+      media:
         ipv4_address: 172.16.0.1
-      infra-network:
+      infra:
         ipv4_address: 172.16.2.1
     mem_limit: 256m
     restart: unless-stopped
@@ -45,6 +45,9 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
+    networks:
+      infra:
+        ipv4_address: 172.16.2.2
     mem_limit: 256m
     restart: unless-stopped
 
@@ -76,39 +79,7 @@ services:
       - 3128
       - 1080
     networks:
-      - proxy-network
-    mem_limit: 256m
-    restart: unless-stopped
-
-  wireguard:
-    image: linuxserver/wireguard:latest
-    container_name: wireguard
-    hostname: wireguard
-    cap_add:
-      - NET_ADMIN
-      - SYS_MODULE
-    volumes:
-      - ${CONFIGS_PATH:-.}/wireguard/config:/config:cached
-      - /lib/modules:/lib/modules:ro,cached
-    ports:
-      - 51820:51820/udp
-    environment:
-      ALLOWEDIPS: 10.13.13.0/24, 172.16.2.0/24, 192.168.2.0/24, 192.168.65.254/32
-      LOG_CONFS: true
-      PEERDNS: 10.13.13.1
-      PERSISTENTKEEPALIVE_PEERS: all
-      PEERS: XiaomiMI9,PocoM4
-      PGID: 1000
-      PUID: 1000
-      SERVERPORT: 51820
-      SERVERURL: ${WAN_HOST:-}
-      TZ: America/Sao_Paulo
-    sysctls:
-      - net.ipv4.conf.all.src_valid_mark=1
-      - net.ipv4.ip_forward=1
-    networks:
-      infra-network:
-        ipv4_address: 172.16.2.252
+      - proxy
     mem_limit: 256m
     restart: unless-stopped
 
@@ -127,7 +98,7 @@ services:
     ports:
       - 8096:8096
     networks:
-      media-network:
+      media:
         ipv4_address: 172.16.0.11
     restart: unless-stopped
     mem_limit: 2g
@@ -154,7 +125,7 @@ services:
       - 32414:32414/udp
       - 8324:8324/tcp
     networks:
-      media-network:
+      media:
         ipv4_address: 172.16.0.19
     restart: unless-stopped
     mem_limit: 2g
@@ -174,9 +145,9 @@ services:
     expose:
       - 6767
     networks:
-      media-network:
+      media:
         ipv4_address: 172.16.0.12
-      proxy-network:
+      proxy:
     restart: unless-stopped
     mem_limit: 512m
 
@@ -195,9 +166,9 @@ services:
     expose:
       - 9117
     networks:
-      media-network:
+      media:
         ipv4_address: 172.16.0.13
-      proxy-network:
+      proxy:
     restart: unless-stopped
     mem_limit: 256m
 
@@ -214,7 +185,7 @@ services:
     expose:
       - 6868
     networks:
-      media-network:
+      media:
         ipv4_address: 172.16.0.14
     restart: unless-stopped
     mem_limit: 256m
@@ -233,14 +204,14 @@ services:
     expose:
       - 9696
     networks:
-      media-network:
+      media:
         ipv4_address: 172.16.0.15
-      proxy-network:
+      proxy:
     restart: unless-stopped
     mem_limit: 256m
 
   lidarr:
-    image: lscr.io/linuxserver/lidarr:latest
+    image: ghcr.io/hotio/lidarr:pr-plugins
     container_name: lidarr
     hostname: lidarr
     volumes:
@@ -254,7 +225,7 @@ services:
     expose:
       - 8686
     networks:
-      media-network:
+      media:
         ipv4_address: 172.16.0.18
     restart: unless-stopped
     mem_limit: 512m
@@ -275,7 +246,7 @@ services:
     expose:
       - 7878
     networks:
-      media-network:
+      media:
         ipv4_address: 172.16.0.16
     restart: unless-stopped
     mem_limit: 512m
@@ -296,7 +267,7 @@ services:
     expose:
       - 8989
     networks:
-      media-network:
+      media:
         ipv4_address: 172.16.0.17
     restart: unless-stopped
     mem_limit: 512m
@@ -313,11 +284,12 @@ services:
     expose:
       - 8191
     networks:
-      media-network:
+      media:
         ipv4_address: 172.16.0.100
-      proxy-network:
+      proxy:
     restart: unless-stopped
-    mem_limit: 256m
+    mem_limit: 512m
+    memswap_limit: 1g
 
   # Download Services
   qbittorrent:
@@ -339,13 +311,14 @@ services:
       - 53471:53471
       - 53471:53471/udp
     networks:
-      media-network:
+      media:
         ipv4_address: 172.16.0.101
     mem_limit: 512m
     restart: unless-stopped
 
 networks:
-  media-network:
+  media:
+    name: media
     driver: bridge
     driver_opts:
       com.docker.network.driver.mtu: 1492
@@ -354,7 +327,8 @@ networks:
       config:
         - subnet: "172.16.0.0/24"
           gateway: "172.16.0.254"
-  proxy-network:
+  proxy:
+    name: proxy
     driver: bridge
     driver_opts:
       com.docker.network.driver.mtu: 1492
@@ -362,7 +336,8 @@ networks:
       config:
         - subnet: "172.16.1.0/24"
           gateway: "172.16.1.254"
-  infra-network:
+  infra:
+    name: infra
     driver: bridge
     driver_opts:
       com.docker.network.driver.mtu: 1492
