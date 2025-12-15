@@ -63,4 +63,7 @@ emby.apedamo.duckdns.org {
   # Torrenting Services
   @qbittorrent host qbittorrent.media.lan
   reverse_proxy @qbittorrent qbittorrent:8081
+
+  @slskd host slskd.media.lan
+  reverse_proxy @slskd slskd:5030
 }
