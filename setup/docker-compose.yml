@@ -18,54 +18,51 @@ services:
       - ${CONFIGS_PATH:-.}/caddy/Caddyfile:/etc/caddy/Caddyfile:ro,cached
       - certs_lan_data:/certs/lan:ro,cached
       - certs_wan_data:/certs/wan:ro,cached
+      - ${CONFIGS_PATH:-.}/ssl/ca/ca.crt:/certs/ca/ca.crt:ro,cached
     dns:
-      - ${DOCKER_INTERNAL_DNS}
+      - ${DOCKER_INTERNAL_DNS:-}
     networks:
       media:
         ipv4_address: 172.16.0.1
-      downloaders:
-        ipv4_address: 172.16.2.1
     mem_limit: 256m
     restart: unless-stopped
 
-  # haproxy:
-  #   image: haproxy:latest
-  #   container_name: haproxy
-  #   hostname: haproxy
+  # dns:
+  #   image: coredns/coredns:latest
+  #   container_name: dns
+  #   hostname: dns
+  #   environment:
+  #     TZ: America/Sao_Paulo
+  #     DOCKER_HOST_IP: ${DOCKER_HOST_IP:-}
+  #     PUBLIC_DNS_IP: ${PUBLIC_DNS_IP:-}
   #   ports:
-  #     - 80:80
-  #     - 443:443
+  #     - 53:53
+  #     - 53:53/udp
   #   volumes:
-  #     - ${CONFIGS_PATH:-.}/haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
-  #     - certs_lan_data:/certs/lan:ro,cached
-  #     - certs_wan_data:/certs/wan:ro,cached
-  #   dns:
-  #     - ${DOCKER_INTERNAL_DNS}
-  #   networks:
-  #     media:
-  #       ipv4_address: 172.16.0.1
-  #   restart: unless-stopped
+  #     - ${CONFIGS_PATH:-.}/coredns/Corefile:/Corefile
+  #     - ${CONFIGS_PATH:-.}/coredns/configs:/etc/coredns
+  #   cap_add:
+  #     - NET_BIND_SERVICE
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:53535/health"]
+  #     interval: 30s
+  #     timeout: 5s
+  #     retries: 3
   #   mem_limit: 256m
-
+  #   restart: unless-stopped
   dns:
-    image: coredns/coredns:latest
+    image: internetsystemsconsortium/bind9:9.18
     container_name: dns
     hostname: dns
-    environment:
-      TZ: America/Sao_Paulo
-      DOCKER_HOST_IP: ${DOCKER_HOST_IP:-}
-      PUBLIC_DNS_IP: ${PUBLIC_DNS_IP:-}
-    ports:
-      - 53:53
-      - 53:53/udp
+    platform: linux/amd64
     volumes:
-      - ${CONFIGS_PATH:-.}/coredns/Corefile:/Corefile
-      - ${CONFIGS_PATH:-.}/coredns/configs:/etc/coredns
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:53535/health"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
+      - ${CONFIGS_PATH:-.}/bind/config:/etc/bind
+      - ${CONFIGS_PATH:-.}/bind/log:/var/log
+    ports:
+      - 53:53/udp
+      - 53:53
+    cap_add:
+      - NET_BIND_SERVICE
     mem_limit: 256m
     restart: unless-stopped
 
@@ -165,7 +162,6 @@ services:
     networks:
       media:
         ipv4_address: 172.16.0.12
-        gw_priority: 1
       proxy:
     restart: unless-stopped
     mem_limit: 512m
@@ -186,7 +182,6 @@ services:
     networks:
       media:
         ipv4_address: 172.16.0.13
-        gw_priority: 1
       proxy:
     restart: unless-stopped
     mem_limit: 256m
@@ -225,11 +220,7 @@ services:
     networks:
       media:
         ipv4_address: 172.16.0.15
-        gw_priority: 2
       proxy:
-        gw_priority: 1
-      downloaders:
-        ipv4_address: 172.16.2.10
     restart: unless-stopped
     mem_limit: 256m
 
@@ -250,9 +241,6 @@ services:
     networks:
       media:
         ipv4_address: 172.16.0.18
-        gw_priority: 1
-      downloaders:
-        ipv4_address: 172.16.2.11
     restart: unless-stopped
     mem_limit: 512m
 
@@ -278,9 +266,6 @@ services:
     networks:
       media:
         ipv4_address: 172.16.0.16
-        gw_priority: 1
-      downloaders:
-        ipv4_address: 172.16.2.12
     restart: unless-stopped
     mem_limit: 512m
 
@@ -306,9 +291,6 @@ services:
     networks:
       media:
         ipv4_address: 172.16.0.17
-        gw_priority: 1
-      downloaders:
-        ipv4_address: 172.16.2.13
     restart: unless-stopped
     mem_limit: 512m
 
@@ -325,7 +307,7 @@ services:
       - 8191
     networks:
       media:
-        ipv4_address: 172.16.0.100
+        ipv4_address: 172.16.0.21
       proxy:
     restart: unless-stopped
     mem_limit: 512m
@@ -351,8 +333,8 @@ services:
       - 53471:53471
       - 53471:53471/udp
     networks:
-      downloaders:
-        ipv4_address: 172.16.2.2
+      media:
+        ipv4_address: 172.16.0.20
     mem_limit: 512m
     restart: unless-stopped
 
@@ -371,8 +353,8 @@ services:
     ports:
       - 5030:5030/tcp
     networks:
-      downloaders:
-        ipv4_address: 172.16.2.3
+      media:
+        ipv4_address: 172.16.0.22
     mem_limit: 512m
     restart: unless-stopped
 
@@ -396,15 +378,6 @@ networks:
       config:
         - subnet: "172.16.1.0/24"
           gateway: "172.16.1.254"
-  downloaders:
-    name: downloaders
-    driver: bridge
-    driver_opts:
-      com.docker.network.driver.mtu: 1492
-    ipam:
-      config:
-        - subnet: "172.16.2.0/24"
-          gateway: "172.16.2.254"
 
 volumes:
   scripts_data:

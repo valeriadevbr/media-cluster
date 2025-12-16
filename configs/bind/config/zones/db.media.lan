@@ -1,0 +1,140 @@
+; ============================================================================
+; Arquivo de Zona: media.lan
+; Autor: Valéria Acciaroli
+; Última Atualização: 2025-12-16
+; ============================================================================
+
+$ORIGIN media.lan.
+$TTL 3600
+
+; ============================================================================
+; START OF AUTHORITY (SOA)
+; ============================================================================
+@                       IN      SOA     ns1.media.lan. admin.media.lan. (
+                        2025121601      ; Serial (YYYYMMDDVV)
+                        7200            ; Refresh (2 horas)
+                        3600            ; Retry (1 hora)
+                        1209600         ; Expire (14 dias)
+                        3600            ; Minimum TTL (1 hora)
+                        )
+
+; ============================================================================
+; NAME SERVERS
+; ============================================================================
+                        IN      NS      ns1.media.lan.
+                        IN      NS      ns2.media.lan.
+
+; ============================================================================
+; REGISTROS A (IPv4)
+; ============================================================================
+; --- Servidores DNS ---------------------------------------------------------
+ns1                     IN      A       192.168.2.1
+ns2                     IN      A       192.168.2.1
+
+; --- Serviços Públicos de Mídia ---------------------------------------------
+emby                    IN      A       192.168.2.1
+plex                    IN      A       192.168.2.1
+
+; --- Serviços Privados de Mídia ---------------------------------------------
+bazarr                  IN      A       192.168.2.1
+jackett                 IN      A       192.168.2.1
+lidarr                  IN      A       192.168.2.1
+profilarr               IN      A       192.168.2.1
+prowlarr                IN      A       192.168.2.1
+radarr                  IN      A       192.168.2.1
+sonarr                  IN      A       192.168.2.1
+
+; --- Serviços de Torrent ----------------------------------------------------
+qbittorrent             IN      A       192.168.2.1
+slskd                   IN      A       192.168.2.1
+
+; --- Hosts Adicionais -------------------------------------------------------
+localhost               IN      A       192.168.2.1
+ssh                     IN      A       192.168.2.1
+
+; ============================================================================
+; REGISTROS AAAA (IPv6)
+; ============================================================================
+bazarr                  IN      AAAA    ::
+emby                    IN      AAAA    ::
+jackett                 IN      AAAA    ::
+lidarr                  IN      AAAA    ::
+plex                    IN      AAAA    ::
+profilarr               IN      AAAA    ::
+prowlarr                IN      AAAA    ::
+qbittorrent             IN      AAAA    ::
+radarr                  IN      AAAA    ::
+slskd                   IN      AAAA    ::
+sonarr                  IN      AAAA    ::
+
+; ============================================================================
+; REGISTROS CNAME (Aliases)
+; ============================================================================
+; --- Streaming --------------------------------------------------------------
+tv                      IN      CNAME   plex.media.lan.
+tv2                     IN      CNAME   emby.media.lan.
+
+; --- Gerenciamento ----------------------------------------------------------
+indexer                 IN      CNAME   prowlarr.media.lan.
+movies                  IN      CNAME   radarr.media.lan.
+music                   IN      CNAME   lidarr.media.lan.
+profiles                IN      CNAME   profilarr.media.lan.
+series                  IN      CNAME   sonarr.media.lan.
+subtitles               IN      CNAME   bazarr.media.lan.
+torrent                 IN      CNAME   qbittorrent.media.lan.
+
+; --- Soulseek ---------------------------------------------------------------
+slsk                    IN      CNAME   slskd.media.lan.
+soulseek                IN      CNAME   slskd.media.lan.
+
+; --- Jackett ----------------------------------------------------------------
+indexers                IN      CNAME   jackett.media.lan.
+tracker                 IN      CNAME   jackett.media.lan.
+
+; ============================================================================
+; REGISTROS TXT (Metadados)
+; ============================================================================
+; --- Informações Gerais do Domínio ------------------------------------------
+@                       IN      TXT     "proxy=caddy"
+@                       IN      TXT     "tls=localhost.crt"
+@                       IN      TXT     "domain=media.lan"
+@                       IN      TXT     "ipv4=192.168.2.1"
+@                       IN      TXT     "ipv6=::"
+
+; --- Descoberta de Serviços HTTPS -------------------------------------------
+_https._tcp             IN      TXT     "provider=caddy" "ssl=true" "port=443"
+
+; --- Informações Específicas de Serviços ------------------------------------
+plex._https._tcp        IN      TXT     "internal_port=32400" "service=plex"
+emby._https._tcp        IN      TXT     "internal_port=8096"  "service=emby"
+bazarr._https._tcp      IN      TXT     "internal_port=6767"  "service=bazarr"
+jackett._https._tcp     IN      TXT     "internal_port=9117"  "service=jackett"
+lidarr._https._tcp      IN      TXT     "internal_port=8686"  "service=lidarr"
+profilarr._https._tcp   IN      TXT     "internal_port=6868"  "service=profilarr"
+prowlarr._https._tcp    IN      TXT     "internal_port=9696"  "service=prowlarr"
+radarr._https._tcp      IN      TXT     "internal_port=7878"  "service=radarr"
+sonarr._https._tcp      IN      TXT     "internal_port=8989"  "service=sonarr"
+qbittorrent._https._tcp IN      TXT     "internal_port=8081"  "service=qbittorrent"
+slskd._https._tcp       IN      TXT     "internal_port=5030"  "service=slskd"
+
+; ============================================================================
+; REGISTROS SRV (Service Discovery)
+; ============================================================================
+; --- Serviços de Mídia ------------------------------------------------------
+_plex._tcp              IN      SRV     0 0 32400 plex.media.lan.
+_emby._tcp              IN      SRV     0 0 8096  emby.media.lan.
+_https._tcp             IN      SRV     0 0 443   plex.media.lan.
+
+; --- PTR para DNS-Based Service Discovery -----------------------------------
+_services._dns-sd._udp  IN      PTR     _plex._tcp.media.lan.
+_services._dns-sd._udp  IN      PTR     _emby._tcp.media.lan.
+
+; ============================================================================
+; WILDCARD (Subdomínios Não Definidos)
+; ============================================================================
+*.media.lan.            IN      A       192.168.2.1
+*.media.lan.            IN      AAAA    ::
+
+; ============================================================================
+; FIM DO ARQUIVO DE ZONA
+; ============================================================================

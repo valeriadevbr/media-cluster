@@ -24,6 +24,11 @@ emby.apedamo.duckdns.org {
 *.media.lan {
   tls /certs/lan/localhost.crt /certs/lan/localhost.key
 
+  log {
+    output stdout
+    format console
+  }
+
   # Public Media Services
   @emby host emby.media.lan
   reverse_proxy @emby emby:8096 {
@@ -66,4 +71,14 @@ emby.apedamo.duckdns.org {
 
   @slskd host slskd.media.lan
   reverse_proxy @slskd slskd:5030
+}
+
+# Catch-all para domínios não especificados (HTTPS)
+https:// {
+  tls /certs/lan/localhost.crt /certs/lan/localhost.key
+  respond "Are You Lost?!" 404
+}
+
+http://*.media.lan {
+  redir https://{host}{uri} 308
 }

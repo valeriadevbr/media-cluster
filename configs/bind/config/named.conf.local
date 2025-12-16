@@ -1,0 +1,5 @@
+zone "media.lan" {
+  type master;
+  file "/etc/bind/zones/db.media.lan";
+  allow-transfer { none; };
+};
