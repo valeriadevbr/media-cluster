@@ -18,9 +18,9 @@ for conf in "$BACKUP_DIR"/*.conf; do
 done
 sudo chown -R root:wheel "$WG_DIR"
 sudo chmod 755 "$WG_DIR"
-sudo find "$WG_DIR" -name "*.sh" -exec chmod +x {} \;
+sudo find "$WG_DIR" -name "*.sh" -exec chmod 755 {} \;
 sudo find "$WG_DIR" -name "*.conf" -exec chmod 600 {} \;
 
 brew install wireguard-tools wireguard-go qrencode -q
-sudo wg-quick down wg0
-sudo wg-quick up wg0
+# sudo wg-quick down wg0
+# sudo wg-quick up wg0

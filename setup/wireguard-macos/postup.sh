@@ -13,24 +13,14 @@ pfctl -F nat
 
 # Aplicar novas regras
 (
-cat <<EOF
-# --- OPÇÕES GERAIS ---
-# CRUCIAL: Diz ao firewall para NÃO filtrar tráfego na Loopback
-# Isso restaura o acesso ao 192.168.2.1 e localhost
-set skip on lo0
-
-# --- REGRAS DE NAT ---
-# Mascarar saída para internet
+  cat <<EOF
 nat on $INET_IFace from 10.13.13.0/24 to any -> ($INET_IFace)
+rdr on $WG_IFace inet proto { tcp, udp } from 10.13.13.0/24 to 192.168.2.1 -> 10.13.13.1
 
-# --- REGRAS DE FILTRO ---
-# Permitir tudo na interface da VPN (entrada e saída)
 pass quick on $WG_IFace inet
-
-# Forçar a aceitação de pacotes destinados ao IP local vindo da VPN
-# (Caso o 'set skip' não capture devido à troca de interface)
-pass in quick from 10.13.13.0/24 to 192.168.2.1
+pass in quick on $INET_IFace from 10.13.13.0/24 to 192.168.2.0/24
+pass out quick on $INET_IFace from 192.168.2.0/24 to 10.13.13.0/24
 EOF
 ) | pfctl -f -
 
-echo "Regras aplicadas: NAT em $INET_IFace e Skip na Loopback."
+echo "Regras aplicadas: NAT em $INET_IFace."

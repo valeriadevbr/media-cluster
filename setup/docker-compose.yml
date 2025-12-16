@@ -13,19 +13,39 @@ services:
       - 443:443
       - 443:443/udp # HTTP/3 (QUIC)
     volumes:
-      - ${CONFIGS_PATH:-.}/caddy/data:/data:cached
-      - ${CONFIGS_PATH:-.}/caddy/config:/config:cached
+      - ${CONFIGS_PATH:-.}/caddy/data:/data
+      - ${CONFIGS_PATH:-.}/caddy/config:/config
       - ${CONFIGS_PATH:-.}/caddy/Caddyfile:/etc/caddy/Caddyfile:ro,cached
       - certs_lan_data:/certs/lan:ro,cached
       - certs_wan_data:/certs/wan:ro,cached
+    dns:
+      - ${DOCKER_INTERNAL_DNS}
     networks:
       media:
         ipv4_address: 172.16.0.1
-      infra:
-        ipv4_address: 172.16.2.1
       downloaders:
+        ipv4_address: 172.16.2.1
     mem_limit: 256m
     restart: unless-stopped
+
+  # haproxy:
+  #   image: haproxy:latest
+  #   container_name: haproxy
+  #   hostname: haproxy
+  #   ports:
+  #     - 80:80
+  #     - 443:443
+  #   volumes:
+  #     - ${CONFIGS_PATH:-.}/haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+  #     - certs_lan_data:/certs/lan:ro,cached
+  #     - certs_wan_data:/certs/wan:ro,cached
+  #   dns:
+  #     - ${DOCKER_INTERNAL_DNS}
+  #   networks:
+  #     media:
+  #       ipv4_address: 172.16.0.1
+  #   restart: unless-stopped
+  #   mem_limit: 256m
 
   dns:
     image: coredns/coredns:latest
@@ -46,9 +66,6 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
-    networks:
-      infra:
-        ipv4_address: 172.16.2.2
     mem_limit: 256m
     restart: unless-stopped
 
@@ -143,11 +160,12 @@ services:
     volumes:
       - ${CONFIGS_PATH:-.}/bazarr:/config:cached
       - ${MEDIA_PATH:-.}:/media:delegated
-    expose:
-      - 6767
+    ports:
+      - 6767:6767
     networks:
       media:
         ipv4_address: 172.16.0.12
+        gw_priority: 1
       proxy:
     restart: unless-stopped
     mem_limit: 512m
@@ -163,12 +181,12 @@ services:
       TZ: America/Sao_Paulo
     volumes:
       - ${CONFIGS_PATH:-.}/jackett:/config:cached
-      # - ${DOWNLOADS_PATH:-.}:/downloads:delegated
     expose:
       - 9117
     networks:
       media:
         ipv4_address: 172.16.0.13
+        gw_priority: 1
       proxy:
     restart: unless-stopped
     mem_limit: 256m
@@ -207,8 +225,11 @@ services:
     networks:
       media:
         ipv4_address: 172.16.0.15
+        gw_priority: 2
       proxy:
+        gw_priority: 1
       downloaders:
+        ipv4_address: 172.16.2.10
     restart: unless-stopped
     mem_limit: 256m
 
@@ -224,12 +245,14 @@ services:
       PUID: 1000
       PGID: 1000
       TZ: America/Sao_Paulo
-    expose:
-      - 8686
+    ports:
+      - 8686:8686
     networks:
       media:
         ipv4_address: 172.16.0.18
+        gw_priority: 1
       downloaders:
+        ipv4_address: 172.16.2.11
     restart: unless-stopped
     mem_limit: 512m
 
@@ -247,15 +270,17 @@ services:
       - ${MEDIA_PATH:-.}:/media:delegated
       - scripts_data:/opt/scripts:ro
     environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=America/Sao_Paulo
+      PUID: 1000
+      PGID: 1000
+      TZ: America/Sao_Paulo
     expose:
       - 7878
     networks:
       media:
         ipv4_address: 172.16.0.16
+        gw_priority: 1
       downloaders:
+        ipv4_address: 172.16.2.12
     restart: unless-stopped
     mem_limit: 512m
 
@@ -281,7 +306,9 @@ services:
     networks:
       media:
         ipv4_address: 172.16.0.17
+        gw_priority: 1
       downloaders:
+        ipv4_address: 172.16.2.13
     restart: unless-stopped
     mem_limit: 512m
 
@@ -324,7 +351,8 @@ services:
       - 53471:53471
       - 53471:53471/udp
     networks:
-      - downloaders
+      downloaders:
+        ipv4_address: 172.16.2.2
     mem_limit: 512m
     restart: unless-stopped
 
@@ -340,13 +368,13 @@ services:
       - ${CONFIGS_PATH:-.}/slskd:/app:cached
       - ${DOWNLOADS_PATH:-.}:/app/downloads:delegated
       - ${MEDIA_PATH:-.}/Music:/music:delegated
-    expose:
-      - 5030
     ports:
-      - 50300:50300/tcp
+      - 5030:5030/tcp
     networks:
-      - downloaders
-    mem_limit: 256m
+      downloaders:
+        ipv4_address: 172.16.2.3
+    mem_limit: 512m
+    restart: unless-stopped
 
 networks:
   media:
@@ -368,8 +396,8 @@ networks:
       config:
         - subnet: "172.16.1.0/24"
           gateway: "172.16.1.254"
-  infra:
-    name: infra
+  downloaders:
+    name: downloaders
     driver: bridge
     driver_opts:
       com.docker.network.driver.mtu: 1492
@@ -377,16 +405,6 @@ networks:
       config:
         - subnet: "172.16.2.0/24"
           gateway: "172.16.2.254"
-  downloaders:
-    name: downloaders
-    driver: bridge
-    driver_opts:
-      com.docker.network.driver.mtu: 1492
-    ipam:
-      driver: default
-      config:
-        - subnet: "172.16.3.0/24"
-          gateway: "172.16.3.254"
 
 volumes:
   scripts_data:

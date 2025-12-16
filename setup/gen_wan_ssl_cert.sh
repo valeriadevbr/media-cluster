@@ -13,18 +13,20 @@ sudo certbot certonly \
   -d "emby.${WAN_HOST}"
 
 # Caminhos dos arquivos gerados pelo Let's Encrypt
+SSL_CONFIG_PATH="${CONFIGS_PATH}/ssl"
 LE_DIR="/etc/letsencrypt/live/${WAN_HOST}"
 DEST_DIR="${SSL_CONFIG_PATH}/wan"
 FULLCHAIN="${LE_DIR}/fullchain.pem"
 PRIVKEY="${LE_DIR}/privkey.pem"
 
-mkdir -p "${DEST_DIR}"
+sudo mkdir -p "${DEST_DIR}"
 
 # Converter para .crt e .key
 sudo cp "$FULLCHAIN" "$DEST_DIR/${WAN_HOST}.crt"
 sudo cp "$PRIVKEY" "$DEST_DIR/${WAN_HOST}.key"
-sudo chown $USER "$DEST_DIR/${WAN_HOST}.crt" "${DEST_DIR}/${WAN_HOST}.key"
-sudo chmod 600 "${DEST_DIR}/${WAN_HOST}.crt" "${DEST_DIR}/${WAN_HOST}.key"
+sudo cat "$FULLCHAIN" "$PRIVKEY" >"$DEST_DIR/${WAN_HOST}.pem"
+sudo chown $USER "$DEST_DIR/${WAN_HOST}.crt" "${DEST_DIR}/${WAN_HOST}.key" "${DEST_DIR}/${WAN_HOST}.pem"
+sudo chmod 600 "${DEST_DIR}/${WAN_HOST}.crt" "${DEST_DIR}/${WAN_HOST}.key" "${DEST_DIR}/${WAN_HOST}.pem"
 
 # Converter para .pfx (sem senha)
 openssl pkcs12 -export \

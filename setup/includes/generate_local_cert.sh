@@ -11,6 +11,7 @@ generate_local_cert() {
   local key_path="${out_dir}/${host}.key"
   local crt_path="${out_dir}/${host}.crt"
   local pfx_path="${out_dir}/${host}.pfx"
+  local pem_path="${out_dir}/${host}.pem"
 
   # Gera a chave privada
   openssl genrsa -out "$key_path" 2048
@@ -35,7 +36,7 @@ generate_local_cert() {
     -extfile "$san_cnf" \
     -out "$crt_path"
 
-  #Converte o certificado e a chave para o formato PFX
+  # Converte o certificado e a chave para o formato PFX
   openssl pkcs12 \
     -export \
     -certfile "$ca_crt" \
@@ -43,6 +44,9 @@ generate_local_cert() {
     -in "$crt_path" \
     -out "$pfx_path" \
     -password pass:
+
+  # Converte o certificado e a chave para o formato PEM
+  cat "$crt_path" "$key_path" >"$pem_path"
 
   # Limpa arquivos temporários
   rm "$csr_path"
