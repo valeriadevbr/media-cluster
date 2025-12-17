@@ -13,9 +13,8 @@ sudo certbot certonly \
   -d "emby.${WAN_HOST}"
 
 # Caminhos dos arquivos gerados pelo Let's Encrypt
-SSL_CONFIG_PATH="${CONFIGS_PATH}/ssl"
 LE_DIR="/etc/letsencrypt/live/${WAN_HOST}"
-DEST_DIR="${SSL_CONFIG_PATH}/wan"
+DEST_DIR="${CERTS_PATH}/wan"
 FULLCHAIN="${LE_DIR}/fullchain.pem"
 PRIVKEY="${LE_DIR}/privkey.pem"
 

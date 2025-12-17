@@ -1,5 +1,8 @@
 # Ignora tudo
-/*
+.*
+!.vscode/
+media/**
+configs/**
 
 # Exceto setup e scripts
 !/setup/
@@ -9,3 +12,9 @@
 # Ignora arquivos de sistema
 .DS_Store
 .nomedia
+
+ssl/**/*.srl
+ssl/**/*.key
+ssl/**/*.crt
+ssl/**/*.pem
+ssl/**/*.pfx

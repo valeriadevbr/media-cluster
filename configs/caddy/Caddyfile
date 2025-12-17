@@ -21,7 +21,7 @@ emby.apedamo.duckdns.org {
   }
 }
 
-*.media.lan {
+*.media.lan:443 {
   tls /certs/lan/localhost.crt /certs/lan/localhost.key
 
   log {
@@ -73,12 +73,63 @@ emby.apedamo.duckdns.org {
   reverse_proxy @slskd slskd:5030
 }
 
+*.media.lan:80 {
+  log {
+    output stdout
+    format console
+  }
+
+  # Public Media Services
+  @emby host emby.media.lan
+  reverse_proxy @emby emby:8096 {
+    import proxy_headers
+  }
+
+  @plex host plex.media.lan
+  reverse_proxy @plex plex:32400 {
+    transport http {
+      tls_insecure_skip_verify
+    }
+    import proxy_headers
+  }
+
+  # Private Media Services
+  @bazarr host bazarr.media.lan
+  reverse_proxy @bazarr bazarr:6767
+
+  @jackett host jackett.media.lan
+  reverse_proxy @jackett jackett:9117
+
+  @lidarr host lidarr.media.lan
+  reverse_proxy @lidarr lidarr:8686
+
+  @profilarr host profilarr.media.lan
+  reverse_proxy @profilarr profilarr:6868
+
+  @prowlarr host prowlarr.media.lan
+  reverse_proxy @prowlarr prowlarr:9696
+
+  @radarr host radarr.media.lan
+  reverse_proxy @radarr radarr:7878
+
+  @sonarr host sonarr.media.lan
+  reverse_proxy @sonarr sonarr:8989
+
+  # Torrenting Services
+  @qbittorrent host qbittorrent.media.lan
+  reverse_proxy @qbittorrent qbittorrent:8081
+
+  @slskd host slskd.media.lan
+  reverse_proxy @slskd slskd:5030
+}
+
+
 # Catch-all para domínios não especificados (HTTPS)
 https:// {
   tls /certs/lan/localhost.crt /certs/lan/localhost.key
   respond "Are You Lost?!" 404
 }
 
-http://*.media.lan {
-  redir https://{host}{uri} 308
-}
+# http://*.media.lan {
+#   redir https://{host}{uri} 308
+# }

@@ -14,7 +14,7 @@ openssl req \
   -sha256 \
   -days 1825 \
   -subj "/CN=DevilCOM Network" \
-  -key $CONFIGS_PATH/ssl/ca/ca.key \
-  -out $CONFIGS_PATH/ssl/ca/ca.crt
+  -key "${CERTS_PATH}/ca/ca.key" \
+  -out "${CERTS_PATH}/ca/ca.crt"
 
-sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain $CONFIGS_PATH/ssl/ca/ca.crt
+sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain "${CERTS_PATH}/ca/ca.crt"

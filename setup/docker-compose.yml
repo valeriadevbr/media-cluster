@@ -13,14 +13,12 @@ services:
       - 443:443
       - 443:443/udp # HTTP/3 (QUIC)
     volumes:
-      - ${CONFIGS_PATH:-.}/caddy/data:/data
-      - ${CONFIGS_PATH:-.}/caddy/config:/config
-      - ${CONFIGS_PATH:-.}/caddy/Caddyfile:/etc/caddy/Caddyfile:ro,cached
-      - certs_lan_data:/certs/lan:ro,cached
-      - certs_wan_data:/certs/wan:ro,cached
-      - ${CONFIGS_PATH:-.}/ssl/ca/ca.crt:/certs/ca/ca.crt:ro,cached
-    dns:
-      - ${DOCKER_INTERNAL_DNS:-}
+      - ${CONFIGS_PATH}/caddy/data:/data
+      - ${CONFIGS_PATH}/caddy/config:/config
+      - ${CONFIGS_PATH}/caddy/Caddyfile:/etc/caddy/Caddyfile:ro,cached
+      - ${CERTS_PATH}/lan:/certs/lan:ro,cached
+      - ${CERTS_PATH}/wan:/certs/wan:ro,cached
+      - ${CERTS_PATH}/ca/ca.crt:/certs/ca/ca.crt:ro,cached
     networks:
       media:
         ipv4_address: 172.16.0.1
@@ -33,14 +31,14 @@ services:
   #   hostname: dns
   #   environment:
   #     TZ: America/Sao_Paulo
-  #     DOCKER_HOST_IP: ${DOCKER_HOST_IP:-}
-  #     PUBLIC_DNS_IP: ${PUBLIC_DNS_IP:-}
+  #     DOCKER_HOST_IP: ${DOCKER_HOST_IP}
+  #     PUBLIC_DNS_IP: ${PUBLIC_DNS_IP}
   #   ports:
   #     - 53:53
   #     - 53:53/udp
   #   volumes:
-  #     - ${CONFIGS_PATH:-.}/coredns/Corefile:/Corefile
-  #     - ${CONFIGS_PATH:-.}/coredns/configs:/etc/coredns
+  #     - ${CONFIGS_PATH}/coredns/Corefile:/Corefile
+  #     - ${CONFIGS_PATH}/coredns/configs:/etc/coredns
   #   cap_add:
   #     - NET_BIND_SERVICE
   #   healthcheck:
@@ -50,20 +48,21 @@ services:
   #     retries: 3
   #   mem_limit: 256m
   #   restart: unless-stopped
+
   dns:
     image: internetsystemsconsortium/bind9:9.18
     container_name: dns
     hostname: dns
     platform: linux/amd64
     volumes:
-      - ${CONFIGS_PATH:-.}/bind/config:/etc/bind
-      - ${CONFIGS_PATH:-.}/bind/log:/var/log
+      - ${CONFIGS_PATH}/bind/config:/etc/bind
+      - ${CONFIGS_PATH}/bind/log:/var/log
     ports:
       - 53:53/udp
       - 53:53
     cap_add:
       - NET_BIND_SERVICE
-    mem_limit: 256m
+    mem_limit: 512m
     restart: unless-stopped
 
   3proxy:
@@ -71,7 +70,7 @@ services:
     container_name: 3proxy
     hostname: proxy
     volumes:
-      - ${CONFIGS_PATH:-.}/3proxy/3proxy.cfg:/etc/3proxy/3proxy.cfg
+      - ${CONFIGS_PATH}/3proxy/3proxy.cfg:/etc/3proxy/3proxy.cfg
     environment:
       EXTRA_CONFIG: |
         auth iponly
@@ -85,9 +84,9 @@ services:
         parent 1000 ${PROXY_TYPE} ${PROXY_HOST} ${PROXY_PORT} ${PROXY_USERNAME} ${PROXY_PASSWORD}
         deny * * * * *
       MAX_CONNECTIONS: 1024
-      PRIMARY_RESOLVER: ${DOCKER_INTERNAL_DNS:-8.8.8.8}
+      PRIMARY_RESOLVER: ${DOCKER_INTERNAL_DNS}
       PROXY_PORT: 3128
-      SECONDARY_RESOLVER: ${DOCKER_INTERNAL_DNS:-8.8.4.4}
+      SECONDARY_RESOLVER: ${DOCKER_INTERNAL_DNS}
       SOCKS_PORT: 1080
       TZ: America/Sao_Paulo
     expose:
@@ -108,8 +107,8 @@ services:
       PUID: 1000
       TZ: America/Sao_Paulo
     volumes:
-      - ${CONFIGS_PATH:-.}/emby:/config:cached
-      - ${MEDIA_PATH:-.}:/media:cached
+      - ${CONFIGS_PATH}/emby:/config:cached
+      - ${MEDIA_PATH}:/media:cached
     ports:
       - 8096:8096
     networks:
@@ -123,12 +122,12 @@ services:
     container_name: plex
     hostname: plex
     volumes:
-      - ${CONFIGS_PATH:-.}/plex:/config:cached
-      - ${MEDIA_PATH:-.}:/media:cached
+      - ${CONFIGS_PATH}/plex:/config:cached
+      - ${MEDIA_PATH}:/media:cached
     environment:
-      ADVERTISE_IP: ${PLEX_ADVERTISE_IP:-}
+      ADVERTISE_IP: ${PLEX_ADVERTISE_IP}
       PGID: 1000
-      PLEX_CLAIM: ${PLEX_CLAIM:-}
+      PLEX_CLAIM: ${PLEX_CLAIM}
       PUID: 1000
       TZ: America/Sao_Paulo
       VERSION: docker
@@ -155,16 +154,18 @@ services:
       PUID: 1000
       TZ: America/Sao_Paulo
     volumes:
-      - ${CONFIGS_PATH:-.}/bazarr:/config:cached
-      - ${MEDIA_PATH:-.}:/media:delegated
-    ports:
-      - 6767:6767
+      - ${CONFIGS_PATH}/bazarr:/config:cached
+      - ${MEDIA_PATH}:/media:delegated
+    expose:
+      - 6767
     networks:
       media:
         ipv4_address: 172.16.0.12
+        priority: 1
+        gw_priority: 1
       proxy:
     restart: unless-stopped
-    mem_limit: 512m
+    mem_limit: 1g
 
   jackett:
     image: lscr.io/linuxserver/jackett:latest
@@ -176,7 +177,7 @@ services:
       PUID: 1000
       TZ: America/Sao_Paulo
     volumes:
-      - ${CONFIGS_PATH:-.}/jackett:/config:cached
+      - ${CONFIGS_PATH}/jackett:/config:cached
     expose:
       - 9117
     networks:
@@ -184,14 +185,14 @@ services:
         ipv4_address: 172.16.0.13
       proxy:
     restart: unless-stopped
-    mem_limit: 256m
+    mem_limit: 512m
 
   profilarr:
     image: santiagosayshey/profilarr:latest
     container_name: profilarr
     hostname: profilarr
     volumes:
-      - ${CONFIGS_PATH:-.}/profilarr:/config:cached
+      - ${CONFIGS_PATH}/profilarr:/config:rw
     environment:
       PGID: 1000
       PUID: 1000
@@ -209,8 +210,8 @@ services:
     container_name: prowlarr
     hostname: prowlarr
     volumes:
-      - ${CONFIGS_PATH:-.}/prowlarr:/config:cached
-      - ${MEDIA_PATH:-.}:/media:delegated
+      - ${CONFIGS_PATH}/prowlarr:/config:cached
+      - ${MEDIA_PATH}:/media:delegated
     environment:
       PUID: 1000
       PGID: 1000
@@ -222,22 +223,22 @@ services:
         ipv4_address: 172.16.0.15
       proxy:
     restart: unless-stopped
-    mem_limit: 256m
+    mem_limit: 512m
 
   lidarr:
     image: ghcr.io/hotio/lidarr:pr-plugins
     container_name: lidarr
     hostname: lidarr
     volumes:
-      - ${CONFIGS_PATH:-.}/lidarr:/config:cached
-      - ${DOWNLOADS_PATH:-.}:/downloads:delegated
-      - ${MEDIA_PATH:-.}:/media:delegated
+      - ${CONFIGS_PATH}/lidarr:/config:cached
+      - ${DOWNLOADS_PATH}:/downloads:delegated
+      - ${MEDIA_PATH}:/media:delegated
     environment:
       PUID: 1000
       PGID: 1000
       TZ: America/Sao_Paulo
-    ports:
-      - 8686:8686
+    expose:
+      - 8686
     networks:
       media:
         ipv4_address: 172.16.0.18
@@ -253,10 +254,10 @@ services:
     container_name: radarr
     hostname: radarr
     volumes:
-      - ${CONFIGS_PATH:-.}/radarr:/config:cached
-      - ${DOWNLOADS_PATH:-.}:/downloads:delegated
-      - ${MEDIA_PATH:-.}:/media:delegated
-      - scripts_data:/opt/scripts:ro
+      - ${CONFIGS_PATH}/radarr:/config:cached
+      - ${DOWNLOADS_PATH}:/downloads:delegated
+      - ${MEDIA_PATH}:/media:delegated
+      - ${SCRIPTS_PATH}:/opt/scripts:ro
     environment:
       PUID: 1000
       PGID: 1000
@@ -267,7 +268,7 @@ services:
       media:
         ipv4_address: 172.16.0.16
     restart: unless-stopped
-    mem_limit: 512m
+    mem_limit: 1g
 
   sonarr:
     build:
@@ -278,10 +279,10 @@ services:
     container_name: sonarr
     hostname: sonarr
     volumes:
-      - ${CONFIGS_PATH:-.}/sonarr:/config:cached
-      - ${DOWNLOADS_PATH:-.}:/downloads:delegated
-      - ${MEDIA_PATH:-.}:/media:delegated
-      - scripts_data:/opt/scripts:ro
+      - ${CONFIGS_PATH}/sonarr:/config:cached
+      - ${DOWNLOADS_PATH}:/downloads:delegated
+      - ${MEDIA_PATH}:/media:delegated
+      - ${SCRIPTS_PATH}:/opt/scripts:ro
     environment:
       PGID: 1000
       PUID: 1000
@@ -292,7 +293,7 @@ services:
       media:
         ipv4_address: 172.16.0.17
     restart: unless-stopped
-    mem_limit: 512m
+    mem_limit: 1g
 
   flaresolverr:
     image: ghcr.io/flaresolverr/flaresolverr:latest
@@ -325,8 +326,8 @@ services:
       TZ: America/Sao_Paulo
       WEBUI_PORT: 8081
     volumes:
-      - ${CONFIGS_PATH:-.}/qbittorrent:/config:cached
-      - ${DOWNLOADS_PATH:-.}:/downloads:delegated
+      - ${CONFIGS_PATH}/qbittorrent:/config:cached
+      - ${DOWNLOADS_PATH}:/downloads:delegated
     expose:
       - 8081
     ports:
@@ -347,11 +348,11 @@ services:
       SLSKD_SHARED_DIR: /music
       TZ: America/Sao_Paulo
     volumes:
-      - ${CONFIGS_PATH:-.}/slskd:/app:cached
-      - ${DOWNLOADS_PATH:-.}:/app/downloads:delegated
-      - ${MEDIA_PATH:-.}/Music:/music:delegated
-    ports:
-      - 5030:5030/tcp
+      - ${CONFIGS_PATH}/slskd:/app:cached
+      - ${DOWNLOADS_PATH}:/app/downloads:delegated
+      - ${MEDIA_PATH}/Music:/music:delegated
+    expose:
+      - 5030
     networks:
       media:
         ipv4_address: 172.16.0.22
@@ -379,22 +380,3 @@ networks:
         - subnet: "172.16.1.0/24"
           gateway: "172.16.1.254"
 
-volumes:
-  scripts_data:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ${SCRIPTS_PATH:-.}
-  certs_lan_data:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ${CONFIGS_PATH:-.}/ssl/lan
-  certs_wan_data:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ${CONFIGS_PATH:-.}/ssl/wan
