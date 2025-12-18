@@ -477,9 +477,23 @@ validate_output_file() {
 process_file() {
   local input_file="$1"
   local output_file="$2"
+  local final_output="${output_file%.*}.mkv"
+  local temp_output="${final_output}.tmp.mkv"
+  local is_inplace=false
 
-  # Garantir que a saída seja sempre .mkv
-  output_file="${output_file%.*}.mkv"
+  # Se o input não existe (Radarr já moveu), mas o destino existe, tratamos como in-place
+  if [[ ! -f "$input_file" && -f "$output_file" ]]; then
+    input_file="$output_file"
+  fi
+
+  # Se fonte e destino forem o mesmo arquivo, usamos saída temporária
+  if [[ "$input_file" == "$final_output" ]]; then
+    is_inplace=true
+    output_file="$temp_output"
+  else
+    output_file="$final_output"
+  fi
+
   CURRENT_NEW_FILE="$output_file"
 
   log_universal ""
@@ -499,18 +513,21 @@ process_file() {
   local mkvmerge_result=$?
   if [[ $mkvmerge_result -ne 0 ]]; then
     log_universal "KO: mkvmerge falhou com código ($mkvmerge_result). Abortando."
+    [[ -f "$temp_output" ]] && rm -f "$temp_output"
     exit 6
   fi
 
   if [[ -f "$output_file" && -s "$output_file" ]]; then
+    if [[ "$is_inplace" == true ]]; then
+      log_universal "OK: Transcode in-place concluído. Substituindo original..."
+      mv -f "$output_file" "$final_output"
+    fi
     log_universal "OK: Arquivo transcodado criado com sucesso"
-    validate_output_file "$output_file"
+    validate_output_file "$final_output"
     return $?
   else
     log_universal "KO: Erro ao criar arquivo transcodado"
-    if [[ -f "$output_file" ]]; then
-      rm -f "$output_file"
-    fi
+    [[ -f "$temp_output" ]] && rm -f "$temp_output"
     CURRENT_NEW_FILE=""
     return 3
   fi
