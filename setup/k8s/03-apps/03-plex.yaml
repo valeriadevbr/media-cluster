@@ -4,6 +4,8 @@ metadata:
   name: plex
   namespace: media
 spec:
+  strategy:
+    type: Recreate
   replicas: 1
   selector:
     matchLabels:
@@ -14,6 +16,8 @@ spec:
         app: plex
     spec:
       priorityClassName: critical-media
+      dnsPolicy: ClusterFirstWithHostNet
+      hostNetwork: true
       containers:
       - name: plex
         image: plexinc/pms-docker:latest
@@ -32,14 +36,9 @@ spec:
         - name: gdm-32414
           containerPort: 32414
           protocol: UDP
-        - name: ssdp-1900
-          containerPort: 1900
-          protocol: UDP
         - name: companion
           containerPort: 8324
         env:
-        - name: ALLOWED_NETWORKS
-          value: "0.0.0.0/0"
         - name: PUID
           value: "1000"
         - name: PGID
@@ -63,6 +62,8 @@ spec:
           subPath: plex
         - name: media
           mountPath: /media
+        - name: transcode
+          mountPath: /transcode
       volumes:
       - name: configs-source
         persistentVolumeClaim:
@@ -70,6 +71,9 @@ spec:
       - name: media
         persistentVolumeClaim:
           claimName: media-pvc
+      - name: transcode
+        emptyDir:
+          medium: Memory
 ---
 apiVersion: v1
 kind: Service
@@ -79,40 +83,32 @@ metadata:
 spec:
   selector:
     app: plex
+  type: ClusterIP
   ports:
     - name: pms
       port: 32400
       targetPort: 32400
-      nodePort: 32400
+      protocol: TCP
     - name: gdm-32410
       port: 32410
       targetPort: 32410
-      nodePort: 32410
       protocol: UDP
     - name: gdm-32412
       port: 32412
       targetPort: 32412
-      nodePort: 32412
       protocol: UDP
     - name: gdm-32413
       port: 32413
       targetPort: 32413
-      nodePort: 32413
       protocol: UDP
     - name: gdm-32414
       port: 32414
       targetPort: 32414
-      nodePort: 32414
-      protocol: UDP
-    - name: ssdp-1900
-      port: 1900
-      targetPort: 1900
-      nodePort: 1900
       protocol: UDP
     - name: companion
       port: 8324
       targetPort: 8324
-  type: NodePort
+      protocol: TCP
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -121,10 +117,17 @@ metadata:
   namespace: media
   annotations:
     kubernetes.io/ingress.class: "nginx"
-    # nginx.ingress.kubernetes.io/proxy-buffering: "off"
-    # nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
-    # nginx.ingress.kubernetes.io/proxy-request-buffering: "off"
-    # nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      proxy_set_header X-Forwarded-For "192.168.2.1";
+      proxy_set_header X-Real-IP "192.168.2.1";
+      proxy_set_header Upgrade $http_upgrade;
+      proxy_set_header Connection "upgrade";
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    nginx.ingress.kubernetes.io/proxy-buffering: "off"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/server-snippet: |
+      gzip off;
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
 spec:
   ingressClassName: nginx

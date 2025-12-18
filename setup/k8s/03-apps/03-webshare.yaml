@@ -37,12 +37,6 @@ spec:
             deny * * * * *
         - name: MAX_CONNECTIONS
           value: "1024"
-        # - name: PRIMARY_RESOLVER
-        #   value: "${DOCKER_INTERNAL_DNS}"
-        # - name: PROXY_PORT
-        #   value: "3128"
-        # - name: SECONDARY_RESOLVER
-        #   value: "${DOCKER_INTERNAL_DNS}"
         - name: SOCKS_PORT
           value: "1080"
         - name: TZ

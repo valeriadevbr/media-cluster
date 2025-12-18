@@ -24,9 +24,6 @@ nodes:
   - containerPort: 443 # HTTPS
     hostPort: 443
     protocol: TCP
-  - containerPort: 1900 # SSDP/DLNA (Plex/Emby)
-    hostPort: 1900
-    protocol: UDP
   - containerPort: 7359 # Emby Discovery
     hostPort: 7359
     protocol: UDP

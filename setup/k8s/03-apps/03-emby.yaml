@@ -4,6 +4,8 @@ metadata:
   name: emby
   namespace: media
 spec:
+  strategy:
+    type: Recreate
   replicas: 1
   selector:
     matchLabels:
@@ -14,6 +16,8 @@ spec:
         app: emby
     spec:
       priorityClassName: critical-media
+      dnsPolicy: ClusterFirstWithHostNet
+      hostNetwork: true
       containers:
       - name: emby
         image: emby/embyserver_arm64v8:latest
@@ -64,9 +68,8 @@ spec:
     - name: discovery
       port: 7359
       targetPort: 7359
-      nodePort: 7359
       protocol: UDP
-  type: NodePort
+  type: ClusterIP
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
