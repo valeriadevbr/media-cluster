@@ -32,7 +32,7 @@ if ! kind get clusters | grep -q "$CLUSTER_NAME"; then
       "path": "/spec/template/spec/containers/0/env/-",
       "value": {
         "name": "MTU",
-        "value": "1280"
+        "value": "1400"
       }
     }
   ]'
@@ -52,13 +52,15 @@ docker build -t "$RADARR_IMAGE_NAME" -f "$RADARR_DOCKERFILE_PATH" "$DOCKER_BUILD
 echo "Loading Radarr image into Kind..."
 kind load docker-image "$RADARR_IMAGE_NAME" --name "$CLUSTER_NAME" > /dev/null
 
-# 4. Adiciona repositório do Nginx Ingress
+# 4. Adiciona repositórios Helm
 helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx > /dev/null
+helm repo add kubernetes-dashboard https://kubernetes.github.io/dashboard/ > /dev/null
 helm repo update > /dev/null
 
 # 5. Cria os Namespaces base
 kubectl create namespace ingress-nginx --dry-run=client -o yaml | kubectl apply -f -
 kubectl create namespace media --dry-run=client -o yaml | kubectl apply -f -
+kubectl create namespace infra --dry-run=client -o yaml | kubectl apply -f -
 
 # 6. Cria o Segredo TLS
 echo "Criando secret TLS..."
@@ -73,6 +75,13 @@ kubectl create secret tls media-wan-tls \
   --cert="${CERTS_PATH}/wan/apedamo.duckdns.org.crt" \
   --key="${CERTS_PATH}/wan/apedamo.duckdns.org.key" \
   --namespace media \
+  --dry-run=client -o yaml | kubectl apply -f -
+
+# Copia segredo para o Dashboard (necessário para o Ingress)
+kubectl create secret tls media-lan-tls \
+  --cert="${CERTS_PATH}/lan/localhost.crt" \
+  --key="${CERTS_PATH}/lan/localhost.key" \
+  --namespace infra \
   --dry-run=client -o yaml | kubectl apply -f -
 
 # 7. Instala o Controlador Nginx
@@ -90,5 +99,22 @@ helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
 
 echo "Aguardando Nginx..."
 kubectl rollout status daemonset ingress-nginx-controller -n ingress-nginx
+
+echo "Instalando Kubernetes Dashboard..."
+helm upgrade --install kubernetes-dashboard kubernetes-dashboard/kubernetes-dashboard \
+  --namespace infra \
+  --set kong.enabled=true \
+  --set kong.proxy.http.enabled=false \
+  --set kong.proxy.tls.enabled=true \
+  --set kong.proxy.type=ClusterIP \
+  --set auth.type=token \
+  --set api.containers.resources.limits.cpu=500m \
+  --set api.containers.resources.limits.memory=512Mi \
+  --set web.containers.resources.limits.cpu=200m \
+  --set web.containers.resources.limits.memory=256Mi >/dev/null
+
+echo "Instalando Metrics Server..."
+kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml >/dev/null
+kubectl patch deployment metrics-server -n kube-system --type='json' -p='[{"op": "add", "path": "/spec/template/spec/containers/0/args/-", "value": "--kubelet-insecure-tls"}]' >/dev/null
 
 echo "Setup concluído!"

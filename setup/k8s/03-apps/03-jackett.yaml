@@ -37,7 +37,7 @@ spec:
       volumes:
       - name: configs-source
         persistentVolumeClaim:
-          claimName: configs-source-pvc
+          claimName: configs-pvc
 ---
 apiVersion: v1
 kind: Service

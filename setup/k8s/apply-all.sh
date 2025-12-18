@@ -20,12 +20,11 @@ apply_with_subst() {
 
 apply_with_subst "${K8S_DIR}/00-core/"
 apply_with_subst "${K8S_DIR}/01-storage/"
-apply_with_subst "${K8S_DIR}/02-infra/"
 
 # 1. Prioridade Máxima: DNS (BIND)
-echo "🌐 Aplicando e aguardando infraestrutura crítica (DNS)..."
-envsubst < "${K8S_DIR}/02-infra/02-bind.yaml" | kubectl apply -f -
-kubectl rollout status deployment/dns -n media --timeout=60s
+echo "🌐 Aplicando e aguardando infraestrutura (DNS)..."
+apply_with_subst "${K8S_DIR}/02-infra/"
+kubectl rollout status deployment/dns -n infra --timeout=60s
 
 # 2. Prioridade: Plex e Emby
 echo "🚀 Aplicando e aguardando apps prioritários (Plex/Emby)..."

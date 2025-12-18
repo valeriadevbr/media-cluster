@@ -38,6 +38,8 @@ spec:
         - name: companion
           containerPort: 8324
         env:
+        - name: ALLOWED_NETWORKS
+          value: "0.0.0.0/0"
         - name: PUID
           value: "1000"
         - name: PGID
@@ -64,7 +66,7 @@ spec:
       volumes:
       - name: configs-source
         persistentVolumeClaim:
-          claimName: configs-source-pvc
+          claimName: configs-pvc
       - name: media
         persistentVolumeClaim:
           claimName: media-pvc
@@ -118,18 +120,12 @@ metadata:
   name: plex-ingress
   namespace: media
   annotations:
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/proxy-body-size: "0"
-    nginx.ingress.kubernetes.io/configuration-snippet: |
-      proxy_set_header X-Real-IP 192.168.2.254;
-      proxy_set_header X-Forwarded-For 192.168.2.254;
-    nginx.ingress.kubernetes.io/proxy-buffering: "off"
-    nginx.ingress.kubernetes.io/proxy-request-buffering: "off"
-    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
-    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
-    nginx.ingress.kubernetes.io/proxy-http-version: "1.1"
-    nginx.ingress.kubernetes.io/use-gzip: "false"
     kubernetes.io/ingress.class: "nginx"
+    # nginx.ingress.kubernetes.io/proxy-buffering: "off"
+    # nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    # nginx.ingress.kubernetes.io/proxy-request-buffering: "off"
+    # nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
 spec:
   ingressClassName: nginx
   tls:

@@ -52,7 +52,7 @@ spec:
       volumes:
         - name: config
           persistentVolumeClaim:
-            claimName: configs-source-pvc
+            claimName: configs-pvc
         - name: downloads
           persistentVolumeClaim:
             claimName: downloads-pvc

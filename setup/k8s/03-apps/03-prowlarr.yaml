@@ -39,7 +39,7 @@ spec:
       volumes:
       - name: configs-source
         persistentVolumeClaim:
-          claimName: configs-source-pvc
+          claimName: configs-pvc
       - name: media
         persistentVolumeClaim:
           claimName: media-pvc

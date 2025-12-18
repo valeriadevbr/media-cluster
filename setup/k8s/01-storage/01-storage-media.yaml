@@ -1,8 +1,7 @@
-# 1. Configs Source (HostPath - Read Only for Migration)
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: configs-source-pv
+  name: configs-pv
 spec:
   capacity:
     storage: 10Gi
@@ -16,7 +15,7 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: configs-source-pvc
+  name: configs-pvc
   namespace: media
 spec:
   accessModes:
@@ -25,23 +24,7 @@ spec:
   resources:
     requests:
       storage: 10Gi
-  volumeName: configs-source-pv
-
----
-# 2. Configs Destination (Internal - Read Write for App)
-# Note: Using default StorageClass (standard) for dynamic provisioning
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: configs-pvc
-  namespace: media
-spec:
-  accessModes:
-    - ReadWriteOnce
-  # No storageClassName defined implies default (standard/hostpath-provisioner)
-  resources:
-    requests:
-      storage: 10Gi
+  volumeName: configs-pv
 ---
 apiVersion: v1
 kind: PersistentVolume
