@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webshare
+  namespace: media
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: webshare
+  template:
+    metadata:
+      labels:
+        app: webshare
+    spec:
+      containers:
+      - name: 3proxy
+        image: ghcr.io/tarampampam/3proxy
+        ports:
+        - containerPort: 3128
+          name: proxy
+        - containerPort: 1080
+          name: socks
+        env:
+        - name: EXTRA_CONFIG
+          value: |
+            auth iponly
+            allow * * *.media.lan * *
+            allow * * *.plex.direct * *
+            allow * * 172.16.0.0/24 * *
+            allow * * 172.16.1.0/24 * *
+            allow * * 172.16.2.0/24 * *
+            allow * * 10.96.0.0/16 * *
+            parent 1000 connect+ 0.0.0.0 0
+            allow *
+            parent 1000 ${PROXY_TYPE} ${PROXY_HOST} ${PROXY_PORT} ${PROXY_USERNAME} ${PROXY_PASSWORD}
+            deny * * * * *
+        - name: MAX_CONNECTIONS
+          value: "1024"
+        # - name: PRIMARY_RESOLVER
+        #   value: "${DOCKER_INTERNAL_DNS}"
+        # - name: PROXY_PORT
+        #   value: "3128"
+        # - name: SECONDARY_RESOLVER
+        #   value: "${DOCKER_INTERNAL_DNS}"
+        - name: SOCKS_PORT
+          value: "1080"
+        - name: TZ
+          value: "America/Sao_Paulo"
+        resources:
+          limits:
+            memory: 256Mi
+          requests:
+            memory: 64Mi
+        volumeMounts:
+        - name: configs-source
+          mountPath: /etc/3proxy/3proxy.cfg
+          subPath: 3proxy/3proxy.cfg
+      volumes:
+      - name: configs-source
+        persistentVolumeClaim:
+          claimName: configs-source-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: webshare
+  namespace: media
+spec:
+  selector:
+    app: webshare
+  ports:
+    - name: proxy
+      port: 3128
+      targetPort: 3128
+    - name: socks
+      port: 1080
+      targetPort: 1080
+  type: ClusterIP
+

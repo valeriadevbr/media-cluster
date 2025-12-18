@@ -13,8 +13,6 @@ services:
       - 443:443
       - 443:443/udp # HTTP/3 (QUIC)
     volumes:
-      - ${CONFIGS_PATH}/caddy/data:/data
-      - ${CONFIGS_PATH}/caddy/config:/config
       - ${CONFIGS_PATH}/caddy/Caddyfile:/etc/caddy/Caddyfile:ro,cached
       - ${CERTS_PATH}/lan:/certs/lan:ro,cached
       - ${CERTS_PATH}/wan:/certs/wan:ro,cached

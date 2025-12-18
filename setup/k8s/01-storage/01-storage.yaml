@@ -1,0 +1,137 @@
+# 1. Configs Source (HostPath - Read Only for Migration)
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: configs-source-pv
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: manual
+  hostPath:
+    path: /mnt/configs
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: configs-source-pvc
+  namespace: media
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: manual
+  resources:
+    requests:
+      storage: 10Gi
+  volumeName: configs-source-pv
+
+---
+# 2. Configs Destination (Internal - Read Write for App)
+# Note: Using default StorageClass (standard) for dynamic provisioning
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: configs-pvc
+  namespace: media
+spec:
+  accessModes:
+    - ReadWriteOnce
+  # No storageClassName defined implies default (standard/hostpath-provisioner)
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: media-pv
+  labels:
+    type: local-media
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 4Ti
+  accessModes:
+    - ReadWriteMany
+  hostPath:
+    path: /mnt/media
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: media-pvc
+  namespace: media
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 4Ti
+  selector:
+    matchLabels:
+      type: local-media
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: scripts-pv
+  labels:
+    type: local-scripts
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 128Mi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: /mnt/scripts
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: scripts-pvc
+  namespace: media
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 128Mi
+  selector:
+    matchLabels:
+      type: local-scripts
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: downloads-pv
+  labels:
+    type: local-downloads
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 100Gi
+  accessModes:
+    - ReadWriteMany
+  hostPath:
+    path: /mnt/downloads
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: downloads-pvc
+  namespace: media
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 100Gi
+  selector:
+    matchLabels:
+      type: local-downloads

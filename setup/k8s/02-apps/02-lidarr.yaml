@@ -1,0 +1,94 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lidarr
+  namespace: media
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lidarr
+  template:
+    metadata:
+      labels:
+        app: lidarr
+    spec:
+      containers:
+      - name: lidarr
+        image: ghcr.io/hotio/lidarr:pr-plugins
+        ports:
+        - containerPort: 8686
+        env:
+        - name: PUID
+          value: "1000"
+        - name: PGID
+          value: "1000"
+        - name: TZ
+          value: "America/Sao_Paulo"
+        resources:
+          limits:
+            memory: 1Gi
+          requests:
+            memory: 256Mi
+        volumeMounts:
+        - name: configs-source
+          mountPath: /config
+          subPath: lidarr
+        - name: downloads
+          mountPath: /downloads
+        - name: media
+          mountPath: /media
+        - name: scripts
+          mountPath: /opt/scripts
+          readOnly: true
+      volumes:
+      - name: configs-source
+        persistentVolumeClaim:
+          claimName: configs-source-pvc
+      - name: downloads
+        persistentVolumeClaim:
+          claimName: downloads-pvc
+      - name: media
+        persistentVolumeClaim:
+          claimName: media-pvc
+      - name: scripts
+        persistentVolumeClaim:
+          claimName: scripts-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: lidarr
+  namespace: media
+spec:
+  selector:
+    app: lidarr
+  ports:
+    - port: 8686
+      targetPort: 8686
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: lidarr-ingress
+  namespace: media
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - "lidarr.media.lan"
+    secretName: media-lan-tls
+  rules:
+  - host: "lidarr.media.lan"
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: lidarr
+            port:
+              number: 8686

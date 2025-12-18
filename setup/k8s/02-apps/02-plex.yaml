@@ -1,0 +1,150 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: plex
+  namespace: media
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: plex
+  template:
+    metadata:
+      labels:
+        app: plex
+    spec:
+      containers:
+      - name: plex
+        image: plexinc/pms-docker:latest
+        ports:
+        - containerPort: 32400
+          name: pms
+        - name: gdm-32410
+          containerPort: 32410
+          protocol: UDP
+        - name: gdm-32412
+          containerPort: 32412
+          protocol: UDP
+        - name: gdm-32413
+          containerPort: 32413
+          protocol: UDP
+        - name: gdm-32414
+          containerPort: 32414
+          protocol: UDP
+        - name: ssdp-1900
+          containerPort: 1900
+          protocol: UDP
+        - name: companion
+          containerPort: 8324
+        env:
+        - name: PUID
+          value: "1000"
+        - name: PGID
+          value: "1000"
+        - name: TZ
+          value: "America/Sao_Paulo"
+        - name: ADVERTISE_IP
+          value: "${PLEX_ADVERTISE_IP}"
+        - name: PLEX_CLAIM
+          value: "${PLEX_CLAIM}"
+        - name: VERSION
+          value: "docker"
+        resources:
+          limits:
+            memory: 4Gi
+          requests:
+            memory: 1Gi
+        volumeMounts:
+        - name: configs-source
+          mountPath: /config
+          subPath: plex
+        - name: media
+          mountPath: /media
+      volumes:
+      - name: configs-source
+        persistentVolumeClaim:
+          claimName: configs-source-pvc
+      - name: media
+        persistentVolumeClaim:
+          claimName: media-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: plex
+  namespace: media
+spec:
+  selector:
+    app: plex
+  ports:
+    - name: pms
+      port: 32400
+      targetPort: 32400
+    - name: gdm-32410
+      port: 32410
+      targetPort: 32410
+      nodePort: 32410
+      protocol: UDP
+    - name: gdm-32412
+      port: 32412
+      targetPort: 32412
+      nodePort: 32412
+      protocol: UDP
+    - name: gdm-32413
+      port: 32413
+      targetPort: 32413
+      nodePort: 32413
+      protocol: UDP
+    - name: gdm-32414
+      port: 32414
+      targetPort: 32414
+      nodePort: 32414
+      protocol: UDP
+    - name: ssdp-1900
+      port: 1900
+      targetPort: 1900
+      nodePort: 1900
+      protocol: UDP
+    - name: companion
+      port: 8324
+      targetPort: 8324
+  type: NodePort
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: plex-ingress
+  namespace: media
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    kubernetes.io/ingress.class: "nginx"
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - "plex.media.lan"
+    secretName: media-lan-tls
+  - hosts:
+    - "plex.apedamo.duckdns.org"
+    secretName: media-wan-tls
+  rules:
+  - host: "plex.media.lan"
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: plex
+            port:
+              number: 32400
+  - host: "plex.apedamo.duckdns.org"
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: plex
+            port:
+              number: 32400

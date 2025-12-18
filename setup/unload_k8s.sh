@@ -3,4 +3,4 @@ set -ea
 source "$(dirname -- "$0")/.env"
 set +a
 
-docker compose -f "$COMPOSE_FILE_PATH" up -d
+"$SETUP_PATH/k8s/unload.sh"

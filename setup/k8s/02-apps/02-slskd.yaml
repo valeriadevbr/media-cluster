@@ -1,0 +1,89 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: slskd
+  namespace: media
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: slskd
+  template:
+    metadata:
+      labels:
+        app: slskd
+    spec:
+      containers:
+      - name: slskd
+        image: slskd/slskd:latest
+        ports:
+        - containerPort: 5030
+        env:
+        - name: TZ
+          value: "America/Sao_Paulo"
+        - name: SLSKD_REMOTE_CONFIGURATION
+          value: "true"
+        - name: SLSKD_SHARED_DIR
+          value: "/music"
+        resources:
+          limits:
+            memory: 512Mi
+          requests:
+            memory: 128Mi
+        volumeMounts:
+        - name: configs-source
+          mountPath: /app
+          subPath: slskd
+        - name: downloads
+          mountPath: /app/downloads
+        - name: media
+          mountPath: /music
+          subPath: Music
+      volumes:
+      - name: configs-source
+        persistentVolumeClaim:
+          claimName: configs-source-pvc
+      - name: downloads
+        persistentVolumeClaim:
+          claimName: downloads-pvc
+      - name: media
+        persistentVolumeClaim:
+          claimName: media-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: slskd
+  namespace: media
+spec:
+  selector:
+    app: slskd
+  ports:
+    - port: 5030
+      targetPort: 5030
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: slskd-ingress
+  namespace: media
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - "slskd.media.lan"
+    secretName: media-lan-tls
+  rules:
+  - host: "slskd.media.lan"
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: slskd
+            port:
+              number: 5030
