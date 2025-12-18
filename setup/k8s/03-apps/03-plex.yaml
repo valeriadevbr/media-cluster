@@ -13,6 +13,7 @@ spec:
       labels:
         app: plex
     spec:
+      priorityClassName: critical-media
       containers:
       - name: plex
         image: plexinc/pms-docker:latest
@@ -80,6 +81,7 @@ spec:
     - name: pms
       port: 32400
       targetPort: 32400
+      nodePort: 32400
     - name: gdm-32410
       port: 32410
       targetPort: 32410
@@ -117,6 +119,8 @@ metadata:
   namespace: media
   annotations:
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    nginx.ingress.kubernetes.io/proxy-buffering: "off"
     kubernetes.io/ingress.class: "nginx"
 spec:
   ingressClassName: nginx

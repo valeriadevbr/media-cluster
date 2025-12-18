@@ -13,6 +13,7 @@ spec:
       labels:
         app: emby
     spec:
+      priorityClassName: critical-media
       containers:
       - name: emby
         image: emby/embyserver_arm64v8:latest

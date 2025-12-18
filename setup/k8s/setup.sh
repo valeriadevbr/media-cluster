@@ -71,7 +71,9 @@ helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
   --set controller.dnsPolicy=ClusterFirstWithHostNet \
   --set controller.reportNodeInternalIpAddress=true \
   --set controller.kind=DaemonSet \
-  --set controller.admissionWebhooks.enabled=false >/dev/null
+  --set controller.admissionWebhooks.enabled=false \
+  --set controller.config.use-forwarded-headers="true" \
+  --set controller.config.compute-full-forwarded-for="true" >/dev/null
 
 echo "Aguardando Nginx..."
 kubectl rollout status daemonset ingress-nginx-controller -n ingress-nginx

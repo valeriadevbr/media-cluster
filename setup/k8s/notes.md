@@ -98,5 +98,10 @@ kubectl get nodes -o wide
 ### Ver Consumo de CPU/Ram
 ```bash
 # Se o metrics-server estiver ativo
-kubectl top pods -n media
-```
+## 7. Roadmap / Melhorias Futuras
+
+Ideias para aprimorar o ambiente no futuro:
+
+- [ ] **Páginas de Erro Customizadas (Nginx)**: Implementar um Custom Default Backend para exibir HTML personalizado em erros 404, 502, 503 e 504.
+- [ ] **Monitoramento Avançado**: Instalar Prometheus/Grafana para visualizar o consumo real de cada pod no dashboard.
+- [ ] **Real IP para Outros Apps**: Verificar se outros apps (além do Plex) precisam de reconhecimento de IP real para logs ou segurança.

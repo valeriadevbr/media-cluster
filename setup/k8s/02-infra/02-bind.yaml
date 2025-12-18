@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dns
+  namespace: media
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dns
+  template:
+    metadata:
+      labels:
+        app: dns
+    spec:
+      priorityClassName: infra-dns
+      containers:
+      - name: bind
+        image: internetsystemsconsortium/bind9:9.18
+        ports:
+        - name: dns-udp
+          containerPort: 53
+          protocol: UDP
+        - name: dns-tcp
+          containerPort: 53
+          protocol: TCP
+        securityContext:
+          capabilities:
+            add: ["NET_BIND_SERVICE"]
+        volumeMounts:
+        - name: configs-source
+          mountPath: /etc/bind
+          subPath: bind/config
+        - name: configs-source
+          mountPath: /var/log
+          subPath: bind/log
+      volumes:
+      - name: configs-source
+        persistentVolumeClaim:
+          claimName: configs-source-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dns
+  namespace: media
+spec:
+  selector:
+    app: dns
+  ports:
+    - name: dns-udp
+      port: 53
+      targetPort: 53
+      nodePort: 53
+      protocol: UDP
+    - name: dns-tcp
+      port: 53
+      targetPort: 53
+      nodePort: 53
+      protocol: TCP
+  type: NodePort

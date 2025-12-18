@@ -19,6 +19,19 @@ apply_with_subst() {
 
 apply_with_subst "${K8S_DIR}/00-core/"
 apply_with_subst "${K8S_DIR}/01-storage/"
-apply_with_subst "${K8S_DIR}/02-apps/"
+apply_with_subst "${K8S_DIR}/02-infra/"
+
+# 1. Prioridade Máxima: DNS (BIND)
+echo "🌐 Aplicando infraestrutura crítica (DNS)..."
+envsubst < "${K8S_DIR}/02-infra/02-bind.yaml" | kubectl apply -f -
+
+# 2. Prioridade: Plex e Emby
+echo "🚀 Aplicando apps prioritários (Plex/Emby)..."
+envsubst < "${K8S_DIR}/03-apps/03-plex.yaml" | kubectl apply -f -
+envsubst < "${K8S_DIR}/03-apps/03-emby.yaml" | kubectl apply -f -
+
+# 3. Restante das aplicações
+echo "📦 Aplicando restante das aplicações..."
+apply_with_subst "${K8S_DIR}/03-apps/"
 
 echo "Tudo aplicado com sucesso."
