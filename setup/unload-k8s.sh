@@ -1,7 +1,7 @@
 #!/bin/bash
-set -ea
+set -e
+set -a
 source "$(dirname -- "$0")/.env"
 set +a
 
-echo "🔥 Destruindo cluster Kind '${CLUSTER_NAME}' (Reset Total)..."
-kind delete cluster --name "${CLUSTER_NAME}"
+"$SETUP_PATH/k8s/unload.sh"

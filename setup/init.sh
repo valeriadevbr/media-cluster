@@ -1,5 +1,6 @@
 #!/bin/bash
-set -ea
+set -e
+set -a
 source "$(dirname -- "$0")/.env"
 set +a
 

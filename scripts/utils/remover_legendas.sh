@@ -186,14 +186,14 @@ check_mkv_file() {
         return 1
     fi
 
-    if [[ "$file" != *.mkv ]]; then
-        echo "Erro: '$file' não é um arquivo MKV"
+    if [[ "$file" != *.mkv && "$file" != *.mp4 ]]; then
+        echo "Erro: '$file' não é um arquivo suportado (MKV ou MP4)"
         return 1
     fi
 
-    # Verificar se o arquivo é um MKV válido
+    # Verificar se o arquivo é válido para o mkvmerge
     if ! mkvmerge -i "$file" &>/dev/null; then
-        echo "Erro: '$file' não é um arquivo MKV válido"
+        echo "Erro: '$file' não é um arquivo multimídia válido"
         return 1
     fi
 
@@ -205,7 +205,8 @@ check_destination_exists() {
     local input_file="$1"
     local output_dir="$2"
     local base_name=$(basename "$input_file")
-    local output_file="$output_dir/$base_name"
+    # Garantir que a extensão de destino seja sempre .mkv
+    local output_file="$output_dir/${base_name%.*}.mkv"
 
     if [[ -f "$output_file" ]]; then
         return 0  # Arquivo de destino existe
@@ -461,11 +462,10 @@ execute_mkvmerge() {
     local output_file="$2"
 
     # Construir comando
-    local mkvmerge_cmd
-    mkvmerge_cmd=$(build_mkvmerge_command "$file" "$output_file")
+    local mkvmerge_cmd=$(build_mkvmerge_command "$file" "$output_file")
 
-    # Executar o comando
-    eval "$mkvmerge_cmd"
+    # Executar o comando com prioridade mínima para não travar o cluster
+    eval "nice -n 19 $mkvmerge_cmd"
 }
 
 # Função para processar um único arquivo
@@ -474,7 +474,9 @@ process_single_file() {
     local input_file="$1"
     local output_dir="$2"
     local base_name=$(basename "$input_file")
-    local output_file="$output_dir/$base_name"
+
+    # Garantir que a extensão de saída seja sempre .mkv
+    local output_file="$output_dir/${base_name%.*}.mkv"
 
     # Atualizar variável global com arquivo atual sendo processado
     CURRENT_NEW_FILE="$output_file"
@@ -687,18 +689,13 @@ process_directory() {
     echo "Linguagens a manter: $KEEP_LANGS"
     echo "---"
 
-    # Buscar arquivos MKV
+    # Buscar arquivos MKV e MP4 (case-insensitive)
     local mkv_files=()
-    for file in "$input_dir"/*.mkv; do
+    shopt -s nullglob nocaseglob
+    for file in "$input_dir"/*.{mkv,mp4}; do
         [[ -f "$file" ]] && mkv_files+=("$file")
     done
-
-    # Se não encontrou com glob, tenta com find (para casos onde o glob pode falhar)
-    if [[ ${#mkv_files[@]} -eq 0 ]]; then
-        while IFS= read -r -d $'\0' file; do
-            mkv_files+=("$file")
-        done < <(find "$input_dir" -maxdepth 1 -name "*.mkv" -type f -print0 2>/dev/null)
-    fi
+    shopt -u nullglob nocaseglob
 
     if [[ ${#mkv_files[@]} -eq 0 ]]; then
         echo "Nenhum arquivo MKV encontrado em '$input_dir'"

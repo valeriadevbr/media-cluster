@@ -1,5 +1,6 @@
 #!/bin/bash
-set -ea
+set -e
+set -a
 K8S_DIR="$(dirname -- "$0")"
 source "${K8S_DIR}/../.env"
 set +a

@@ -5,7 +5,8 @@ set -a
 source "$(dirname -- "$0")/.env"
 set +a
 
-BACKUP_DIR="./wireguard-macos"
+SCRIPT_DIR="$(dirname -- "$0")"
+BACKUP_DIR="${SCRIPT_DIR}/wireguard-macos"
 WG_DIR="/etc/wireguard"
 
 sudo mkdir -p "$WG_DIR"

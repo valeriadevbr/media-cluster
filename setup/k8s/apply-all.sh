@@ -1,5 +1,6 @@
 #!/bin/bash
-set -ea
+set -e
+set -a
 source "$(dirname -- "$0")/../.env"
 set +a
 
@@ -22,13 +23,16 @@ apply_with_subst "${K8S_DIR}/01-storage/"
 apply_with_subst "${K8S_DIR}/02-infra/"
 
 # 1. Prioridade Máxima: DNS (BIND)
-echo "🌐 Aplicando infraestrutura crítica (DNS)..."
+echo "🌐 Aplicando e aguardando infraestrutura crítica (DNS)..."
 envsubst < "${K8S_DIR}/02-infra/02-bind.yaml" | kubectl apply -f -
+kubectl rollout status deployment/dns -n media --timeout=60s
 
 # 2. Prioridade: Plex e Emby
-echo "🚀 Aplicando apps prioritários (Plex/Emby)..."
+echo "🚀 Aplicando e aguardando apps prioritários (Plex/Emby)..."
 envsubst < "${K8S_DIR}/03-apps/03-plex.yaml" | kubectl apply -f -
 envsubst < "${K8S_DIR}/03-apps/03-emby.yaml" | kubectl apply -f -
+kubectl rollout status deployment/plex -n media --timeout=120s
+kubectl rollout status deployment/emby -n media --timeout=120s
 
 # 3. Restante das aplicações
 echo "📦 Aplicando restante das aplicações..."

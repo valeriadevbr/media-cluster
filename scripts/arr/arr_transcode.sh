@@ -10,7 +10,7 @@
 # 2  - Arquivo não encontrado
 # 3  - Dependência ou erro de processamento
 # 4  - Erro ao copiar arquivo
-# 5  - Arquivo não é MKV
+# 5  - Arquivo não é MKV ou MP4
 # 6  - Falha na execução do mkvmerge
 # 10+ - Outros erros específicos
 
@@ -108,10 +108,10 @@ check_dependencies() {
   fi
 }
 
-# check_mkv_file: Verifica se o arquivo existe e é MKV válido
+# check_media_file: Verifica se o arquivo existe e é um formato suportado (MKV/MP4)
 # Parâmetros: $1 = arquivo
-# Retorno: 0=ok, 1=arquivo não encontrado, 2=não é MKV
-check_mkv_file() {
+# Retorno: 0=ok, 1=arquivo não encontrado, 2=formato não suportado
+check_media_file() {
   local file="$1"
 
   if [[ ! -f "$file" ]]; then
@@ -119,8 +119,14 @@ check_mkv_file() {
     return 1
   fi
 
+  # Permitir .mkv e .mp4
+  if [[ "$file" != *.mkv && "$file" != *.mp4 ]]; then
+    log_universal "Erro: '$file' não é um formato suportado (apenas MKV ou MP4)"
+    return 2
+  fi
+
   if ! mkvmerge -i "$file" &>/dev/null; then
-    log_universal "Erro: '$file' não é um arquivo MKV válido"
+    log_universal "Erro: '$file' não é um arquivo multimídia válido para o mkvmerge"
     return 2
   fi
 
@@ -318,8 +324,8 @@ execute_mkvmerge() {
   # Cria pasta de saída se não existir
   mkdir -p "$(dirname "$output_file")"
 
-  # Executa mkvmerge e loga direto no console
-  eval "$mkvmerge_cmd"
+  # Executa mkvmerge com prioridade mínima e loga direto no console
+  eval "nice -n 19 $mkvmerge_cmd"
   return $?
 }
 
@@ -333,7 +339,7 @@ validate_file() {
     log_universal "❌ Erro: Arquivo de entrada não encontrado"
     return 2
   fi
-  local mkv_check=$(check_mkv_file "$input_file")
+  local mkv_check=$(check_media_file "$input_file")
   local mkv_result=$?
   if [[ $mkv_result -ne 0 ]]; then
     CURRENT_NEW_FILE=""
@@ -403,7 +409,7 @@ log_removed_tracks() {
 # Retorno: nenhum
 show_help() {
   cat <<EOF
-Script de importação para remover legendas não-desejadas de arquivos MKV
+Script de importação para remover legendas não-desejadas de arquivos MKV ou MP4
 
 Uso como script de importação *Arr:
   Configure como Custom Script com os triggers:
@@ -424,7 +430,7 @@ Uso via linha de comando (para testes):
   $0 -in <arquivo_entrada> -out <arquivo_saida> [opções]
 
 Opções:
-  -in ARQUIVO      Arquivo de entrada (MKV)
+  -in ARQUIVO      Arquivo de entrada (MKV ou MP4)
   -out ARQUIVO     Arquivo de saída (destino)
   -keep LANG1,LANG2 Linguagens de legenda a manter (padrão: pt-br)
   -d, --dry-run    Simular sem modificar arquivos
@@ -465,13 +471,15 @@ validate_output_file() {
   fi
 }
 
-# process_file: Processa um único arquivo MKV
+# process_file: Processa um arquivo multimídia
 # Parâmetros: $1 = arquivo de entrada, $2 = arquivo de saída
-# Retorna: 0=sucesso, 1=erro, 2=não é MKV, 3=sem legendas para manter
+# Retorna: 0=sucesso, 1=erro, 2=formato incompatível, 3=sem legendas para manter
 process_file() {
   local input_file="$1"
   local output_file="$2"
 
+  # Garantir que a saída seja sempre .mkv
+  output_file="${output_file%.*}.mkv"
   CURRENT_NEW_FILE="$output_file"
 
   log_universal ""
@@ -620,8 +628,8 @@ arr_mode() {
     exit 1
   fi
 
-  # Se não for MKV, apenas copia para o destino
-  if [[ "$SOURCE_PATH" != *.mkv ]]; then
+  # Se não for MKV ou MP4, apenas copia para o destino (trigger para ignorar transcodificação se desejado)
+  if [[ "$SOURCE_PATH" != *.mkv && "$SOURCE_PATH" != *.mp4 ]]; then
     exit 5
   fi
 

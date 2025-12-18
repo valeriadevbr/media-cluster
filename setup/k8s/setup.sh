@@ -1,5 +1,6 @@
 #!/bin/bash
-set -ea
+set -e
+set -a
 source "$(dirname -- "$0")/../.env"
 HOMEBREW_NO_ENV_HINTS=1
 HOMEBREW_NO_AUTO_UPDATE=1
@@ -23,6 +24,18 @@ fi
 if ! kind get clusters | grep -q "$CLUSTER_NAME"; then
   echo "Criando cluster Kind '$CLUSTER_NAME'..."
   envsubst <"$(dirname -- "$0")/kind-config.yaml" | kind create cluster --name "$CLUSTER_NAME" --config -
+
+  echo "Ajustando MTU do cluster (Otimizado para WAN/VPN/PPPoE)..."
+  kubectl patch daemonset kindnet -n kube-system --type='json' -p='[
+    {
+      "op": "add",
+      "path": "/spec/template/spec/containers/0/env/-",
+      "value": {
+        "name": "MTU",
+        "value": "1280"
+      }
+    }
+  ]'
 else
   echo "Selecionando '$CLUSTER_NAME' existente..."
   kubectl config use-context "kind-$CLUSTER_NAME"
