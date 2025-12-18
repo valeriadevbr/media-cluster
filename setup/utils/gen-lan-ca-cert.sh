@@ -2,11 +2,9 @@
 set -e
 
 # Carrega variáveis compartilhadas
-source "$(dirname -- "$0")/.env"
+source "$(dirname -- "$0")/../.env"
 
-SSL_CONFIG_PATH="${CONFIGS_PATH}/ssl"
-
-openssl genrsa -out $SSL_CONFIG_PATH/ca/ca.key 4096
+openssl genrsa -out "${CERTS_PATH}/ca/ca.key" 4096
 openssl req \
   -x509 \
   -new \

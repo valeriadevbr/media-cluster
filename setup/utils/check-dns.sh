@@ -3,7 +3,7 @@
 echo "Verificando compatibilidade com Caddy..."
 
 # Carrega variáveis compartilhadas
-source "$(dirname -- "$0")/.env"
+source "$(dirname -- "$0")/../.env"
 
 # Hosts definidos no Caddy
 caddy_hosts=("plex" "emby" "bazarr" "jackett" "lidarr" "profilarr"

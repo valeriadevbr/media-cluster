@@ -2,7 +2,7 @@
 set -e
 
 # Carrega variáveis compartilhadas
-source "$(dirname -- "$0")/.env"
+source "$(dirname -- "$0")/../.env"
 source "$(dirname -- "$0")/includes/generate-local-cert.sh"
 
 generate_local_cert \

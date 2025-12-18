@@ -26,7 +26,7 @@ CURRENT_NEW_FILE=""
 DRY_RUN=false
 INTERRUPTED=false
 KEEP_LANGS="${KEEP_LANGS:-por,eng}"
-LOG_FILE="${LOG_FILE:-/tmp/arr_transcode.log}"
+LOG_FILE="${LOG_FILE:-/tmp/arr-transcode.log}"
 LOG_TO_FILE=false
 
 # *Arr Server

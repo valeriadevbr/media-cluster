@@ -2,7 +2,7 @@
 set -e
 
 # Carrega variáveis compartilhadas
-source "$(dirname -- "$0")/.env"
+source "$(dirname -- "$0")/../.env"
 
 # # Gera certificado SSL usando Let's Encrypt para o domínio definido em $WAN_HOST
 sudo certbot certonly \

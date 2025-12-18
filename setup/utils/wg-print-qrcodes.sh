@@ -1,8 +1,7 @@
 #!/bin/bash
 set -e
 
-SCRIPT_DIR="$(dirname -- "$0")"
-CONF_DIR="${SCRIPT_DIR}/wireguard-macos"
+CONF_DIR="$(dirname -- "$0")/../wireguard-macos"
 
 for conf in "$CONF_DIR"/peer_*.conf; do
   if [ -f "$conf" ]; then
