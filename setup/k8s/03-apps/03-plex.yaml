@@ -38,6 +38,18 @@ spec:
           protocol: UDP
         - name: companion
           containerPort: 8324
+        livenessProbe:
+          tcpSocket:
+            port: 32400
+          initialDelaySeconds: 30
+          periodSeconds: 20
+          failureThreshold: 3
+        readinessProbe:
+          tcpSocket:
+            port: 32400
+          initialDelaySeconds: 15
+          periodSeconds: 10
+          failureThreshold: 3
         env:
         - name: PUID
           value: "1000"

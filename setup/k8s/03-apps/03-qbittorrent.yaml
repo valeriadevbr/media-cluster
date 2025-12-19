@@ -27,6 +27,18 @@ spec:
             - name: torrent-udp
               containerPort: 53471
               protocol: UDP
+          livenessProbe:
+            tcpSocket:
+              port: 8081
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            failureThreshold: 3
+          readinessProbe:
+            tcpSocket:
+              port: 8081
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
           env:
             - name: PUID
               value: "1000"

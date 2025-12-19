@@ -18,6 +18,18 @@ spec:
         image: santiagosayshey/profilarr:latest
         ports:
         - containerPort: 6868
+        livenessProbe:
+          tcpSocket:
+            port: 6868
+          initialDelaySeconds: 15
+          periodSeconds: 20
+          failureThreshold: 3
+        readinessProbe:
+          tcpSocket:
+            port: 6868
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          failureThreshold: 3
         env:
         - name: PUID
           value: "1000"

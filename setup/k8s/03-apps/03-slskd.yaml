@@ -21,6 +21,18 @@ spec:
             containerPort: 5030
           - name: slskd-peer
             containerPort: 50300
+        livenessProbe:
+          tcpSocket:
+            port: 5030
+          initialDelaySeconds: 15
+          periodSeconds: 20
+          failureThreshold: 3
+        readinessProbe:
+          tcpSocket:
+            port: 5030
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          failureThreshold: 3
         env:
         - name: TZ
           value: "America/Sao_Paulo"

@@ -18,6 +18,18 @@ spec:
         image: lscr.io/linuxserver/bazarr:latest
         ports:
         - containerPort: 6767
+        livenessProbe:
+          tcpSocket:
+            port: 6767
+          initialDelaySeconds: 15
+          periodSeconds: 20
+          failureThreshold: 3
+        readinessProbe:
+          tcpSocket:
+            port: 6767
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          failureThreshold: 3
         env:
         - name: PUID
           value: "1000"

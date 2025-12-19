@@ -18,6 +18,18 @@ spec:
         image: ghcr.io/hotio/lidarr:pr-plugins
         ports:
         - containerPort: 8686
+        livenessProbe:
+          tcpSocket:
+            port: 8686
+          initialDelaySeconds: 15
+          periodSeconds: 20
+          failureThreshold: 3
+        readinessProbe:
+          tcpSocket:
+            port: 8686
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          failureThreshold: 3
         env:
         - name: PUID
           value: "1000"

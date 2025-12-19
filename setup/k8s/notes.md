@@ -98,7 +98,16 @@ kubectl get nodes -o wide
 ### Ver Consumo de CPU/Ram
 ```bash
 # Se o metrics-server estiver ativo
-## 7. Roadmap / Melhorias Futuras
+## 7. Acesso ao Dashboard
+
+### Gerar Token de Acesso (Admin)
+Para acessar o painel administrativo (Kubernetes Dashboard), é necessário um token de autenticação.
+```bash
+# Cria um token para o usuário admin (válido por 24 horas)
+kubectl create token admin-user -n infra --duration=24h
+```
+
+## 8. Roadmap / Melhorias Futuras
 
 Ideias para aprimorar o ambiente no futuro:
 

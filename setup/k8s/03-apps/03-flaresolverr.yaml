@@ -18,6 +18,18 @@ spec:
         image: ghcr.io/flaresolverr/flaresolverr:latest
         ports:
         - containerPort: 8191
+        livenessProbe:
+          tcpSocket:
+            port: 8191
+          initialDelaySeconds: 15
+          periodSeconds: 20
+          failureThreshold: 3
+        readinessProbe:
+          tcpSocket:
+            port: 8191
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          failureThreshold: 3
         env:
         - name: PUID
           value: "1000"
