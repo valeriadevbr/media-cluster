@@ -70,7 +70,7 @@ metadata:
   name: bazarr-ingress
   namespace: media
   annotations:
-
+    ingress.kubernetes.io/ssl-redirect: "false"
 spec:
   ingressClassName: traefik
   tls:

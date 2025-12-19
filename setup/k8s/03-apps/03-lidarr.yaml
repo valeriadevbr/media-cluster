@@ -81,7 +81,7 @@ metadata:
   name: lidarr-ingress
   namespace: media
   annotations:
-
+    ingress.kubernetes.io/ssl-redirect: "false"
 spec:
   ingressClassName: traefik
   tls:

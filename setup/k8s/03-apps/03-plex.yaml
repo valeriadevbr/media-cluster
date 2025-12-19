@@ -122,6 +122,8 @@ kind: Ingress
 metadata:
   name: plex-ingress
   namespace: media
+  annotations:
+    ingress.kubernetes.io/ssl-redirect: "false"
 spec:
   ingressClassName: traefik
   tls:

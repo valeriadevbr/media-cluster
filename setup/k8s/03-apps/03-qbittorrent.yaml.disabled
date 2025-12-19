@@ -95,7 +95,7 @@ metadata:
   name: qbittorrent-ingress
   namespace: media
   annotations:
-
+    ingress.kubernetes.io/ssl-redirect: "false"
 spec:
   ingressClassName: traefik
   tls:
