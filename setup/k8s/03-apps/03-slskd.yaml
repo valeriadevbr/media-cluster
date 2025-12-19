@@ -17,7 +17,10 @@ spec:
       - name: slskd
         image: slskd/slskd:latest
         ports:
-        - containerPort: 5030
+          - name: slskd-webui
+            containerPort: 5030
+          - name: slskd-peer
+            containerPort: 50300
         env:
         - name: TZ
           value: "America/Sao_Paulo"
@@ -58,10 +61,17 @@ metadata:
 spec:
   selector:
     app: slskd
+  type: NodePort
+  externalTrafficPolicy: Local
   ports:
-    - port: 5030
+    - name: slskd-webui
+      port: 5030
       targetPort: 5030
-  type: ClusterIP
+    - name: slskd-peer
+      port: 50300
+      targetPort: 50300
+      nodePort: 50300
+      protocol: TCP
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -77,13 +87,13 @@ spec:
     - "slskd.media.lan"
     secretName: media-lan-tls
   rules:
-  - host: "slskd.media.lan"
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: slskd
-            port:
-              number: 5030
+      - host: "slskd.media.lan"
+        http:
+          paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: slskd
+                port:
+                  number: 5030

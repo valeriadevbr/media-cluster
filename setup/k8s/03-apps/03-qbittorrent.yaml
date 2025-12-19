@@ -81,7 +81,6 @@ spec:
       targetPort: 53471
       nodePort: 53471
       protocol: UDP
-  type: NodePort
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
