@@ -3,10 +3,10 @@ set -e
 
 # Carrega variáveis compartilhadas
 source "$(dirname -- "$0")/../.env"
-source "$(dirname -- "$0")/includes/generate-local-cert.sh"
+source "${SETUP_PATH}/includes/generate-local-cert.sh"
 
 generate_local_cert \
-  "localhost" \
+  "media.lan" \
   "$CERTS_PATH/ca/ca.crt" \
   "$CERTS_PATH/ca/ca.key" \
   "$CERTS_PATH/lan/san/local-san.cnf" \

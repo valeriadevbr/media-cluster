@@ -153,68 +153,74 @@
   </head>
   <body>
     <div class="grid">
-      <a href="http://plex.media.lan" class="card plex" style="--glow-color: #e5a00d">
+      <a data-href="plex.media.lan" class="card plex" style="--glow-color: #e5a00d">
         <div class="icon">
           <img src="icons/plex.svg" alt="Plex" />
         </div>
         <h2>Plex</h2>
       </a>
 
-      <a href="http://emby.media.lan" class="card emby" style="--glow-color: #5dd054">
+      <a data-href="emby.media.lan" class="card emby" style="--glow-color: #5dd054">
         <div class="icon">
           <img src="icons/emby.svg" alt="Emby" />
         </div>
         <h2>Emby</h2>
       </a>
 
-      <a href="http://sonarr.media.lan" class="card sonarr" style="--glow-color: #00c0fa">
+      <a data-href="sonarr.media.lan" class="card sonarr" style="--glow-color: #00c0fa">
         <div class="icon">
           <img src="icons/sonarr.svg" alt="Sonarr" />
         </div>
         <h2>Sonarr</h2>
       </a>
 
-      <a href="http://radarr.media.lan" class="card radarr" style="--glow-color: #ffc230">
+      <a data-href="radarr.media.lan" class="card radarr" style="--glow-color: #ffc230">
         <div class="icon">
           <img src="icons/radarr.svg" alt="Radarr" />
         </div>
         <h2>Radarr</h2>
       </a>
 
-      <a href="http://lidarr.media.lan" class="card lidarr" style="--glow-color: #00936e">
+      <a data-href="lidarr.media.lan" class="card lidarr" style="--glow-color: #00936e">
         <div class="icon">
           <img src="icons/lidarr.svg" alt="Lidarr" />
         </div>
         <h2>Lidarr</h2>
       </a>
 
-      <a href="http://bazarr.media.lan" class="card bazarr" style="--glow-color: #b76bf7">
+      <a data-href="bazarr.media.lan" class="card bazarr" style="--glow-color: #b76bf7">
         <div class="icon">
           <img src="icons/bazarr.svg" alt="Bazarr" />
         </div>
         <h2>Bazarr</h2>
       </a>
 
-      <a href="http://prowlarr.media.lan" class="card prowlarr" style="--glow-color: #ff3333">
+      <a data-href="prowlarr.media.lan" class="card prowlarr" style="--glow-color: #ff3333">
         <div class="icon">
           <img src="icons/prowlarr.svg" alt="Prowlarr" />
         </div>
         <h2>Prowlarr</h2>
       </a>
 
-      <a href="http://jackett.media.lan" class="card jackett" style="--glow-color: #b7f76b">
+      <a data-href="jackett.media.lan" class="card jackett" style="--glow-color: #b7f76b">
         <div class="icon">
           <img src="icons/jackett.svg" alt="Jackett" />
         </div>
         <h2>Jackett</h2>
       </a>
 
-      <a href="http://profilarr.media.lan" class="card profilarr" style="--glow-color: #6b9cf7">
+      <a data-href="profilarr.media.lan" class="card profilarr" style="--glow-color: #6b9cf7">
         <div class="icon">
           <img src="icons/profilarr.svg" alt="Profilarr" />
         </div>
         <h2>Profilarr</h2>
       </a>
     </div>
+    <script>
+      // Ajusta os links para http ou https conforme o protocolo da página
+      document.querySelectorAll('.grid a[data-href]').forEach(function(link) {
+        link.href = window.location.protocol + '//' + link.getAttribute('data-href');
+      });
+    </script>
   </body>
 </html>

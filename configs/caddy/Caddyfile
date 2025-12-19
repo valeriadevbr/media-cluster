@@ -22,7 +22,7 @@ emby.apedamo.duckdns.org {
 }
 
 *.media.lan:443 {
-  tls /certs/lan/localhost.crt /certs/lan/localhost.key
+  tls /certs/lan/cert.crt /certs/lan/cert.key
 
   log {
     output stdout
@@ -126,7 +126,7 @@ emby.apedamo.duckdns.org {
 
 # Catch-all para domínios não especificados (HTTPS)
 https:// {
-  tls /certs/lan/localhost.crt /certs/lan/localhost.key
+  tls /certs/lan/cert.crt /certs/lan/cert.key
   respond "Are You Lost?!" 404
 }
 

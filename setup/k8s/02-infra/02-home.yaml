@@ -58,10 +58,10 @@ spec:
   ingressClassName: traefik
   tls:
   - hosts:
-    - "media.lan"
+    - "dashboard.media.lan"
     secretName: media-lan-tls
   rules:
-  - host: "media.lan"
+  - host: "dashboard.media.lan"
     http:
       paths:
       - path: /

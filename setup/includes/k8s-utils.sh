@@ -2,7 +2,7 @@
 subst_manifest() {
   local file="$1"
   [ -e "$file" ] || return
-  envsubst < "$file"
+  envsubst <"$file"
 }
 
 # Applies a single K8s manifest file with envsubst
@@ -23,4 +23,16 @@ apply_with_subst() {
   else
     echo "Warning: '$target' is not a valid file or directory"
   fi
+}
+
+create_tls_secret() {
+  local secret_name="$1"
+  local namespace="$2"
+  local cert="$3"
+  local key="$4"
+  kubectl create secret tls "$secret_name" \
+    --namespace "$namespace" \
+    --cert="$cert" \
+    --key="$key" \
+    --dry-run=client -o yaml | kubectl apply -f -
 }

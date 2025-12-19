@@ -6,12 +6,18 @@ distinguished_name = dn
 req_extensions     = req_ext
 
 [ dn ]
-CN = localhost
+C = BR
+ST = SC
+L = Joinville
+O = DevilCOM Network
+OU = TI
+CN = *.media.lan
 
-[ req_ext ]
+[req_ext]
+keyUsage = keyEncipherment, dataEncipherment, digitalSignature
+extendedKeyUsage = serverAuth
 subjectAltName = @alt_names
 
 [ alt_names ]
-DNS.1 = localhost
-DNS.2 = *.media.lan
-DNS.3 = media.lan
+DNS.1 = *.media.lan
+DNS.2 = media.lan

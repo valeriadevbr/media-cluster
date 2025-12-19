@@ -7,25 +7,21 @@ generate_local_cert() {
   local san_cnf="$4"
   local out_dir="$5"
 
-  local csr_path="${out_dir}/${host}.csr"
-  local key_path="${out_dir}/${host}.key"
-  local crt_path="${out_dir}/${host}.crt"
-  local pfx_path="${out_dir}/${host}.pfx"
-  local pem_path="${out_dir}/${host}.pem"
+  local filename="cert"
+  local csr_path="${out_dir}/${filename}.csr"
+  local key_path="${out_dir}/${filename}.key"
+  local crt_path="${out_dir}/${filename}.crt"
+  local pfx_path="${out_dir}/${filename}.pfx"
+  local pem_path="${out_dir}/${filename}.pem"
 
-  # Gera a chave privada
-  openssl genrsa -out "$key_path" 2048
+  # Gera chave e CSR
+  openssl req -new -newkey rsa:2048 -nodes \
+    -keyout "$key_path" \
+    -out "$csr_path" \
+    -config "$san_cnf"
 
-  # Gera o CSR usando a chave privada e o SAN config
-  openssl req \
-    -new \
-    -subj "/CN=$host" \
-    -key "$key_path" \
-    -out "$csr_path"
-
-  # Assina o certificado com a CA usando o CSR e o SAN config
-  openssl x509 \
-    -req \
+  # Assinar com a CA
+  openssl x509 -req \
     -sha256 \
     -CAcreateserial \
     -days 825 \
