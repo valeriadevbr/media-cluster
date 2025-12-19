@@ -105,15 +105,7 @@ helm upgrade --install traefik traefik/traefik \
 echo "Aguardando Traefik..."
 kubectl rollout status deployment traefik -n ingress-traefik
 
-echo "Instalando Kubernetes Dashboard..."
-helm upgrade --install kubernetes-dashboard kubernetes-dashboard/kubernetes-dashboard \
-  --namespace infra \
-  --set kong.enabled=true \
-  --set kong.proxy.http.enabled=false \
-  --set kong.proxy.tls.enabled=true \
-  --set kong.proxy.type=ClusterIP \
-  --set auth.type=token >/dev/null
-
+# 8. Instala Metrics Server (Necessário para Resource Limits)
 echo "Instalando Metrics Server..."
 kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml >/dev/null
 kubectl patch deployment metrics-server -n kube-system --type='json' -p='[{"op": "add", "path": "/spec/template/spec/containers/0/args/-", "value": "--kubelet-insecure-tls"}]' >/dev/null

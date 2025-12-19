@@ -27,6 +27,13 @@ spec:
             - name: torrent-udp
               containerPort: 53471
               protocol: UDP
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "2Gi"
+              cpu: "2000m"
           livenessProbe:
             tcpSocket:
               port: 8081

@@ -38,6 +38,12 @@ spec:
           protocol: UDP
         - name: companion
           containerPort: 8324
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "4Gi"
         livenessProbe:
           tcpSocket:
             port: 32400

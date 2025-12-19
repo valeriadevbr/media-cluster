@@ -21,6 +21,13 @@ spec:
             containerPort: 5030
           - name: slskd-peer
             containerPort: 50300
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "2Gi"
+            cpu: "2000m"
         livenessProbe:
           tcpSocket:
             port: 5030

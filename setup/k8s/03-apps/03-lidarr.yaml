@@ -18,6 +18,14 @@ spec:
         image: ghcr.io/hotio/lidarr:pr-plugins
         ports:
         - containerPort: 8686
+          name: lidarr
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
         livenessProbe:
           tcpSocket:
             port: 8686

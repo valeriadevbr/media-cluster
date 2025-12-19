@@ -1,0 +1,220 @@
+
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="icons/favicon.svg" />
+    <title>Media Server Dash</title>
+    <style>
+      :root {
+        --bg-color: #0f1115;
+        --card-bg: rgba(255, 255, 255, 0.05);
+        --card-hover: rgba(255, 255, 255, 0.1);
+        --text-color: #ffffff;
+      }
+
+      body {
+        font-family: "Inter", -apple-system, system-ui, sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        background-image: radial-gradient(circle at top right, rgba(29, 35, 48, 0.5) 0%, transparent 40%),
+          radial-gradient(circle at bottom left, rgba(229, 160, 13, 0.05) 0%, transparent 40%);
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 25px;
+        width: 90%;
+        max-width: 1100px;
+        padding: 40px;
+      }
+
+      .card {
+        background: var(--card-bg);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 24px;
+        padding: 35px 20px;
+        text-align: center;
+        text-decoration: none;
+        color: var(--text-color);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        backdrop-filter: blur(12px);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .card:hover {
+        transform: translateY(-8px);
+        background: var(--card-hover);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        border-color: rgba(255, 255, 255, 0.2);
+      }
+
+      .icon {
+        width: 52px;
+        height: 52px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 2;
+        transition: transform 0.3s ease;
+      }
+
+      .icon svg {
+        width: 100%;
+        height: 100%;
+        fill: currentColor;
+        filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+      }
+
+      .card:hover .icon {
+        transform: scale(1.1);
+      }
+
+      h2 {
+        font-size: 1rem;
+        font-weight: 600;
+        margin: 0;
+        letter-spacing: 0.5px;
+        z-index: 2;
+      }
+
+      /* Cores Temáticas */
+      .plex {
+        color: #e5a00d;
+      }
+      .emby {
+        color: #5dd054;
+      }
+      .sonarr {
+        color: #00c0fa;
+      }
+      .radarr {
+        color: #ffc230;
+      }
+      .lidarr {
+        color: #00936e;
+      }
+      .prowlarr {
+        color: #ff3333;
+      }
+      .bazarr {
+        color: #b76bf7;
+      }
+      .jackett {
+        color: #b7f76b;
+      }
+      .profilarr {
+        color: #6b9cf7;
+      }
+
+      .card::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at center, var(--glow-color), transparent 70%);
+        opacity: 0;
+        transition: opacity 0.3s;
+        pointer-events: none;
+        z-index: 1;
+      }
+
+      .card:hover::before {
+        opacity: 0.15;
+      }
+
+      @media (max-width: 700px) {
+        .grid {
+          grid-template-columns: repeat(3, 1fr);
+        }
+      }
+      @media (max-width: 600px) {
+        .grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+      @media (max-width: 380px) {
+        .grid {
+          grid-template-columns: repeat(1, 1fr);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="grid">
+      <a href="http://plex.media.lan" class="card plex" style="--glow-color: #e5a00d">
+        <div class="icon">
+          <img src="icons/plex.svg" alt="Plex" />
+        </div>
+        <h2>Plex</h2>
+      </a>
+
+      <a href="http://emby.media.lan" class="card emby" style="--glow-color: #5dd054">
+        <div class="icon">
+          <img src="icons/emby.svg" alt="Emby" />
+        </div>
+        <h2>Emby</h2>
+      </a>
+
+      <a href="http://sonarr.media.lan" class="card sonarr" style="--glow-color: #00c0fa">
+        <div class="icon">
+          <img src="icons/sonarr.svg" alt="Sonarr" />
+        </div>
+        <h2>Sonarr</h2>
+      </a>
+
+      <a href="http://radarr.media.lan" class="card radarr" style="--glow-color: #ffc230">
+        <div class="icon">
+          <img src="icons/radarr.svg" alt="Radarr" />
+        </div>
+        <h2>Radarr</h2>
+      </a>
+
+      <a href="http://lidarr.media.lan" class="card lidarr" style="--glow-color: #00936e">
+        <div class="icon">
+          <img src="icons/lidarr.svg" alt="Lidarr" />
+        </div>
+        <h2>Lidarr</h2>
+      </a>
+
+      <a href="http://bazarr.media.lan" class="card bazarr" style="--glow-color: #b76bf7">
+        <div class="icon">
+          <img src="icons/bazarr.svg" alt="Bazarr" />
+        </div>
+        <h2>Bazarr</h2>
+      </a>
+
+      <a href="http://prowlarr.media.lan" class="card prowlarr" style="--glow-color: #ff3333">
+        <div class="icon">
+          <img src="icons/prowlarr.svg" alt="Prowlarr" />
+        </div>
+        <h2>Prowlarr</h2>
+      </a>
+
+      <a href="http://jackett.media.lan" class="card jackett" style="--glow-color: #b7f76b">
+        <div class="icon">
+          <img src="icons/jackett.svg" alt="Jackett" />
+        </div>
+        <h2>Jackett</h2>
+      </a>
+
+      <a href="http://profilarr.media.lan" class="card profilarr" style="--glow-color: #6b9cf7">
+        <div class="icon">
+          <img src="icons/profilarr.svg" alt="Profilarr" />
+        </div>
+        <h2>Profilarr</h2>
+      </a>
+    </div>
+  </body>
+</html>

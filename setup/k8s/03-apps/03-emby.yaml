@@ -27,6 +27,12 @@ spec:
         - name: discovery
           containerPort: 7359
           protocol: UDP
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "4Gi"
         livenessProbe:
           tcpSocket:
             port: 8096

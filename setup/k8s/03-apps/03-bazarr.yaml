@@ -18,6 +18,13 @@ spec:
         image: lscr.io/linuxserver/bazarr:latest
         ports:
         - containerPort: 6767
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "50m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
         livenessProbe:
           tcpSocket:
             port: 6767
