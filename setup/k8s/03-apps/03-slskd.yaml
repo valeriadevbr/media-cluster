@@ -24,15 +24,15 @@ spec:
         livenessProbe:
           tcpSocket:
             port: 5030
-          initialDelaySeconds: 15
+          initialDelaySeconds: 60
           periodSeconds: 20
-          failureThreshold: 3
+          failureThreshold: 5
         readinessProbe:
           tcpSocket:
             port: 5030
-          initialDelaySeconds: 10
+          initialDelaySeconds: 60
           periodSeconds: 10
-          failureThreshold: 3
+          failureThreshold: 5
         env:
         - name: TZ
           value: "America/Sao_Paulo"
@@ -40,11 +40,6 @@ spec:
           value: "true"
         - name: SLSKD_SHARED_DIR
           value: "/music"
-        resources:
-          limits:
-            memory: 512Mi
-          requests:
-            memory: 128Mi
         volumeMounts:
         - name: configs-source
           mountPath: /app
@@ -91,9 +86,9 @@ metadata:
   name: slskd-ingress
   namespace: media
   annotations:
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+
 spec:
-  ingressClassName: nginx
+  ingressClassName: traefik
   tls:
   - hosts:
     - "slskd.media.lan"

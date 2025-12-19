@@ -84,7 +84,7 @@ kubectl rollout status deployment sonarr -n media
 
 ### Ver Logs do Controlador Nginx
 ```bash
-kubectl logs -f -n ingress-nginx -l app.kubernetes.io/name=ingress-nginx
+kubectl logs -f -n ingress-traefik -l app.kubernetes.io/name=ingress-traefik
 ```
 
 ### Verificar Endereço IP do Cluster

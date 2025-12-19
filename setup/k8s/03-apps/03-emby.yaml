@@ -46,11 +46,6 @@ spec:
           value: "1000"
         - name: TZ
           value: "America/Sao_Paulo"
-        resources:
-          limits:
-            memory: 4Gi
-          requests:
-            memory: 1Gi
         volumeMounts:
         - name: configs-source
           mountPath: /config
@@ -89,10 +84,9 @@ metadata:
   name: emby-ingress
   namespace: media
   annotations:
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    kubernetes.io/ingress.class: "nginx"
+
 spec:
-  ingressClassName: nginx
+  ingressClassName: traefik
   tls:
     - hosts:
       - "emby.media.lan"

@@ -1,39 +1,30 @@
 #!/bin/bash
 set -e
 set -a
-source "$(dirname -- "$0")/../.env"
+K8S_DIR="$(dirname -- "$0")"
+source "${K8S_DIR}/../.env"
+source "${SETUP_PATH}/utils/includes/k8s-utils.sh"
 set +a
 
 echo "Aplicando configurações. Raiz definida como: $SETUP_PATH"
 
-K8S_DIR="$(dirname -- "$0")"
-
-# Function to apply with envsubst
-apply_with_subst() {
-  local dir="$1"
-  for file in "$dir"*.yaml; do
-    [ -e "$file" ] || continue
-    echo "Processing $file..."
-    envsubst < "$file" | kubectl apply -f -
-  done
-}
-
+# 1. Core e Storage
 apply_with_subst "${K8S_DIR}/00-core/"
 apply_with_subst "${K8S_DIR}/01-storage/"
 
-# 1. Prioridade Máxima: DNS (BIND)
+# 2. Infraestrutura (DNS, Ingress, etc)
 echo "🌐 Aplicando e aguardando infraestrutura (DNS)..."
 apply_with_subst "${K8S_DIR}/02-infra/"
 kubectl rollout status deployment/dns -n infra --timeout=60s
 
-# 2. Prioridade: Plex e Emby
+# 3. Apps Prioritários (Plex/Emby)
 echo "🚀 Aplicando e aguardando apps prioritários (Plex/Emby)..."
-envsubst < "${K8S_DIR}/03-apps/03-plex.yaml" | kubectl apply -f -
-envsubst < "${K8S_DIR}/03-apps/03-emby.yaml" | kubectl apply -f -
+apply_with_subst "${K8S_DIR}/03-apps/03-plex.yaml"
+apply_with_subst "${K8S_DIR}/03-apps/03-emby.yaml"
 kubectl rollout status deployment/plex -n media --timeout=120s
 kubectl rollout status deployment/emby -n media --timeout=120s
 
-# 3. Restante das aplicações
+# 4. Restante das aplicações
 echo "📦 Aplicando restante das aplicações..."
 apply_with_subst "${K8S_DIR}/03-apps/"
 

@@ -37,11 +37,6 @@ spec:
           value: "1000"
         - name: TZ
           value: "America/Sao_Paulo"
-        resources:
-          limits:
-            memory: 1Gi
-          requests:
-            memory: 256Mi
         volumeMounts:
         - name: configs-source
           mountPath: /config
@@ -86,9 +81,9 @@ metadata:
   name: lidarr-ingress
   namespace: media
   annotations:
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+
 spec:
-  ingressClassName: nginx
+  ingressClassName: traefik
   tls:
   - hosts:
     - "lidarr.media.lan"

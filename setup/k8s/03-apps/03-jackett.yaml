@@ -37,11 +37,6 @@ spec:
           value: "1000"
         - name: TZ
           value: "America/Sao_Paulo"
-        resources:
-          limits:
-            memory: 512Mi
-          requests:
-            memory: 128Mi
         volumeMounts:
         - name: configs-source
           mountPath: /config
@@ -70,9 +65,9 @@ metadata:
   name: jackett-ingress
   namespace: media
   annotations:
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+
 spec:
-  ingressClassName: nginx
+  ingressClassName: traefik
   tls:
   - hosts:
     - "jackett.media.lan"

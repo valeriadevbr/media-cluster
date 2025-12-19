@@ -53,11 +53,6 @@ spec:
           value: "1080"
         - name: TZ
           value: "America/Sao_Paulo"
-        resources:
-          limits:
-            memory: 256Mi
-          requests:
-            memory: 64Mi
         volumeMounts:
         - name: configs-source
           mountPath: /etc/3proxy/3proxy.cfg

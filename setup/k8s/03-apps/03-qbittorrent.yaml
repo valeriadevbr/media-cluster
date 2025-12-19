@@ -30,15 +30,15 @@ spec:
           livenessProbe:
             tcpSocket:
               port: 8081
-            initialDelaySeconds: 15
+            initialDelaySeconds: 60
             periodSeconds: 20
-            failureThreshold: 3
+            failureThreshold: 5
           readinessProbe:
             tcpSocket:
               port: 8081
-            initialDelaySeconds: 10
+            initialDelaySeconds: 60
             periodSeconds: 10
-            failureThreshold: 3
+            failureThreshold: 5
           env:
             - name: PUID
               value: "1000"
@@ -50,11 +50,6 @@ spec:
               value: "8081"
             - name: TORRENTING_PORT
               value: "53471"
-          resources:
-            limits:
-              memory: 1Gi
-            requests:
-              memory: 256Mi
           volumeMounts:
             - name: config
               mountPath: /config
@@ -100,9 +95,9 @@ metadata:
   name: qbittorrent-ingress
   namespace: media
   annotations:
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+
 spec:
-  ingressClassName: nginx
+  ingressClassName: traefik
   tls:
   - hosts:
     - "qbittorrent.media.lan"

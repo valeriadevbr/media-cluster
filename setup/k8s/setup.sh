@@ -2,6 +2,7 @@
 set -e
 set -a
 source "$(dirname -- "$0")/../.env"
+source "${SETUP_PATH}/utils/includes/k8s-utils.sh"
 HOMEBREW_NO_ENV_HINTS=1
 HOMEBREW_NO_AUTO_UPDATE=1
 set +a
@@ -23,19 +24,12 @@ fi
 # 2. Cria Cluster Kind
 if ! kind get clusters | grep -q "$CLUSTER_NAME"; then
   echo "Criando cluster Kind '$CLUSTER_NAME'..."
-  envsubst <"$(dirname -- "$0")/kind-config.yaml" | kind create cluster --name "$CLUSTER_NAME" --config -
+  subst_manifest "${SETUP_PATH}/k8s/kind-config.yaml" | \
+    kind create cluster --name "$CLUSTER_NAME" --image kindest/node:v1.31.1 --config -
 
-  echo "Ajustando MTU do cluster (Otimizado para WAN/VPN/PPPoE)..."
-  kubectl patch daemonset kindnet -n kube-system --type='json' -p='[
-    {
-      "op": "add",
-      "path": "/spec/template/spec/containers/0/env/-",
-      "value": {
-        "name": "MTU",
-        "value": "1400"
-      }
-    }
-  ]'
+  echo "🔧 Ajustando MTU diretamente no Node e Desativando Offloads (Fix para HostNetwork/Traefik)..."
+  docker exec "$CLUSTER_NAME-control-plane" ip link set eth0 mtu 1400
+  docker exec "$CLUSTER_NAME-control-plane" ethtool -K eth0 tso off gso off || true
 else
   echo "Selecionando '$CLUSTER_NAME' existente..."
   kubectl config use-context "kind-$CLUSTER_NAME"
@@ -53,16 +47,16 @@ echo "Loading Radarr image into Kind..."
 kind load docker-image "$RADARR_IMAGE_NAME" --name "$CLUSTER_NAME" > /dev/null
 
 # 4. Adiciona repositórios Helm
-helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx > /dev/null
+helm repo add traefik https://traefik.github.io/charts > /dev/null
 helm repo add kubernetes-dashboard https://kubernetes.github.io/dashboard/ > /dev/null
 helm repo update > /dev/null
 
 # 5. Cria os Namespaces base
-kubectl create namespace ingress-nginx --dry-run=client -o yaml | kubectl apply -f -
+kubectl create namespace ingress-traefik --dry-run=client -o yaml | kubectl apply -f -
 kubectl create namespace media --dry-run=client -o yaml | kubectl apply -f -
 kubectl create namespace infra --dry-run=client -o yaml | kubectl apply -f -
 
-# 6. Cria o Segredo TLS
+# 6. Cria os Segredos TLS
 echo "Criando secret TLS..."
 
 kubectl create secret tls media-lan-tls \
@@ -77,28 +71,39 @@ kubectl create secret tls media-wan-tls \
   --namespace media \
   --dry-run=client -o yaml | kubectl apply -f -
 
-# Copia segredo para o Dashboard (necessário para o Ingress)
 kubectl create secret tls media-lan-tls \
   --cert="${CERTS_PATH}/lan/localhost.crt" \
   --key="${CERTS_PATH}/lan/localhost.key" \
   --namespace infra \
   --dry-run=client -o yaml | kubectl apply -f -
 
-# 7. Instala o Controlador Nginx
-echo "Instalando Nginx Ingress Controller..."
-helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
-  --namespace ingress-nginx \
-  --set controller.service.type=ClusterIP \
-  --set controller.hostNetwork=true \
-  --set controller.dnsPolicy=ClusterFirstWithHostNet \
-  --set controller.reportNodeInternalIpAddress=true \
-  --set controller.kind=DaemonSet \
-  --set controller.admissionWebhooks.enabled=false \
-  --set controller.config.use-forwarded-headers="true" \
-  --set controller.config.compute-full-forwarded-for="true" >/dev/null
+# 7. Instala o Traefik Ingress Controller
+echo "Instalando Traefik (HTTP/3 Enabled)..."
 
-echo "Aguardando Nginx..."
-kubectl rollout status daemonset ingress-nginx-controller -n ingress-nginx
+helm upgrade --install traefik traefik/traefik \
+  --namespace ingress-traefik \
+  --create-namespace \
+  --set ports.websecure.http3.enabled=true \
+  --set providers.kubernetesIngress.enabled=true \
+  --set service.type=ClusterIP \
+  --set hostNetwork=true \
+  --set dnsPolicy=ClusterFirstWithHostNet \
+  --set "additionalArguments={ \
+    --entryPoints.web.address=:80, \
+    --entryPoints.websecure.address=:443, \
+    --entryPoints.websecure.http3, \
+    --serverstransport.insecureskipverify=true, \
+    --log.level=DEBUG \
+  }" \
+  --set ports.web.port=80 \
+  --set ports.websecure.port=443 \
+  --set deployment.podSecurityContext.runAsNonRoot=true \
+  --set deployment.podSecurityContext.runAsUser=65532 \
+  --set deployment.podSecurityContext.runAsGroup=65532 \
+  --set "deployment.securityContext.capabilities.add={NET_BIND_SERVICE}" >/dev/null
+
+echo "Aguardando Traefik..."
+kubectl rollout status deployment traefik -n ingress-traefik
 
 echo "Instalando Kubernetes Dashboard..."
 helm upgrade --install kubernetes-dashboard kubernetes-dashboard/kubernetes-dashboard \
@@ -107,11 +112,7 @@ helm upgrade --install kubernetes-dashboard kubernetes-dashboard/kubernetes-dash
   --set kong.proxy.http.enabled=false \
   --set kong.proxy.tls.enabled=true \
   --set kong.proxy.type=ClusterIP \
-  --set auth.type=token \
-  --set api.containers.resources.limits.cpu=500m \
-  --set api.containers.resources.limits.memory=512Mi \
-  --set web.containers.resources.limits.cpu=200m \
-  --set web.containers.resources.limits.memory=256Mi >/dev/null
+  --set auth.type=token >/dev/null
 
 echo "Instalando Metrics Server..."
 kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml >/dev/null

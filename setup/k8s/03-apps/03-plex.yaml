@@ -63,11 +63,6 @@ spec:
           value: "${PLEX_CLAIM}"
         - name: VERSION
           value: "docker"
-        resources:
-          limits:
-            memory: 4Gi
-          requests:
-            memory: 1Gi
         volumeMounts:
         - name: configs-source
           mountPath: /config
@@ -127,22 +122,8 @@ kind: Ingress
 metadata:
   name: plex-ingress
   namespace: media
-  annotations:
-    kubernetes.io/ingress.class: "nginx"
-    nginx.ingress.kubernetes.io/configuration-snippet: |
-      proxy_set_header X-Forwarded-For "192.168.2.1";
-      proxy_set_header X-Real-IP "192.168.2.1";
-      proxy_set_header Upgrade $http_upgrade;
-      proxy_set_header Connection "upgrade";
-    nginx.ingress.kubernetes.io/proxy-body-size: "0"
-    nginx.ingress.kubernetes.io/proxy-buffering: "off"
-    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
-    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
-    nginx.ingress.kubernetes.io/server-snippet: |
-      gzip off;
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"
 spec:
-  ingressClassName: nginx
+  ingressClassName: traefik
   tls:
   - hosts:
     - "plex.media.lan"

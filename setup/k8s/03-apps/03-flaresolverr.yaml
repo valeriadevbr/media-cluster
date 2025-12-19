@@ -37,11 +37,6 @@ spec:
           value: "1000"
         - name: TZ
           value: "America/Sao_Paulo"
-        resources:
-          limits:
-            memory: 2Gi
-          requests:
-            memory: 512Mi
 ---
 apiVersion: v1
 kind: Service
