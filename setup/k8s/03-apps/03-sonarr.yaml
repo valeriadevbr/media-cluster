@@ -85,27 +85,36 @@ spec:
       targetPort: 8989
   type: ClusterIP
 ---
-apiVersion: networking.k8s.io/v1
-kind: Ingress
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
 metadata:
-  name: sonarr-ingress
+  name: sonarr
   namespace: media
-  annotations:
-    ingress.kubernetes.io/ssl-redirect: "false"
 spec:
-  ingressClassName: traefik
-  tls:
-  - hosts:
-    - "sonarr.media.lan"
-    secretName: media-lan-tls
-  rules:
-  - host: "sonarr.media.lan"
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: sonarr
-            port:
-              number: 8989
+  entryPoints:
+    - websecure
+    - websecure-alt
+  routes:
+    - match: Host(`sonarr.media.lan`)
+      kind: Rule
+      services:
+        - name: sonarr
+          port: 8989
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: sonarr-http
+  namespace: media
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: Host(`sonarr.media.lan`)
+      kind: Rule
+      middlewares:
+        - name: https-redirect
+          namespace: media
+      services:
+        - name: sonarr
+          port: 8989

@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: home
-  namespace: infra
+  namespace: media
 spec:
   replicas: 1
   selector:
@@ -38,7 +38,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: home
-  namespace: infra
+  namespace: media
 spec:
   selector:
     app: home
@@ -47,27 +47,36 @@ spec:
     targetPort: 80
   type: ClusterIP
 ---
-apiVersion: networking.k8s.io/v1
-kind: Ingress
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
 metadata:
-  name: home-ingress
-  namespace: infra
-  annotations:
-    ingress.kubernetes.io/ssl-redirect: "false"
+  name: home
+  namespace: media
 spec:
-  ingressClassName: traefik
-  tls:
-  - hosts:
-    - "dashboard.media.lan"
-    secretName: media-lan-tls
-  rules:
-  - host: "dashboard.media.lan"
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: home
-            port:
-              number: 80
+  entryPoints:
+    - websecure
+    - websecure-alt
+  routes:
+    - match: Host(`dashboard.media.lan`)
+      kind: Rule
+      services:
+        - name: home
+          port: 80
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: home-http
+  namespace: media
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: Host(`dashboard.media.lan`)
+      kind: Rule
+      middlewares:
+        - name: https-redirect
+          namespace: media
+      services:
+        - name: home
+          port: 80

@@ -155,7 +155,7 @@ data:
                         document.getElementById('uptime').innerText = successfulPings + "s";
 
                         // Chart update
-                        if(chart.data.labels.length > 50) {
+                        if(chart.data.labels.length > 100) {
                             chart.data.labels.shift();
                             chart.data.datasets[0].data.shift();
                         }
@@ -174,7 +174,7 @@ data:
                     document.getElementById('failures').innerText = failureCount;
 
                     // Mark failure on chart
-                    if(chart.data.labels.length > 50) {
+                    if(chart.data.labels.length > 100) {
                         chart.data.labels.shift();
                         chart.data.datasets[0].data.shift();
                     }

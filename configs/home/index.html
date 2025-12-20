@@ -90,6 +90,49 @@
         z-index: 2;
       }
 
+      .alt-port-dot {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        width: 32px;
+        height: 32px;
+        background-color: rgba(255, 255, 255, 0.15);
+        border-radius: 50%;
+        cursor: pointer;
+        z-index: 10;
+        transition: all 0.2s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(255,255,255,0.05);
+      }
+
+      .alt-port-dot img {
+        width: 12px;
+        height: 12px;
+        margin-bottom: 2px;
+        filter: invert(1); /* Make black icon white */
+        opacity: 0.9;
+        transition: all 0.2s ease;
+      }
+
+      .alt-text {
+        font-size: 0.35rem; /* Reduced font size */
+        font-weight: 800;
+        line-height: 1;
+        opacity: 0.8;
+      }
+
+      .alt-port-dot:hover {
+        background-color: var(--glow-color, #fff);
+        transform: scale(1.1);
+        box-shadow: 0 0 10px var(--glow-color, #fff);
+        color: #000;
+        border-color: transparent;
+      }
+
       /* Cores Temáticas */
       .plex {
         color: #e5a00d;
@@ -149,11 +192,21 @@
           grid-template-columns: repeat(1, 1fr);
         }
       }
+    
+      .alt-port-dot:hover img {
+        filter: none; /* Revert to original black (assuming SVG is rendered black by default/browser) */
+        opacity: 1;
+        transform: scale(1.1);
+      }
     </style>
   </head>
   <body>
     <div class="grid">
       <a data-href="plex.media.lan" class="card plex" style="--glow-color: #e5a00d">
+        <div class="alt-port-dot" title="Alt Port (44300)">
+          <img src="icons/link.svg" alt="Link" />
+          <span class="alt-text">ALT</span>
+        </div>
         <div class="icon">
           <img src="icons/plex.svg" alt="Plex" />
         </div>
@@ -161,6 +214,10 @@
       </a>
 
       <a data-href="emby.media.lan" class="card emby" style="--glow-color: #5dd054">
+        <div class="alt-port-dot" title="Alt Port (44300)">
+          <img src="icons/link.svg" alt="Link" />
+          <span class="alt-text">ALT</span>
+        </div>
         <div class="icon">
           <img src="icons/emby.svg" alt="Emby" />
         </div>
@@ -168,6 +225,10 @@
       </a>
 
       <a data-href="sonarr.media.lan" class="card sonarr" style="--glow-color: #00c0fa">
+        <div class="alt-port-dot" title="Alt Port (44300)">
+          <img src="icons/link.svg" alt="Link" />
+          <span class="alt-text">ALT</span>
+        </div>
         <div class="icon">
           <img src="icons/sonarr.svg" alt="Sonarr" />
         </div>
@@ -175,6 +236,10 @@
       </a>
 
       <a data-href="radarr.media.lan" class="card radarr" style="--glow-color: #ffc230">
+        <div class="alt-port-dot" title="Alt Port (44300)">
+          <img src="icons/link.svg" alt="Link" />
+          <span class="alt-text">ALT</span>
+        </div>
         <div class="icon">
           <img src="icons/radarr.svg" alt="Radarr" />
         </div>
@@ -182,6 +247,10 @@
       </a>
 
       <a data-href="lidarr.media.lan" class="card lidarr" style="--glow-color: #00936e">
+        <div class="alt-port-dot" title="Alt Port (44300)">
+          <img src="icons/link.svg" alt="Link" />
+          <span class="alt-text">ALT</span>
+        </div>
         <div class="icon">
           <img src="icons/lidarr.svg" alt="Lidarr" />
         </div>
@@ -189,6 +258,10 @@
       </a>
 
       <a data-href="bazarr.media.lan" class="card bazarr" style="--glow-color: #b76bf7">
+        <div class="alt-port-dot" title="Alt Port (44300)">
+          <img src="icons/link.svg" alt="Link" />
+          <span class="alt-text">ALT</span>
+        </div>
         <div class="icon">
           <img src="icons/bazarr.svg" alt="Bazarr" />
         </div>
@@ -196,6 +269,10 @@
       </a>
 
       <a data-href="prowlarr.media.lan" class="card prowlarr" style="--glow-color: #ff3333">
+        <div class="alt-port-dot" title="Alt Port (44300)">
+          <img src="icons/link.svg" alt="Link" />
+          <span class="alt-text">ALT</span>
+        </div>
         <div class="icon">
           <img src="icons/prowlarr.svg" alt="Prowlarr" />
         </div>
@@ -203,6 +280,10 @@
       </a>
 
       <a data-href="jackett.media.lan" class="card jackett" style="--glow-color: #b7f76b">
+        <div class="alt-port-dot" title="Alt Port (44300)">
+          <img src="icons/link.svg" alt="Link" />
+          <span class="alt-text">ALT</span>
+        </div>
         <div class="icon">
           <img src="icons/jackett.svg" alt="Jackett" />
         </div>
@@ -210,6 +291,10 @@
       </a>
 
       <a data-href="profilarr.media.lan" class="card profilarr" style="--glow-color: #6b9cf7">
+        <div class="alt-port-dot" title="Alt Port (44300)">
+          <img src="icons/link.svg" alt="Link" />
+          <span class="alt-text">ALT</span>
+        </div>
         <div class="icon">
           <img src="icons/profilarr.svg" alt="Profilarr" />
         </div>
@@ -217,9 +302,18 @@
       </a>
     </div>
     <script>
-      // Ajusta os links para http ou https conforme o protocolo da página
       document.querySelectorAll('.grid a[data-href]').forEach(function(link) {
-        link.href = window.location.protocol + '//' + link.getAttribute('data-href');
+        const url = 'https://' + link.getAttribute('data-href');
+        link.href = url;
+
+        const dot = link.querySelector('.alt-port-dot');
+        if (dot) {
+          dot.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            window.location.href = url + ':44300';
+          });
+        }
       });
     </script>
   </body>

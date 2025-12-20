@@ -71,27 +71,36 @@ spec:
       targetPort: 6767
   type: ClusterIP
 ---
-apiVersion: networking.k8s.io/v1
-kind: Ingress
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
 metadata:
-  name: bazarr-ingress
+  name: bazarr
   namespace: media
-  annotations:
-    ingress.kubernetes.io/ssl-redirect: "false"
 spec:
-  ingressClassName: traefik
-  tls:
-  - hosts:
-    - "bazarr.media.lan"
-    secretName: media-lan-tls
-  rules:
-  - host: "bazarr.media.lan"
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: bazarr
-            port:
-              number: 6767
+  entryPoints:
+    - websecure
+    - websecure-alt
+  routes:
+    - match: Host(`bazarr.media.lan`)
+      kind: Rule
+      services:
+        - name: bazarr
+          port: 6767
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: bazarr-http
+  namespace: media
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: Host(`bazarr.media.lan`)
+      kind: Rule
+      middlewares:
+        - name: https-redirect
+          namespace: media
+      services:
+        - name: bazarr
+          port: 6767

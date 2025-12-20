@@ -59,6 +59,10 @@ kubectl create namespace infra --dry-run=client -o yaml | kubectl apply -f -
 # 6. Cria os Segredos TLS
 echo "Criando secret TLS..."
 
+create_tls_secret media-lan-tls ingress-traefik \
+  "${CERTS_PATH}/lan/cert.crt" \
+  "${CERTS_PATH}/lan/cert.key"
+
 create_tls_secret media-lan-tls infra \
   "${CERTS_PATH}/lan/cert.crt" \
   "${CERTS_PATH}/lan/cert.key"
@@ -66,6 +70,10 @@ create_tls_secret media-lan-tls infra \
 create_tls_secret media-lan-tls media \
   "${CERTS_PATH}/lan/cert.crt" \
   "${CERTS_PATH}/lan/cert.key"
+
+create_tls_secret media-wan-tls ingress-traefik \
+  "${CERTS_PATH}/wan/apedamo.duckdns.org.crt" \
+  "${CERTS_PATH}/wan/apedamo.duckdns.org.key"
 
 create_tls_secret media-wan-tls media \
   "${CERTS_PATH}/wan/apedamo.duckdns.org.crt" \
@@ -86,11 +94,15 @@ helm upgrade --install traefik traefik/traefik \
     --entryPoints.web.address=:80, \
     --entryPoints.websecure.address=:443, \
     --entryPoints.websecure.http3, \
+    --entryPoints.websecure-alt.address=:44300, \
     --serverstransport.insecureskipverify=true, \
-    --log.level=DEBUG \
+    --log.level=INFO \
   }" \
   --set ports.web.port=80 \
   --set ports.websecure.port=443 \
+  --set ports.websecure-alt.port=44300 \
+  --set ports.websecure-alt.protocol=TCP \
+  --set ports.websecure-alt.exposedPort=44300 \
   --set deployment.podSecurityContext.runAsNonRoot=true \
   --set deployment.podSecurityContext.runAsUser=65532 \
   --set deployment.podSecurityContext.runAsGroup=65532 \

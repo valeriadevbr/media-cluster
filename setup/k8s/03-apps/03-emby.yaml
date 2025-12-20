@@ -84,41 +84,70 @@ spec:
       protocol: UDP
   type: ClusterIP
 ---
-apiVersion: networking.k8s.io/v1
-kind: Ingress
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
 metadata:
-  name: emby-ingress
+  name: emby
   namespace: media
-  annotations:
-    ingress.kubernetes.io/ssl-redirect: "false"
-
 spec:
-  ingressClassName: traefik
-  tls:
-    - hosts:
-      - "emby.media.lan"
-      secretName: media-lan-tls
-    - hosts:
-      - "emby.apedamo.duckdns.org"
-      secretName: media-wan-tls
-  rules:
-  - host: "emby.media.lan"
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: emby
-            port:
-              number: 8096
-  - host: "emby.apedamo.duckdns.org"
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: emby
-            port:
-              number: 8096
+  entryPoints:
+    - websecure
+    - websecure-alt
+  routes:
+    - match: Host(`emby.media.lan`)
+      kind: Rule
+      services:
+        - name: emby
+          port: 8096
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: emby-wan
+  namespace: media
+spec:
+  entryPoints:
+    - websecure
+    - websecure-alt
+  routes:
+    - match: Host(`emby.apedamo.duckdns.org`)
+      kind: Rule
+      services:
+        - name: emby
+          port: 8096
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: emby-http
+  namespace: media
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: Host(`emby.media.lan`)
+      kind: Rule
+      middlewares:
+        - name: https-redirect
+          namespace: media
+      services:
+        - name: emby
+          port: 8096
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: emby-wan-http
+  namespace: media
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: Host(`emby.apedamo.duckdns.org`)
+      kind: Rule
+      middlewares:
+        - name: https-redirect
+          namespace: media
+      services:
+        - name: emby
+          port: 8096

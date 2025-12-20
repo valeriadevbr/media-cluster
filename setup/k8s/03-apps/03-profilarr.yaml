@@ -66,27 +66,36 @@ spec:
       targetPort: 6868
   type: ClusterIP
 ---
-apiVersion: networking.k8s.io/v1
-kind: Ingress
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
 metadata:
-  name: profilarr-ingress
+  name: profilarr
   namespace: media
-  annotations:
-    ingress.kubernetes.io/ssl-redirect: "false"
 spec:
-  ingressClassName: traefik
-  tls:
-  - hosts:
-    - "profilarr.media.lan"
-    secretName: media-lan-tls
-  rules:
-  - host: "profilarr.media.lan"
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: profilarr
-            port:
-              number: 6868
+  entryPoints:
+    - websecure
+    - websecure-alt
+  routes:
+    - match: Host(`profilarr.media.lan`)
+      kind: Rule
+      services:
+        - name: profilarr
+          port: 6868
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: profilarr-http
+  namespace: media
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: Host(`profilarr.media.lan`)
+      kind: Rule
+      middlewares:
+        - name: https-redirect
+          namespace: media
+      services:
+        - name: profilarr
+          port: 6868

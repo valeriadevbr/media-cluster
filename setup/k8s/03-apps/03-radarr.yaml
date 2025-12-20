@@ -85,27 +85,36 @@ spec:
       targetPort: 7878
   type: ClusterIP
 ---
-apiVersion: networking.k8s.io/v1
-kind: Ingress
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
 metadata:
-  name: radarr-ingress
+  name: radarr
   namespace: media
-  annotations:
-    ingress.kubernetes.io/ssl-redirect: "false"
 spec:
-  ingressClassName: traefik
-  tls:
-  - hosts:
-    - "radarr.media.lan"
-    secretName: media-lan-tls
-  rules:
-  - host: "radarr.media.lan"
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: radarr
-            port:
-              number: 7878
+  entryPoints:
+    - websecure
+    - websecure-alt
+  routes:
+    - match: Host(`radarr.media.lan`)
+      kind: Rule
+      services:
+        - name: radarr
+          port: 7878
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: radarr-http
+  namespace: media
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: Host(`radarr.media.lan`)
+      kind: Rule
+      middlewares:
+        - name: https-redirect
+          namespace: media
+      services:
+        - name: radarr
+          port: 7878
