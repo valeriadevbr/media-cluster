@@ -1,13 +1,16 @@
-/*
-!.vscode/*
-!configs/bind/config/*
-!configs/caddy/*
-!configs/home/*
-!configs/kind/*
-!media/.gitkeep
-!scripts/
-!setup/
-!ssl/
+/.*
+/configs/*
+/media/*
+
+!/.vscode/
+!/configs/bind/config/
+!/configs/caddy/
+!/configs/home/
+!/configs/kind/
+!/media/.gitkeep
+!/scripts/
+!/setup/
+!/ssl/
 
 *.srl
 *.key
@@ -16,4 +19,4 @@
 *.pfx
 *.env
 
-
+.DS_Store
