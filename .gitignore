@@ -1,22 +1,30 @@
-/.*
-/configs/*
+# General
+.DS_Store
 /media/*
-
-!/.vscode/
-!/configs/bind/config/
-!/configs/caddy/
-!/configs/home/
-!/configs/kind/
 !/media/.gitkeep
-!/scripts/
-!/setup/
-!/ssl/
 
-*.srl
+# Secrets & Environment
+*.env
 *.key
 *.crt
 *.pem
 *.pfx
-*.env
+*.srl
 
-.DS_Store
+# Dotfiles
+/.*
+!/.vscode/
+!/.gitignore
+
+# Configs
+/configs/*
+!/configs/bind/
+!/configs/caddy/
+!/configs/home/
+!/configs/kind/
+
+# Specific Config Exclusions
+/configs/bind/cache
+/configs/bind/config/named.conf.local
+/configs/bind/config/zones
+/configs/bind/log

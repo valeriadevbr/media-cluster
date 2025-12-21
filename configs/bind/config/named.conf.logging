@@ -1,0 +1,15 @@
+logging {
+  channel queries_stdout {
+    stderr;
+    severity info;
+    print-time yes;
+    print-category yes;
+  };
+  channel queries_file {
+    file "/var/log/queries.log" versions 3 size 10m;
+    severity info;
+    print-time yes;
+    print-category yes;
+  };
+  category queries { queries_file; };
+};
