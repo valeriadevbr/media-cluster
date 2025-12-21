@@ -24,6 +24,9 @@ nodes:
   - containerPort: 443 # HTTPS
     hostPort: 443
     protocol: TCP
+  - containerPort: 8096 # Plex TCP Direct
+    hostPort: 8096
+    protocol: TCP
   - containerPort: 7359 # Emby Discovery
     hostPort: 7359
     protocol: UDP

@@ -15,6 +15,7 @@ pass in quick proto tcp from any to any port 443 no state
 pass out quick proto tcp from any port 443 to any no state
 
 # Allow traffic from LAN to common services
+pass on en0 proto tcp from ${DOCKER_HOST_SUBNET} to port 22
 pass on en0 proto tcp from ${DOCKER_HOST_SUBNET} to port 53
 pass on en0 proto tcp from ${DOCKER_HOST_SUBNET} to port 80
 pass on en0 proto tcp from ${DOCKER_HOST_SUBNET} to port 443
