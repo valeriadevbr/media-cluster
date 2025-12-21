@@ -171,6 +171,31 @@
         opacity: 1;
         transform: scale(1.1);
       }
+      /* Status Dot Styles */
+      .status-dot {
+        position: absolute;
+        top: 15px;
+        left: 15px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background-color: #6b7280; /* Gray - Unknown */
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+        transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        z-index: 5;
+      }
+
+      .status-up {
+        background-color: #22c55e; /* Green */
+        box-shadow: 0 0 8px rgba(34, 197, 94, 0.6);
+      }
+
+      .status-down {
+        background-color: #ef4444; /* Red */
+        box-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
+      }
+
     </style>
   </head>
   <body>
@@ -178,17 +203,83 @@
     </div>
     <script>
       const apps = [
-        { name: 'Plex', host: 'plex.media.lan', color: '#e5a00d', icon: 'plex.svg' },
-        { name: 'Emby', host: 'emby.media.lan', color: '#5dd054', icon: 'emby.svg' },
-        { name: 'Sonarr', host: 'sonarr.media.lan', color: '#00c0fa', icon: 'sonarr.svg' },
-        { name: 'Radarr', host: 'radarr.media.lan', color: '#ffc230', icon: 'radarr.svg' },
-        { name: 'Lidarr', host: 'lidarr.media.lan', color: '#00936e', icon: 'lidarr.svg' },
-        { name: 'Bazarr', host: 'bazarr.media.lan', color: '#b76bf7', icon: 'bazarr.svg' },
-        { name: 'Prowlarr', host: 'prowlarr.media.lan', color: '#ff3333', icon: 'prowlarr.svg' },
-        { name: 'Jackett', host: 'jackett.media.lan', color: '#b7f76b', icon: 'jackett.svg' },
-        { name: 'Profilarr', host: 'profilarr.media.lan', color: '#6b9cf7', icon: 'profilarr.svg' },
-        { name: 'qBittorrent', host: 'qbittorrent.media.lan', color: '#2f67ba', icon: 'qbittorrent.svg' },
-        { name: 'Slskd', host: 'slskd.media.lan', color: '#00c3ff', icon: 'slskd.svg' },
+        {
+          name: 'Plex',
+          host: 'plex.media.lan',
+          pingUrl: 'http://plex:32400/identity',
+          color: '#e5a00d',
+          icon: 'plex.svg'
+        },
+        {
+          name: 'Emby',
+          host: 'emby.media.lan',
+          pingUrl: 'http://emby:8096/System/Ping',
+          color: '#5dd054',
+          icon: 'emby.svg'
+        },
+        {
+          name: 'Sonarr',
+          host: 'sonarr.media.lan',
+          pingUrl: 'http://sonarr:8989/ping',
+          color: '#00c0fa',
+          icon: 'sonarr.svg'
+        },
+        {
+          name: 'Radarr',
+          host: 'radarr.media.lan',
+          pingUrl: 'http://radarr:7878/ping',
+          color: '#ffc230',
+          icon: 'radarr.svg'
+        },
+        {
+          name: 'Lidarr',
+          host: 'lidarr.media.lan',
+          pingUrl: 'http://lidarr:8686/ping',
+          color: '#00936e',
+          icon: 'lidarr.svg'
+        },
+        {
+          name: 'Bazarr',
+          host: 'bazarr.media.lan',
+          pingUrl: 'http://bazarr:6767',
+          color: '#b76bf7',
+          icon: 'bazarr.svg'
+        },
+        {
+          name: 'Prowlarr',
+          host: 'prowlarr.media.lan',
+          pingUrl: 'http://prowlarr:9696/ping',
+          color: '#ff3333',
+          icon: 'prowlarr.svg'
+        },
+        {
+          name: 'Jackett',
+          host: 'jackett.media.lan',
+          pingUrl: 'http://jackett:9117/UI/Dashboard',
+          color: '#b7f76b',
+          icon: 'jackett.svg'
+        },
+        {
+          name: 'Profilarr',
+          host: 'profilarr.media.lan',
+          pingUrl: 'http://profilarr:6868/ping',
+          color: '#6b9cf7',
+          icon: 'profilarr.svg'
+        },
+        {
+          name: 'qBittorrent',
+          host: 'qbittorrent.media.lan',
+          pingUrl: 'http://qbittorrent:8081',
+          color: '#2f67ba',
+          icon: 'qbittorrent.svg'
+        },
+        {
+          name: 'Slskd',
+          host: 'slskd.media.lan',
+          pingUrl: 'http://slskd:5030',
+          color: '#00c3ff',
+          icon: 'slskd.svg'
+        },
       ];
 
       const grid = document.getElementById('app-grid');
@@ -203,6 +294,7 @@
         card.style.color = app.color;
 
         card.innerHTML = `
+          <div class="status-dot status-unknown" id="status-${app.name}" title="Status: Unknown"></div>
           <div class="alt-port-dot" title="Alt Port (44300)">
             <img src="icons/link.svg" alt="Link" />
             <span class="alt-text">ALT</span>
@@ -222,6 +314,65 @@
 
         grid.appendChild(card);
       });
+
+      // WebSocket Connection
+      let socket;
+
+      function connectWebSocket() {
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${protocol}//${window.location.host}/ws`;
+
+        socket = new WebSocket(wsUrl);
+
+        socket.onopen = () => {
+            console.log("WebSocket Connected");
+            updateAllStatuses();
+        };
+
+        socket.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            const statusElement = document.getElementById(`status-${data.name}`);
+            if (statusElement) {
+                if (data.status === 'up') {
+                    statusElement.className = 'status-dot status-up';
+                    statusElement.title = 'Status: Online';
+                } else {
+                    statusElement.className = 'status-dot status-down';
+                    statusElement.title = 'Status: Offline';
+                }
+            }
+        };
+
+        socket.onclose = () => {
+            console.log("WebSocket Disconnected. Reconnecting in 5s...");
+            setTimeout(connectWebSocket, 5000);
+        };
+
+        socket.onerror = (err) => {
+            console.error("WebSocket Error:", err);
+            socket.close();
+        };
+      }
+
+      function updateAllStatuses() {
+        if (socket && socket.readyState === WebSocket.OPEN) {
+            apps.forEach((app, index) => {
+                // Stagger slightly just to be nice, though Async can handle it
+                setTimeout(() => {
+                    socket.send(JSON.stringify({
+                        name: app.name,
+                        url: app.pingUrl
+                    }));
+                }, index * 50);
+            });
+        }
+      }
+
+      // Initialize connection
+      connectWebSocket();
+
+      // Poll every 30 seconds via WS
+      setInterval(updateAllStatuses, 30000);
     </script>
   </body>
 </html>

@@ -29,6 +29,23 @@ spec:
         - name: content
           subPath: home
           mountPath: /usr/share/nginx/html
+        - name: content
+          subPath: home/default.conf
+          mountPath: /etc/nginx/conf.d/default.conf
+      - name: pinger
+        image: python:3-slim
+        command: ["/bin/sh", "-c", "pip install websockets && python3 -u /app/pinger.py"]
+        resources:
+          requests:
+            cpu: 10m
+            memory: 32Mi
+          limits:
+            cpu: 50m
+            memory: 64Mi
+        volumeMounts:
+        - name: content
+          subPath: home/pinger.py
+          mountPath: /app/pinger.py
       volumes:
       - name: content
         persistentVolumeClaim:
