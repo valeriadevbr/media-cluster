@@ -1,5 +1,6 @@
 # General
 .DS_Store
+/System Volume Information
 /media/*
 !/media/.gitkeep
 
@@ -19,7 +20,6 @@
 # Configs
 /configs/*
 !/configs/bind/
-!/configs/caddy/
 !/configs/home/
 !/configs/kind/
 
@@ -27,4 +27,5 @@
 /configs/bind/cache
 /configs/bind/config/named.conf.local
 /configs/bind/config/zones
+!configs/bind/config/zones/.gitkeep
 /configs/bind/log
