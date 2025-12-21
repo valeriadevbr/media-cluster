@@ -74,7 +74,7 @@ spec:
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
-  name: bazarr
+  name: bazarr-lan
   namespace: media
 spec:
   entryPoints:
@@ -90,7 +90,7 @@ spec:
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
-  name: bazarr-http
+  name: bazarr-lan-http
   namespace: media
 spec:
   entryPoints:

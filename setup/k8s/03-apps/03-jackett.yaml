@@ -69,7 +69,7 @@ spec:
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
-  name: jackett
+  name: jackett-lan
   namespace: media
 spec:
   entryPoints:
@@ -85,7 +85,7 @@ spec:
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
-  name: jackett-http
+  name: jackett-lan-http
   namespace: media
 spec:
   entryPoints:

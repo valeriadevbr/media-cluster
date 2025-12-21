@@ -1,8 +1,9 @@
 #!/bin/bash
 set -e
-
 set -a
 source "$(dirname -- "$0")/../.env"
+HOMEBREW_NO_AUTO_UPDATE=1
+HOMEBREW_NO_ENV_HINTS=1
 set +a
 
 BACKUP_DIR="$(dirname -- "$0")/../wireguard-macos"

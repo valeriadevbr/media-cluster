@@ -75,7 +75,7 @@ spec:
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
-  name: prowlarr
+  name: prowlarr-lan
   namespace: media
 spec:
   entryPoints:
@@ -91,7 +91,7 @@ spec:
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
-  name: prowlarr-http
+  name: prowlarr-lan-http
   namespace: media
 spec:
   entryPoints:

@@ -67,7 +67,7 @@ spec:
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
-  name: home
+  name: home-lan
   namespace: media
 spec:
   entryPoints:
@@ -83,7 +83,7 @@ spec:
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
-  name: home-http
+  name: home-lan-http
   namespace: media
 spec:
   entryPoints:

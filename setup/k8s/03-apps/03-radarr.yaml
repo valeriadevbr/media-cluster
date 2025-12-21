@@ -88,7 +88,7 @@ spec:
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
-  name: radarr
+  name: radarr-lan
   namespace: media
 spec:
   entryPoints:
@@ -104,7 +104,7 @@ spec:
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
-  name: radarr-http
+  name: radarr-lan-http
   namespace: media
 spec:
   entryPoints:

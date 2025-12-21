@@ -86,7 +86,7 @@ spec:
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
-  name: lidarr
+  name: lidarr-lan
   namespace: media
 spec:
   entryPoints:
@@ -102,7 +102,7 @@ spec:
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
-  name: lidarr-http
+  name: lidarr-lan-http
   namespace: media
 spec:
   entryPoints:

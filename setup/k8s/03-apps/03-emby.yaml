@@ -87,10 +87,11 @@ spec:
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
-  name: emby
+  name: emby-lan
   namespace: media
 spec:
   entryPoints:
+    - web
     - websecure
     - websecure-alt
   routes:
@@ -107,47 +108,12 @@ metadata:
   namespace: media
 spec:
   entryPoints:
+    - web
     - websecure
     - websecure-alt
   routes:
     - match: Host(`emby.apedamo.duckdns.org`)
       kind: Rule
-      services:
-        - name: emby
-          port: 8096
----
-apiVersion: traefik.io/v1alpha1
-kind: IngressRoute
-metadata:
-  name: emby-http
-  namespace: media
-spec:
-  entryPoints:
-    - web
-  routes:
-    - match: Host(`emby.media.lan`)
-      kind: Rule
-      middlewares:
-        - name: https-redirect
-          namespace: media
-      services:
-        - name: emby
-          port: 8096
----
-apiVersion: traefik.io/v1alpha1
-kind: IngressRoute
-metadata:
-  name: emby-wan-http
-  namespace: media
-spec:
-  entryPoints:
-    - web
-  routes:
-    - match: Host(`emby.apedamo.duckdns.org`)
-      kind: Rule
-      middlewares:
-        - name: https-redirect
-          namespace: media
       services:
         - name: emby
           port: 8096
