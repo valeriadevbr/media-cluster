@@ -9,7 +9,7 @@ INET_IFace="en0"
 /usr/sbin/sysctl -w net.inet.ip.forwarding=1
 
 # Limpar regras antigas na âncora
-pfctl -a wireguard -F all
+pfctl -e -a wireguard -F all
 
 # Aplicar novas regras na âncora 'wireguard'
 (
@@ -20,6 +20,6 @@ pass quick on $WG_IFace inet
 pass in quick on $INET_IFace from 10.13.13.0/24 to 192.168.2.0/24
 pass out quick on $INET_IFace from 192.168.2.0/24 to 10.13.13.0/24
 EOF
-) | pfctl -a wireguard -f -
+) | pfctl -E -a wireguard -f -
 
 echo "Regras aplicadas na âncora 'wireguard'."

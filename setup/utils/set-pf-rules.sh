@@ -4,11 +4,9 @@ set -a
 source "$(dirname -- "$0")/../.env"
 set +a
 
-ANCHOR_NAME="media.lan"
+echo "📋 Aplicando regras de firewall para ${PF_ANCHOR_NAME}..."
 
-echo "📋 Aplicando regras de firewall para ${ANCHOR_NAME}..."
-
-sudo pfctl -a "${ANCHOR_NAME}" -f - << EOF
+sudo pfctl -e -a "${PF_ANCHOR_NAME}" -f - << EOF
 # Allow all traffic on ethernet interface
 pass quick on en0 inet
 
@@ -28,7 +26,7 @@ EOF
 echo "✅ Regras aplicadas com sucesso!"
 echo ""
 echo "📊 Verificando regras ativas:"
-sudo pfctl -a "${ANCHOR_NAME}" -s rules
+sudo pfctl -a "${PF_ANCHOR_NAME}" -s rules
 
 echo ""
-echo "💡 Para verificar novamente: sudo pfctl -a ${ANCHOR_NAME} -s rules"
+echo "💡 Para verificar novamente: sudo pfctl -a ${PF_ANCHOR_NAME} -s rules"
