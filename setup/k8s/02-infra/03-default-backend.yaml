@@ -94,7 +94,6 @@ data:
             internal;
         }
     }
-
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -135,7 +134,6 @@ spec:
           items:
             - key: default.conf
               path: default.conf
-
 ---
 apiVersion: v1
 kind: Service
@@ -148,7 +146,6 @@ spec:
   ports:
   - port: 80
     targetPort: 80
-
 ---
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute

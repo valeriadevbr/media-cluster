@@ -8,7 +8,12 @@ subst_manifest() {
 # Applies a single K8s manifest file with envsubst
 apply_k8s_file() {
   local file="$1"
-  subst_manifest "$file" | kubectl apply -f -
+  if [[ "$file" == *"crd"* ]]; then
+     echo "Applying CRD with server-side apply: $file"
+     subst_manifest "$file" | kubectl apply --server-side -f -
+  else
+     subst_manifest "$file" | kubectl apply -f -
+  fi
 }
 
 apply_with_subst() {

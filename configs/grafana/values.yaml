@@ -1,0 +1,49 @@
+grafana:
+  sidecar:
+    datasources:
+      defaultDatasourceEnabled: false
+  additionalDataSources:
+    - name: Prometheus
+      type: prometheus
+      uid: prometheus
+      url: http://monitoring-kube-prometheus-prometheus.infra.svc.cluster.local:9090/
+      access: proxy
+      isDefault: true
+      jsonData:
+        httpMethod: POST
+        timeInterval: 30s
+  testFramework:
+    enabled: false
+  ingress:
+    enabled: true
+    ingressClassName: traefik
+    hosts:
+      - grafana.media.lan
+    path: /
+  persistence:
+    enabled: true
+    size: 2Gi
+  default_timezone: "America/Sao_Paulo"
+prometheus:
+  prometheusSpec:
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 10Gi
+    retention: 10d
+    resources:
+      requests:
+        memory: 400Mi
+      limits:
+        memory: 1000Mi
+nodeExporter:
+  enabled: true
+prometheus-node-exporter:
+  service:
+    port: 9101
+    targetPort: 9101
+alertmanager:
+  enabled: false
