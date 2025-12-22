@@ -150,7 +150,7 @@ spec:
     - websecure
     - websecure-alt
   routes:
-    - match: Host(`plex.apedamo.duckdns.org`)
+    - match: Host(`plex.${WAN_HOSTNAME}`)
       kind: Rule
       services:
         - name: plex

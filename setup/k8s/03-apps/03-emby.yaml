@@ -112,7 +112,7 @@ spec:
     - websecure
     - websecure-alt
   routes:
-    - match: Host(`emby.apedamo.duckdns.org`)
+    - match: Host(`emby.${WAN_HOSTNAME}`)
       kind: Rule
       services:
         - name: emby
