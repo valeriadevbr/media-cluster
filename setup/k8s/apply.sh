@@ -1,8 +1,7 @@
 #!/bin/bash
 set -e
 set -a
-K8S_DIR="$(dirname -- "$0")"
-source "${K8S_DIR}/../.env"
+source "$(dirname -- "$0")/../.env"
 source "${SETUP_PATH}/includes/k8s-utils.sh"
 set +a
 

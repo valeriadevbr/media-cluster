@@ -11,5 +11,9 @@ logging {
     print-time yes;
     print-category yes;
   };
-  category queries { queries_file; };
+  category queries { queries_stdout; queries_file; };
+  category default { queries_stdout; queries_file; };
+  category general { queries_stdout; queries_file; };
+  category security { queries_stdout; queries_file; };
+  category config { queries_stdout; queries_file; };
 };

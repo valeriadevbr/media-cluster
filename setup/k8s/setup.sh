@@ -2,13 +2,16 @@
 set -e
 set -a
 source "$(dirname -- "$0")/../.env"
+source "${SETUP_PATH}/includes/k8s-utils.sh"
 set +a
 
-BOOTSTRAP_DIR="${SETUP_PATH}/k8s/bootstrap"
+BOOTSTRAP_PATH="${K8S_PATH}/bootstrap"
 
-if [ -d "$BOOTSTRAP_DIR" ]; then
+echo "${BOOTSTRAP_PATH}"
+
+if [ -d "$BOOTSTRAP_PATH" ]; then
   echo "🚀 Iniciando Bootstrap do Cluster..."
-  for script in $(ls "$BOOTSTRAP_DIR"/*.sh | sort); do
+  for script in $(ls "$BOOTSTRAP_PATH"/*.sh | sort); do
     if [ -x "$script" ] || [ "${script##*.}" == "sh" ]; then
       echo "--------------------------------------------------"
       echo "📜 Executando: $(basename "$script")"
@@ -17,7 +20,7 @@ if [ -d "$BOOTSTRAP_DIR" ]; then
     fi
   done
 else
-  echo "❌ Diretório de bootstrap não encontrado: $BOOTSTRAP_DIR"
+  echo "❌ Diretório de bootstrap não encontrado: $BOOTSTRAP_PATH"
   exit 1
 fi
 

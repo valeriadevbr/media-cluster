@@ -1,8 +1,5 @@
 #!/bin/bash
 set -e
-set -a
-source "$(dirname -- "${BASH_SOURCE[0]}")/../../.env"
-set +a
 
 echo "Criando secret TLS..."
 

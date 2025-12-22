@@ -2,24 +2,26 @@
 
 # $1 recebe o nome da interface (ex: utun4) passado pelo %i no wg0.conf
 WG_IFace=$1
-# Sua interface de internet física
 INET_IFace="en0"
+ANCHOR_NAME="com.apple/wireguard"
 
-# Habilitar forwarding no kernel
 /usr/sbin/sysctl -w net.inet.ip.forwarding=1
 
-# Limpar regras antigas na âncora
-pfctl -e -a wireguard -F all
+if [[ "$(uname -s)" == "Darwin" ]]; then
+  pfctl -E
+  pfctl -a "${ANCHOR_NAME}" -F all > /dev/null
 
-# Aplicar novas regras na âncora 'wireguard'
-(
-  cat <<EOF
-nat on $INET_IFace from 10.13.13.0/24 to any -> ($INET_IFace)
-rdr on $WG_IFace inet proto { tcp, udp } from 10.13.13.0/24 to 192.168.2.1 -> 10.13.13.1
+  (
+    cat <<EOF
+nat on $INET_IFace inet from ${WG_SUBNET} to any -> ($INET_IFace)
+rdr on $WG_IFace inet proto { tcp, udp, icmp } from ${WG_SUBNET} to ${DOCKER_HOST_IP} -> ${WG_SERVER_IP}
 pass quick on $WG_IFace inet
-pass in quick on $INET_IFace from 10.13.13.0/24 to 192.168.2.0/24
-pass out quick on $INET_IFace from 192.168.2.0/24 to 10.13.13.0/24
+pass in quick on $INET_IFace from ${WG_SUBNET} to ${DOCKER_HOST_SUBNET}
+pass out quick on $INET_IFace from ${DOCKER_HOST_SUBNET} to ${WG_SUBNET}
 EOF
-) | pfctl -E -a wireguard -f -
+  ) | pfctl -a "${ANCHOR_NAME}" -f -
 
-echo "Regras aplicadas na âncora 'wireguard'."
+  echo "Regras aplicadas na âncora '${ANCHOR_NAME}'."
+  echo ""
+  echo "💡 Para verificar novamente: sudo pfctl -a ${ANCHOR_NAME} -s rules"
+fi

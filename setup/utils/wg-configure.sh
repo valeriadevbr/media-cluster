@@ -10,7 +10,12 @@ BACKUP_DIR="$(dirname -- "$0")/../wireguard-macos"
 WG_DIR="/etc/wireguard"
 
 sudo mkdir -p "$WG_DIR"
-sudo cp -f "$BACKUP_DIR"/*.sh "$WG_DIR/"
+for script in "$BACKUP_DIR"/*.sh; do
+  if [ -f "$script" ]; then
+    script_name=$(basename "$script")
+    envsubst '${WG_SUBNET} ${WG_SERVER_IP} ${DOCKER_HOST_IP} ${DOCKER_HOST_SUBNET}' <"$script" | sudo tee "$WG_DIR/$script_name" >/dev/null
+  fi
+done
 for conf in "$BACKUP_DIR"/*.conf; do
   if [ -f "$conf" ]; then
     conf_name=$(basename "$conf")

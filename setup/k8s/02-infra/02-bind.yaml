@@ -17,6 +17,7 @@ spec:
       containers:
       - name: bind
         image: internetsystemsconsortium/bind9:9.18
+        command: ["/bin/sh", "-c", "/usr/sbin/named -g > /var/log/stderr.log 2>&1"]
         ports:
         - name: dns-udp
           containerPort: 53
@@ -27,6 +28,7 @@ spec:
         securityContext:
           capabilities:
             add: ["NET_BIND_SERVICE"]
+          runAsUser: 0
         volumeMounts:
         - name: configs
           mountPath: /etc/bind
@@ -34,6 +36,9 @@ spec:
         - name: configs
           mountPath: /var/log
           subPath: bind/log
+        - name: configs
+          mountPath: /var/cache/bind
+          subPath: bind/cache
       volumes:
       - name: configs
         persistentVolumeClaim:
@@ -59,3 +64,4 @@ spec:
       nodePort: 53
       protocol: TCP
   type: NodePort
+  externalTrafficPolicy: Cluster

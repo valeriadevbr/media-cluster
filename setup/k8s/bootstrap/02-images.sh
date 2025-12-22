@@ -1,8 +1,5 @@
 #!/bin/bash
 set -e
-set -a
-source "$(dirname -- "${BASH_SOURCE[0]}")/../../.env"
-set +a
 
 echo "Building Sonarr custom image..."
 docker build -t "$SONARR_IMAGE_NAME" -f "$SONARR_DOCKERFILE_PATH" "$DOCKER_BUILD_CONTEXT" >/dev/null

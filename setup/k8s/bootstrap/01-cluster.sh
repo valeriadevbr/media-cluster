@@ -1,9 +1,5 @@
 #!/bin/bash
 set -e
-set -a
-source "$(dirname -- "${BASH_SOURCE[0]}")/../../.env"
-source "${SETUP_PATH}/includes/k8s-utils.sh"
-set +a
 
 if ! kind get clusters | grep -q "$CLUSTER_NAME"; then
   echo "Criando cluster Kind '$CLUSTER_NAME'..."

@@ -6,7 +6,9 @@ set +a
 
 echo "📋 Aplicando regras de firewall para ${PF_ANCHOR_NAME}..."
 
-sudo pfctl -e -a "${PF_ANCHOR_NAME}" -f - << EOF
+sudo pfctl -E
+sudo pfctl -a "${PF_ANCHOR_NAME}" -F all
+sudo pfctl -a "${PF_ANCHOR_NAME}" -f - << EOF
 # Allow all traffic on ethernet interface
 pass quick on en0 inet
 
@@ -16,7 +18,7 @@ pass out quick proto tcp from any port 443 to any no state
 
 # Allow traffic from LAN to common services
 pass on en0 proto tcp from ${DOCKER_HOST_SUBNET} to port 22
-pass on en0 proto tcp from ${DOCKER_HOST_SUBNET} to port 53
+pass on en0 proto { tcp, udp } from ${DOCKER_HOST_SUBNET} to port 53
 pass on en0 proto tcp from ${DOCKER_HOST_SUBNET} to port 80
 pass on en0 proto tcp from ${DOCKER_HOST_SUBNET} to port 443
 
