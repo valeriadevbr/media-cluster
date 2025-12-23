@@ -1,19 +1,35 @@
 #!/bin/bash
 set -e
-set -a
-HOMEBREW_NO_ENV_HINTS=1
-HOMEBREW_NO_AUTO_UPDATE=1
-set +a
 
+OS="$(uname -s)"
+
+if [[ "$OS" == "Darwin" ]]; then
+  set -a
+  HOMEBREW_NO_ENV_HINTS=1
+  HOMEBREW_NO_AUTO_UPDATE=1
+  set +a
+fi
+
+# Instalar Kind
 if ! command -v kind &>/dev/null; then
   echo "Instalando Kind..."
-  brew install kind -q
+  if [[ "$OS" == "Darwin" ]]; then
+    brew install kind -q
+  fi
 fi
+
+# Instalar Helm
 if ! command -v helm &>/dev/null; then
   echo "Instalando Helm..."
-  brew install helm -q
+  if [[ "$OS" == "Darwin" ]]; then
+    brew install helm -q
+  fi
 fi
+
+# Instalar Kubectl
 if ! command -v kubectl &>/dev/null; then
   echo "Instalando Kubectl..."
-  brew install kubectl -q
+  if [[ "$OS" == "Darwin" ]]; then
+    brew install kubectl -q
+  fi
 fi

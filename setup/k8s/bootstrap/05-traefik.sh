@@ -14,14 +14,7 @@ helm upgrade --install traefik traefik/traefik \
   --set service.type=ClusterIP \
   --set hostNetwork=true \
   --set dnsPolicy=ClusterFirstWithHostNet \
-  --set "additionalArguments={ \
-    --entryPoints.web.address=:80, \
-    --entryPoints.websecure.address=:443, \
-    --entryPoints.websecure.http3, \
-    --entryPoints.websecure-alt.address=:44300, \
-    --serverstransport.insecureskipverify=true, \
-    --log.level=INFO \
-  }" \
+  --set "additionalArguments={--entryPoints.web.address=:80,--entryPoints.websecure.address=:443,--entryPoints.websecure.http3,--entryPoints.websecure-alt.address=:44300,--serverstransport.insecureskipverify=true,--log.level=INFO}" \
   --set ports.web.port=80 \
   --set ports.websecure.port=443 \
   --set ports.websecure-alt.port=44300 \
@@ -30,7 +23,8 @@ helm upgrade --install traefik traefik/traefik \
   --set deployment.podSecurityContext.runAsNonRoot=true \
   --set deployment.podSecurityContext.runAsUser=65532 \
   --set deployment.podSecurityContext.runAsGroup=65532 \
-  --set "deployment.securityContext.capabilities.add={NET_BIND_SERVICE}" >/dev/null
+  --set "deployment.securityContext.capabilities.add={NET_BIND_SERVICE}" \
+  --wait >/dev/null
 
 echo "Aguardando Traefik..."
 kubectl rollout status deployment traefik -n ingress-traefik
