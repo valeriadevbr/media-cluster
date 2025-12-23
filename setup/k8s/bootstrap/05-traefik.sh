@@ -11,15 +11,13 @@ helm upgrade --install traefik traefik/traefik \
   --create-namespace \
   --set ports.websecure.http3.enabled=true \
   --set providers.kubernetesIngress.enabled=true \
-  --set service.type=ClusterIP \
-  --set hostNetwork=true \
-  --set dnsPolicy=ClusterFirstWithHostNet \
-  --set "additionalArguments={--entryPoints.web.address=:80,--entryPoints.websecure.address=:443,--entryPoints.websecure.http3,--entryPoints.websecure-alt.address=:44300,--serverstransport.insecureskipverify=true,--log.level=INFO}" \
-  --set ports.web.port=80 \
-  --set ports.websecure.port=443 \
+  --set service.type=NodePort \
+  --set "additionalArguments={--serverstransport.insecureskipverify=true}" \
+  --set ports.web.nodePort=80 \
+  --set ports.websecure.nodePort=443 \
   --set ports.websecure-alt.port=44300 \
-  --set ports.websecure-alt.protocol=TCP \
   --set ports.websecure-alt.exposedPort=44300 \
+  --set ports.websecure-alt.nodePort=44300 \
   --set deployment.podSecurityContext.runAsNonRoot=true \
   --set deployment.podSecurityContext.runAsUser=65532 \
   --set deployment.podSecurityContext.runAsGroup=65532 \
