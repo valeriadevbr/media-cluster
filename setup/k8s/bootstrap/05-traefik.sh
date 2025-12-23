@@ -13,8 +13,11 @@ helm upgrade --install traefik traefik/traefik \
   --set providers.kubernetesIngress.enabled=true \
   --set service.type=NodePort \
   --set "additionalArguments={--serverstransport.insecureskipverify=true}" \
+  --set "ports.web.middlewares[0]=ingress-traefik-gzip@kubernetescrd" \
   --set ports.web.nodePort=80 \
+  --set "ports.websecure.middlewares[0]=ingress-traefik-gzip@kubernetescrd" \
   --set ports.websecure.nodePort=443 \
+  --set "ports.websecure-alt.middlewares[0]=ingress-traefik-gzip@kubernetescrd" \
   --set ports.websecure-alt.port=44300 \
   --set ports.websecure-alt.exposedPort=44300 \
   --set ports.websecure-alt.nodePort=44300 \
