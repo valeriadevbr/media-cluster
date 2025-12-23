@@ -36,13 +36,14 @@ spec:
         - name: configs
           mountPath: /var/log
           subPath: bind/log
-        - name: configs
+        - name: dns-cache
           mountPath: /var/cache/bind
-          subPath: bind/cache
       volumes:
       - name: configs
         persistentVolumeClaim:
           claimName: configs-pvc
+      - name: dns-cache
+        emptyDir: {}
 ---
 apiVersion: v1
 kind: Service

@@ -18,8 +18,8 @@ kubectl rollout status deployment/dns -n infra --timeout=60s
 
 # 3. Apps Prioritários (Plex/Emby)
 echo "🚀 Aplicando e aguardando apps prioritários (Plex/Emby)..."
-apply_with_subst "${K8S_PATH}/03-apps/03-plex.yaml"
-apply_with_subst "${K8S_PATH}/03-apps/03-emby.yaml"
+apply_with_subst "${K8S_PATH}/03-apps/01-plex.yaml"
+apply_with_subst "${K8S_PATH}/03-apps/02-emby.yaml"
 kubectl rollout status deployment/plex -n media --timeout=120s
 kubectl rollout status deployment/emby -n media --timeout=120s
 

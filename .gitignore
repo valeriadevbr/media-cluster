@@ -1,8 +1,5 @@
 # General
 .DS_Store
-/System Volume Information
-/media/*
-!/media/.gitkeep
 
 # Secrets & Environment
 *.env
@@ -13,9 +10,8 @@
 *.srl
 
 # Dotfiles
-/.*
-!/.vscode/
-!/.gitignore
+.env
+.vscode
 
 # Configs
 /configs/*
@@ -27,7 +23,7 @@
 # Specific Config Exclusions
 /configs/bind/cache
 /configs/bind/config/zones
-!configs/bind/config/zones/.gitkeep
+!/configs/bind/config/zones/.gitkeep
 /configs/bind/log
 
 /setup/k8s/02-infra/99-monitoring.yaml
