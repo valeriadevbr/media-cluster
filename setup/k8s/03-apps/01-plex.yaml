@@ -152,6 +152,9 @@ spec:
   routes:
     - match: Host(`plex.${WAN_HOSTNAME}`)
       kind: Rule
+      middlewares:
+        - name: plex-local-mask
+          namespace: media
       services:
         - name: plex
           port: 32400
