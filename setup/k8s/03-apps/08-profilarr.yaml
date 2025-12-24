@@ -45,11 +45,11 @@ spec:
         - name: TZ
           value: "America/Sao_Paulo"
         volumeMounts:
-        - name: configs-source
+        - name: configs
           mountPath: /config
           subPath: profilarr
       volumes:
-      - name: configs-source
+      - name: configs
         persistentVolumeClaim:
           claimName: configs-pvc
 ---

@@ -47,7 +47,7 @@ spec:
         - name: TZ
           value: "America/Sao_Paulo"
         volumeMounts:
-        - name: configs-source
+        - name: configs
           mountPath: /config
           subPath: radarr
         - name: downloads
@@ -59,7 +59,7 @@ spec:
           subPath: arr
           readOnly: true
       volumes:
-      - name: configs-source
+      - name: configs
         persistentVolumeClaim:
           claimName: configs-pvc
       - name: downloads

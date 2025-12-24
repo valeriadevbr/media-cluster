@@ -45,13 +45,13 @@ spec:
         - name: TZ
           value: "America/Sao_Paulo"
         volumeMounts:
-        - name: configs-source
+        - name: configs
           mountPath: /config
           subPath: bazarr
         - name: media
           mountPath: /media
       volumes:
-      - name: configs-source
+      - name: configs
         persistentVolumeClaim:
           claimName: configs-pvc
       - name: media

@@ -48,7 +48,7 @@ spec:
         - name: SLSKD_SHARED_DIR
           value: "/music"
         volumeMounts:
-        - name: configs-source
+        - name: configs
           mountPath: /app
           subPath: slskd
         - name: downloads
@@ -57,7 +57,7 @@ spec:
           mountPath: /music
           subPath: Music
       volumes:
-      - name: configs-source
+      - name: configs
         persistentVolumeClaim:
           claimName: configs-pvc
       - name: downloads

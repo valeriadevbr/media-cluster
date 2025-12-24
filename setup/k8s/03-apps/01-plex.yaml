@@ -70,7 +70,7 @@ spec:
         - name: VERSION
           value: "docker"
         volumeMounts:
-        - name: configs-source
+        - name: configs
           mountPath: /config
           subPath: plex
         - name: media
@@ -78,7 +78,7 @@ spec:
         - name: transcode
           mountPath: /transcode
       volumes:
-      - name: configs-source
+      - name: configs
         persistentVolumeClaim:
           claimName: configs-pvc
       - name: media
