@@ -41,3 +41,21 @@ create_tls_secret() {
     --key="$key" \
     --dry-run=client -o yaml | kubectl apply -f -
 }
+
+# Validates if an image exists in Docker, builds if missing, and loads into Kind
+build_and_load_image() {
+  local image_name="$1"
+  local dockerfile_path="$2"
+  local build_context="$3"
+  local cluster_name="$4"
+
+  if ! docker inspect --type=image "$image_name" >/dev/null 2>&1; then
+    echo "Building ${image_name}..."
+    docker build -t "$image_name" -f "$dockerfile_path" "$build_context" >/dev/null
+  else
+    echo "Image ${image_name} already exists in Docker, skipping build."
+  fi
+
+  echo "Loading ${image_name} into Kind..."
+  kind load docker-image "$image_name" --name "$cluster_name" >/dev/null
+}
