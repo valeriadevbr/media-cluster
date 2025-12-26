@@ -1,9 +1,8 @@
 #!/bin/bash
 set -e
-
-# Carrega variáveis compartilhadas
-source "$(dirname -- "$0")/../.env"
-source "${SETUP_PATH}/includes/generate-local-cert.sh"
+set -a
+. "$(dirname -- "$0")/load-env.sh"
+set +a
 
 generate_local_cert \
   "media.lan" \

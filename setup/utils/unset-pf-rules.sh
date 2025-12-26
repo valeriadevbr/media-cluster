@@ -1,7 +1,7 @@
-#!/usr/bin/env bash
+#!/bin/bash
 set -e
 set -a
-source "$(dirname -- "$0")/../.env"
+. "$(dirname -- "$0")/load-env.sh"
 set +a
 
 echo "🧹 Removendo regras de firewall para ${PF_ANCHOR_NAME}..."

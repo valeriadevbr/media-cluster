@@ -1,13 +1,13 @@
-#!/usr/bin/env bash
+#!/bin/bash
 set -e
 set -a
-source "$(dirname -- "$0")/../.env"
+. "$(dirname -- "$0")/load-env.sh"
 set +a
 
 echo "📋 Aplicando regras de firewall para ${PF_ANCHOR_NAME}..."
 
 sudo pfctl -E -a "${PF_ANCHOR_NAME}" -F all
-sudo pfctl -a "${PF_ANCHOR_NAME}" -f - << 'EOF'
+sudo pfctl -a "${PF_ANCHOR_NAME}" -f - <<'EOF'
 # ==========================================
 # DEFINIÇÕES (MACROS)
 # ==========================================

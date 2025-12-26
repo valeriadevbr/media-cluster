@@ -1,8 +1,8 @@
 #!/bin/bash
 set -e
-
-# Carrega variáveis compartilhadas
-source "$(dirname -- "$0")/../.env"
+set -a
+. "$(dirname -- "$0")/load-env.sh"
+set +a
 
 # Gera certificado SSL Let's Encrypt para domínios WAN
 sudo certbot certonly --standalone \

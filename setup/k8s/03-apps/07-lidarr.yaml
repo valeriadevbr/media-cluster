@@ -15,7 +15,8 @@ spec:
     spec:
       containers:
       - name: lidarr
-        image: ghcr.io/hotio/lidarr:pr-plugins
+        image: "${LIDARR_IMAGE_NAME}"
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8686
           name: lidarr
@@ -40,9 +41,9 @@ spec:
           failureThreshold: 3
         env:
         - name: PUID
-          value: "1000"
+          value: "${PUID}"
         - name: PGID
-          value: "1000"
+          value: "${PGID}"
         - name: TZ
           value: "America/Sao_Paulo"
         volumeMounts:

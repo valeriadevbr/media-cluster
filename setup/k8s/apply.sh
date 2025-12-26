@@ -1,8 +1,7 @@
 #!/bin/bash
 set -e
 set -a
-source "$(dirname -- "$0")/../.env"
-source "${SETUP_PATH}/includes/k8s-utils.sh"
+. "$(dirname -- "$0")/../utils/load-env.sh"
 set +a
 
 # Verifica se o usuário passou um argumento

@@ -1,9 +1,11 @@
 #!/bin/bash
 set -e
 set -a
-source "$(dirname -- "$0")/../.env"
-HOMEBREW_NO_AUTO_UPDATE=1
-HOMEBREW_NO_ENV_HINTS=1
+. "$(dirname -- "$0")/load-env.sh"
+if [ "$(uname)" = "Darwin" ]; then
+  HOMEBREW_NO_AUTO_UPDATE=1
+  HOMEBREW_NO_ENV_HINTS=1
+fi
 set +a
 
 BACKUP_DIR="$(dirname -- "$0")/../wireguard-macos"
@@ -27,6 +29,10 @@ sudo chmod 755 "$WG_DIR"
 sudo find "$WG_DIR" -name "*.sh" -exec chmod 755 {} \;
 sudo find "$WG_DIR" -name "*.conf" -exec chmod 600 {} \;
 
-brew install wireguard-tools wireguard-go qrencode -q
+if [ "$(uname)" = "Darwin" ]; then
+  brew install wireguard-tools wireguard-go qrencode -q
+else
+  sudo apt-get install wireguard wireguard-tools qrencode
+fi
 # sudo wg-quick down wg0
 # sudo wg-quick up wg0

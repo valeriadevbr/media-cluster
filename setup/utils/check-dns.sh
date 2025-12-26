@@ -1,20 +1,33 @@
 #!/bin/bash
-# verify-migration.sh
+set -e
+set -a
+. "$(dirname -- "$0")/load-env.sh"
+set +a
+
 echo "Verificando compatibilidade com Caddy..."
 
-# Carrega variáveis compartilhadas
-source "$(dirname -- "$0")/../.env"
-
 # Hosts definidos no Caddy
-caddy_hosts=("plex" "emby" "bazarr" "jackett" "lidarr" "profilarr"
-  "prowlarr" "radarr" "sonarr" "qbittorrent" "slskd")
+hosts=(
+  "bazarr"
+  "dashboard"
+  "emby"
+  "jackett"
+  "lidarr"
+  "plex"
+  "profilarr"
+  "prowlarr"
+  "qbittorrent"
+  "radarr"
+  "slskd"
+  "sonarr"
+)
 
 zone_file="${CONFIGS_PATH}/bind/config/zones/db.media.lan"
 
-echo "Hosts no Caddy: ${#caddy_hosts[@]}"
+echo "Hosts no Caddy: ${#hosts[@]}"
 echo "Hosts no arquivo de zona:"
 
-for host in "${caddy_hosts[@]}"; do
+for host in "${hosts[@]}"; do
   if grep -q "^${host}[[:space:]]" "${zone_file}"; then
     echo "  ✓ $host.media.lan"
   else
