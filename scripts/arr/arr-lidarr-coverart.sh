@@ -49,6 +49,18 @@ rotate_log_if_needed() {
   fi
 }
 
+clean_cache() {
+  if [[ -d "$CACHE_DIR" ]]; then
+    # Inverso de -mmin -TTL (recente) é -mmin +TTL (antigo)
+    local count=$(find "$CACHE_DIR" -type f -mmin +"$CACHE_TTL_MINUTES" | wc -l)
+
+    if [[ "$count" -gt 0 ]]; then
+      log_msg "Cache: Removendo $count arquivos expirados (> ${CACHE_TTL_MINUTES}min)."
+      find "$CACHE_DIR" -type f -mmin +"$CACHE_TTL_MINUTES" -delete
+    fi
+  fi
+}
+
 log_msg() {
   local msg="$1"
   local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
@@ -311,6 +323,7 @@ embed_artwork() {
 
 check_dependencies
 rotate_log_if_needed
+clean_cache
 
 if [[ "$lidarr_eventtype" == "Test" ]]; then
   log_msg ""
