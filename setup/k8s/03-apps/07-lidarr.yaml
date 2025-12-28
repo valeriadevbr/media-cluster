@@ -46,6 +46,8 @@ spec:
           value: "${PGID}"
         - name: TZ
           value: "America/Sao_Paulo"
+        - name: FANART_API_KEY
+          value: "${FANART_API_KEY}"
         volumeMounts:
         - name: configs
           mountPath: /config
@@ -93,7 +95,6 @@ metadata:
 spec:
   entryPoints:
     - websecure
-    - websecure-alt
   routes:
     - match: Host(`lidarr.media.lan`)
       kind: Rule

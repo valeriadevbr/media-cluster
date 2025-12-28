@@ -93,7 +93,6 @@ metadata:
 spec:
   entryPoints:
     - websecure
-    - websecure-alt
   routes:
     - match: Host(`sonarr.media.lan`)
       kind: Rule

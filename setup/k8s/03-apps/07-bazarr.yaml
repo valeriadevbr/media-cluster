@@ -79,7 +79,6 @@ metadata:
 spec:
   entryPoints:
     - websecure
-    - websecure-alt
   routes:
     - match: Host(`bazarr.media.lan`)
       kind: Rule

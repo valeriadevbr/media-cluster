@@ -42,7 +42,6 @@
         border-radius: 24px;
         padding: 35px 20px;
         text-align: center;
-        text-decoration: none;
         color: var(--text-color);
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         backdrop-filter: blur(12px);
@@ -59,6 +58,20 @@
         background: var(--card-hover);
         box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
         border-color: rgba(255, 255, 255, 0.2);
+        cursor: pointer;
+      }
+
+      .main-link {
+        text-decoration: none;
+        color: inherit;
+        z-index: 1;
+      }
+
+      .main-link::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 1;
       }
 
       .icon {
@@ -107,6 +120,7 @@
         justify-content: center;
         color: rgba(255, 255, 255, 0.9);
         border: 1px solid rgba(255,255,255,0.05);
+        text-decoration: none;
       }
 
       .alt-port-dot img {
@@ -202,6 +216,7 @@
     <div class="grid" id="app-grid">
     </div>
     <script>
+      const ALT_PORT = '80';
       const apps = [
         {
           name: 'Plex',
@@ -286,31 +301,25 @@
 
       apps.forEach(app => {
         const url = `https://${app.host}`;
-        const card = document.createElement('a');
+        const altUrl = `http://${app.host}:${ALT_PORT}`;
+        const card = document.createElement('div');
         card.className = 'card';
-        card.href = url;
-        card.rel = 'noreferrer';
         card.style.setProperty('--glow-color', app.color);
         card.style.color = app.color;
 
         card.innerHTML = `
           <div class="status-dot status-unknown" id="status-${app.name}" title="Status: Unknown"></div>
-          <div class="alt-port-dot" title="Alt Port (44300)">
+          <a class="alt-port-dot" href="${altUrl}" title="Alt Port (${ALT_PORT})">
             <img src="icons/link.svg" alt="Link" />
             <span class="alt-text">ALT</span>
-          </div>
+          </a>
           <div class="icon">
             <img src="icons/${app.icon}" alt="${app.name}" />
           </div>
-          <h2>${app.name}</h2>
+          <h2>
+            <a href="${url}" class="main-link">${app.name}</a>
+          </h2>
         `;
-
-        const dot = card.querySelector('.alt-port-dot');
-        dot.addEventListener('click', function(e) {
-          e.preventDefault();
-          e.stopPropagation();
-          window.location.href = url + ':44300';
-        });
 
         grid.appendChild(card);
       });

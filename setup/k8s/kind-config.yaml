@@ -45,7 +45,10 @@ nodes:
   - containerPort: 32414 # Plex GDM
     hostPort: 32414
     protocol: UDP
-  - containerPort: 443 # HTTPS
+  - containerPort: 44000 # HTTP WAN (web-wan)
+    hostPort: 44000
+    protocol: TCP
+  - containerPort: 44300 # HTTPS WAN (websecure-wan)
     hostPort: 44300
     protocol: TCP
   - containerPort: 50300 # Soulseek Peer TCP

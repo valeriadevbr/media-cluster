@@ -80,7 +80,6 @@ metadata:
 spec:
   entryPoints:
     - websecure
-    - websecure-alt
   routes:
     - match: Host(`prowlarr.media.lan`)
       kind: Rule

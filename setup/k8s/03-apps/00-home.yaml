@@ -72,7 +72,6 @@ metadata:
 spec:
   entryPoints:
     - websecure
-    - websecure-alt
   routes:
     - match: Host(`dashboard.media.lan`)
       kind: Rule

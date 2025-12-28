@@ -93,7 +93,6 @@ spec:
   entryPoints:
     - web
     - websecure
-    - websecure-alt
   routes:
     - match: Host(`emby.media.lan`)
       kind: Rule
@@ -108,12 +107,12 @@ metadata:
   namespace: media
 spec:
   entryPoints:
-    - web
-    - websecure
-    - websecure-alt
+    - web-wan
+    - websecure-wan
   routes:
     - match: Host(`emby.${WAN_HOSTNAME}`)
       kind: Rule
       services:
         - name: emby
           port: 8096
+  tls: {}

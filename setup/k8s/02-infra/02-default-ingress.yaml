@@ -6,7 +6,7 @@ metadata:
 spec:
   entryPoints:
     - websecure
-    - websecure-alt
+    - websecure-wan
   routes:
     - match: PathPrefix(`/`)
       kind: Rule
@@ -14,3 +14,4 @@ spec:
       services:
         - name: default-backend
           port: 80
+  tls: {}
