@@ -6,14 +6,19 @@
 # Variáveis de Ambiente Fornecidas pelo Lidarr:
 # - lidarr_eventtype: Tipo de evento (AlbumDownload, TrackRetag, AlbumUpgrade, Test)
 # - lidarr_artist_name: Nome do artista
+# - lidarr_artist_path: Caminho da pasta do artista
+# - lidarr_artist_mbid: MusicBrainz Artist ID
 # - lidarr_album_title: Título do álbum
 # - lidarr_album_path: Caminho da pasta do álbum
 # - lidarr_addedtrackpaths: Lista de arquivos processados (separados por pipe '|')
 # - lidarr_album_mbid: MusicBrainz Release Group ID (ou Release ID dependendo da versão)
 # - lidarr_albumrelease_mbid: MusicBrainz Release ID
 #
+# Variáveis de Ambiente Opcionais:
+# - FANART_API_KEY: Chave de API do fanart.tv (para artist art e clear logo)
+#
 # Dependências:
-# - curl: Para baixar a arte do iTunes/MusicBrainz
+# - curl: Para baixar a arte do iTunes/MusicBrainz/Fanart.tv
 # - kid3-cli: Para embutir a arte nos arquivos de áudio
 # - sed: Para processamento de strings (JSON parsing simples)
 # - imagemagick: Para validação e redimensionamento de imagens
@@ -28,11 +33,18 @@ readonly CURL_OPTS="--connect-timeout 10 --max-time 30 -s -L \
 readonly CACHE_DIR="/tmp/arr-lidarr-coverart-cache"
 readonly MAX_LOG_SIZE=$((1024 * 1024)) # 1MB
 readonly CACHE_TTL_MINUTES=1440        # 24 horas
+readonly FANART_API_KEY="${FANART_API_KEY:-}"
 
 # Inicializa diretório de cache
 if [[ ! -d "$CACHE_DIR" ]]; then
   mkdir -p "$CACHE_DIR"
 fi
+
+log_msg() {
+  local msg="$1"
+  local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+  printf "[%s] %s\n" "$timestamp" "$msg" | tee -a "$LOG_FILE" >&2
+}
 
 rotate_log_if_needed() {
   if [[ -f "$LOG_FILE" ]]; then
@@ -59,12 +71,6 @@ clean_cache() {
       find "$CACHE_DIR" -type f -mmin +"$CACHE_TTL_MINUTES" -delete
     fi
   fi
-}
-
-log_msg() {
-  local msg="$1"
-  local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
-  printf "[%s] %s\n" "$timestamp" "$msg" | tee -a "$LOG_FILE" >&2
 }
 
 get_md5() {
@@ -191,6 +197,68 @@ fetch_musicbrainz_cover() {
   return 1
 }
 
+fetch_fanart_image() {
+  local output_file="$1"
+  local image_type="$2"     # "artist" ou "logo"
+  local primary_field="$3"  # "artistthumb" ou "hdmusiclogo"
+  local fallback_field="$4" # "" ou "musiclogo"
+  local artist_mbid="$lidarr_artist_mbid"
+
+  if [[ -z "$FANART_API_KEY" ]]; then
+    log_msg "Aviso: FANART_API_KEY não configurada. Pulando fanart.tv."
+    return 1
+  fi
+
+  if [[ -z "$artist_mbid" ]]; then
+    log_msg "Aviso: Artist MBID não disponível para fanart.tv."
+    return 1
+  fi
+
+  local url="https://webservice.fanart.tv/v3/music/${artist_mbid}?api_key=${FANART_API_KEY}"
+  log_msg "Tentando Fanart.tv (${image_type}): $artist_mbid"
+
+  local api_res=$(curl $CURL_OPTS "$url")
+
+  # Extrai URL do campo primário
+  local img_url=$(echo "$api_res" | jq -r ".${primary_field}[0].url // empty")
+
+  # Tenta fallback se disponível
+  if [[ -z "$img_url" && -n "$fallback_field" ]]; then
+    img_url=$(echo "$api_res" | jq -r ".${fallback_field}[0].url // empty")
+  fi
+
+  if [[ -z "$img_url" ]]; then
+    log_msg "Aviso: ${image_type} não encontrado no fanart.tv."
+    return 1
+  fi
+
+  log_msg "Baixando ${image_type}: $img_url"
+
+  if ! curl $CURL_OPTS -o "$output_file" "$img_url"; then
+    log_msg "Erro: Falha no download do fanart.tv (${image_type})."
+    return 1
+  fi
+
+  if [[ ! -s "$output_file" ]]; then
+    rm -f "$output_file"
+    return 1
+  fi
+
+  return 0
+}
+
+fetch_fanart_artist_art() {
+  fetch_fanart_image "$1" "Artist Art" "artistthumb" ""
+}
+
+fetch_fanart_clearlogo() {
+  fetch_fanart_image "$1" "Clear Logo" "hdmusiclogo" "musiclogo"
+}
+
+fetch_fanart_background() {
+  fetch_fanart_image "$1" "Background" "artistbackground" ""
+}
+
 download_artwork() {
   local target_dir="$1"
   local final_cover="${target_dir}/folder.jpg"
@@ -289,6 +357,132 @@ download_artwork() {
   fi
 }
 
+download_fanart_artist_art() {
+  local artist_dir="${lidarr_artist_path:-${1%/*}}"
+  local final_artist_art="${artist_dir}/folder.jpg"
+  local cache_key="fanart-artist-${lidarr_artist_mbid}"
+  local cache_file="${CACHE_DIR}/$(get_md5 "$cache_key").jpg"
+
+  # Verifica Cache
+  if is_cache_valid "$cache_file"; then
+    log_msg "Cache válido encontrado para artist art."
+    cp "$cache_file" "$final_artist_art"
+    return 0
+  fi
+
+  local tmp_file="${artist_dir}/.folder.tmp"
+
+  log_msg "Buscando artist art do fanart.tv (Cache Miss)..."
+
+  if ! fetch_fanart_artist_art "$tmp_file"; then
+    return 1
+  fi
+
+  # Validação de imagem
+  local width=$(identify -format "%w" "$tmp_file" 2>/dev/null)
+  if [[ -z "$width" ]] || ((width < MIN_WIDTH)); then
+    log_msg "Erro: Artist art inválida ou muito pequena."
+    rm -f "$tmp_file"
+    return 1
+  fi
+
+  # Redimensiona se necessário e salva no cache
+  log_msg "Processando artist art (limite ${COVER_SIZE}) e salvando no cache..."
+  convert "$tmp_file" -resize "${COVER_SIZE}>" -quality 95 "$cache_file"
+  rm -f "$tmp_file"
+
+  if [[ -f "$cache_file" ]]; then
+    cp "$cache_file" "$final_artist_art"
+    log_msg "Sucesso: Artist art salva."
+    return 0
+  else
+    log_msg "Erro: Falha ao processar artist art."
+    return 1
+  fi
+}
+
+download_fanart_clearlogo() {
+  local artist_dir="${lidarr_artist_path:-${1%/*}}"
+  local final_logo="${artist_dir}/clearlogo.png"
+  local cache_key="fanart-logo-${lidarr_artist_mbid}"
+  local cache_file="${CACHE_DIR}/$(get_md5 "$cache_key").png"
+
+  # Verifica Cache
+  if is_cache_valid "$cache_file"; then
+    log_msg "Cache válido encontrado para clear logo."
+    cp "$cache_file" "$final_logo"
+    return 0
+  fi
+
+  local tmp_file="${artist_dir}/.clearlogo.tmp"
+
+  log_msg "Buscando clear logo do fanart.tv (Cache Miss)..."
+
+  if ! fetch_fanart_clearlogo "$tmp_file"; then
+    return 1
+  fi
+
+  # Validação de imagem
+  if ! identify "$tmp_file" >/dev/null 2>&1; then
+    log_msg "Erro: Clear logo inválido."
+    rm -f "$tmp_file"
+    return 1
+  fi
+
+  # Salva no cache (PNG preserva transparência)
+  log_msg "Salvando clear logo no cache..."
+  cp "$tmp_file" "$cache_file"
+  cp "$cache_file" "$final_logo"
+  rm -f "$tmp_file"
+
+  log_msg "Sucesso: Clear logo salvo."
+  return 0
+}
+
+download_fanart_background() {
+  local artist_dir="${lidarr_artist_path:-${1%/*}}"
+  local final_background="${artist_dir}/fanart.jpg"
+  local cache_key="fanart-background-${lidarr_artist_mbid}"
+  local cache_file="${CACHE_DIR}/$(get_md5 "$cache_key").jpg"
+
+  # Verifica Cache
+  if is_cache_valid "$cache_file"; then
+    log_msg "Cache válido encontrado para background."
+    cp "$cache_file" "$final_background"
+    return 0
+  fi
+
+  local tmp_file="${artist_dir}/.fanart.tmp"
+
+  log_msg "Buscando background do fanart.tv (Cache Miss)..."
+
+  if ! fetch_fanart_background "$tmp_file"; then
+    return 1
+  fi
+
+  # Validação de imagem
+  local width=$(identify -format "%w" "$tmp_file" 2>/dev/null)
+  if [[ -z "$width" ]] || ((width < MIN_WIDTH)); then
+    log_msg "Erro: Background inválido ou muito pequeno."
+    rm -f "$tmp_file"
+    return 1
+  fi
+
+  # Redimensiona se necessário e salva no cache
+  log_msg "Processando background (limite ${COVER_SIZE}) e salvando no cache..."
+  convert "$tmp_file" -resize "${COVER_SIZE}>" -quality 95 "$cache_file"
+  rm -f "$tmp_file"
+
+  if [[ -f "$cache_file" ]]; then
+    cp "$cache_file" "$final_background"
+    log_msg "Sucesso: Background salvo."
+    return 0
+  else
+    log_msg "Erro: Falha ao processar background."
+    return 1
+  fi
+}
+
 embed_artwork() {
   local target_dir="$1"
   local cover_path="${target_dir}/folder.jpg"
@@ -363,7 +557,15 @@ log_msg ""
 # 2. Orquestração
 if download_artwork "$TARGET_DIR"; then
   embed_artwork "$TARGET_DIR"
-  log_msg "Processo concluído com sucesso."
+fi
+
+# 3. Download de Artist Art, Clear Logo e Background (fanart.tv)
+if [[ -n "$lidarr_artist_mbid" ]]; then
+  download_fanart_artist_art "$TARGET_DIR"
+  download_fanart_clearlogo "$TARGET_DIR"
+  download_fanart_background "$TARGET_DIR"
+else
+  log_msg "Aviso: Artist MBID não disponível. Pulando fanart.tv."
 fi
 
 exit 0
