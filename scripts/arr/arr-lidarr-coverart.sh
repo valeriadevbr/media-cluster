@@ -31,8 +31,8 @@ readonly COVER_SIZE="1200x1200"
 readonly CURL_OPTS="--connect-timeout 10 --max-time 30 -s -L \
 -A 'LidarrConnectScript/1.0'"
 readonly CACHE_DIR="/tmp/arr-lidarr-coverart-cache"
-readonly MAX_LOG_SIZE=$((1024 * 1024)) # 1MB
-readonly CACHE_TTL_MINUTES=1440        # 24 horas
+readonly MAX_LOG_SIZE=$((1024 * 1024))       # 1MB
+readonly CACHE_TTL_MINUTES=$((60 * 24 * 30)) # 30 dias
 readonly FANART_API_KEY="${FANART_API_KEY:-}"
 
 # Inicializa diretório de cache
@@ -267,7 +267,7 @@ download_artwork() {
 
   # 1. Verifica Cache
   if is_cache_valid "$cache_file"; then
-    log_msg "Cache válido encontrado. Usando imagem processada cacheada."
+    log_msg "Cache válido encontrado para album art."
     cp "$cache_file" "$final_cover"
     return 0
   fi
@@ -502,7 +502,7 @@ embed_artwork() {
 
   for track in "${track_list[@]}"; do
     if [[ -f "$track" ]]; then
-      local kid3_out=$(kid3-cli -c "set picture:'$cover_path' ''" "$track" 2>&1)
+      local kid3_out=$(kid3-cli -c "remove picture" -c "set picture:'$cover_path' ''" "$track" 2>&1)
       if [[ $? -ne 0 ]]; then
         log_msg "Erro ao embutir em: ${track##*/}"
         log_msg "Detalhes kid3: $kid3_out"
