@@ -43,7 +43,7 @@ fi
 log_msg() {
   local msg="$1"
   local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
-  printf "[%s] %s\n" "$timestamp" "$msg" | tee -a "$LOG_FILE" >&2
+  printf "[%s] %s\n" "$timestamp" "$msg" | tee -a "$LOG_FILE"
 }
 
 rotate_log_if_needed() {
@@ -102,7 +102,7 @@ is_cache_valid() {
 
 check_dependencies() {
   local missing=0
-  for cmd in curl sed kid3-cli convert identify; do
+  for cmd in curl sed kid3-cli magick; do
     if ! command -v "$cmd" >/dev/null 2>&1; then
       log_msg "ERRO: Comando '$cmd' não encontrado."
       missing=1
@@ -289,12 +289,12 @@ download_artwork() {
   fi
 
   if [[ $got_itunes -eq 1 && $got_musicbrainz -eq 1 ]]; then
-    local width_itunes=$(identify -format "%w" "$tmp_itunes" 2>/dev/null)
+    local width_itunes=$(magick identify -format "%w" "$tmp_itunes" 2>/dev/null)
     if [[ -z "$width_itunes" ]]; then
       width_itunes=0
     fi
 
-    local width_musicbrainz=$(identify -format "%w" "$tmp_musicbrainz" 2>/dev/null)
+    local width_musicbrainz=$(magick identify -format "%w" "$tmp_musicbrainz" 2>/dev/null)
     if [[ -z "$width_musicbrainz" ]]; then
       width_musicbrainz=0
     fi
@@ -319,7 +319,7 @@ download_artwork() {
   fi
 
   # Validação de Resolução Mínima
-  local width=$(identify -format "%w" "$best_original" 2>/dev/null)
+  local width=$(magick identify -format "%w" "$best_original" 2>/dev/null)
   if [[ -z "$width" ]] || ((width < MIN_WIDTH)); then
     log_msg "Erro: Imagem descartada (Invalida ou < ${MIN_WIDTH}px)."
     rm -f "$best_original"
@@ -327,7 +327,7 @@ download_artwork() {
   fi
 
   if [[ -f "$final_cover" ]]; then
-    local old_width=$(identify -format "%w" "$final_cover" 2>/dev/null)
+    local old_width=$(magick identify -format "%w" "$final_cover" 2>/dev/null)
     if [[ -z "$old_width" ]]; then
       old_width=0
     fi
@@ -344,7 +344,7 @@ download_artwork() {
 
   # Resize e Cache
   log_msg "Processando imagem (Resize para ${COVER_SIZE}) e salvando no cache..."
-  convert "$best_original" -resize "${COVER_SIZE}>" -quality 95 "$cache_file"
+  magick "$best_original" -resize "${COVER_SIZE}>" -quality 95 "$cache_file"
   rm -f "$best_original"
 
   if [[ -f "$cache_file" ]]; then
@@ -379,7 +379,7 @@ download_fanart_artist_art() {
   fi
 
   # Validação de imagem
-  local width=$(identify -format "%w" "$tmp_file" 2>/dev/null)
+  local width=$(magick identify -format "%w" "$tmp_file" 2>/dev/null)
   if [[ -z "$width" ]] || ((width < MIN_WIDTH)); then
     log_msg "Erro: Artist art inválida ou muito pequena."
     rm -f "$tmp_file"
@@ -388,7 +388,7 @@ download_fanart_artist_art() {
 
   # Redimensiona se necessário e salva no cache
   log_msg "Processando artist art (limite ${COVER_SIZE}) e salvando no cache..."
-  convert "$tmp_file" -resize "${COVER_SIZE}>" -quality 95 "$cache_file"
+  magick "$tmp_file" -resize "${COVER_SIZE}>" -quality 95 "$cache_file"
   rm -f "$tmp_file"
 
   if [[ -f "$cache_file" ]]; then
@@ -423,7 +423,7 @@ download_fanart_clearlogo() {
   fi
 
   # Validação de imagem
-  if ! identify "$tmp_file" >/dev/null 2>&1; then
+  if ! magick identify "$tmp_file" >/dev/null 2>&1; then
     log_msg "Erro: Clear logo inválido."
     rm -f "$tmp_file"
     return 1
@@ -461,7 +461,7 @@ download_fanart_background() {
   fi
 
   # Validação de imagem
-  local width=$(identify -format "%w" "$tmp_file" 2>/dev/null)
+  local width=$(magick identify -format "%w" "$tmp_file" 2>/dev/null)
   if [[ -z "$width" ]] || ((width < MIN_WIDTH)); then
     log_msg "Erro: Background inválido ou muito pequeno."
     rm -f "$tmp_file"
@@ -470,7 +470,7 @@ download_fanart_background() {
 
   # Redimensiona se necessário e salva no cache
   log_msg "Processando background (limite ${COVER_SIZE}) e salvando no cache..."
-  convert "$tmp_file" -resize "${COVER_SIZE}>" -quality 95 "$cache_file"
+  magick "$tmp_file" -resize "${COVER_SIZE}>" -quality 95 "$cache_file"
   rm -f "$tmp_file"
 
   if [[ -f "$cache_file" ]]; then
