@@ -12,8 +12,8 @@ if [[ ! -d "$MUSIC_DIR" ]]; then
   exit 1
 fi
 
-echo "Criando softlinks (artist.jpg -> folder.jpg) em: $MUSIC_DIR"
+echo "Criando hardlinks (artist.jpg -> folder.jpg) em: $MUSIC_DIR"
 
-find "$MUSIC_DIR" -maxdepth 2 -name "artist.jpg" -execdir ln -sf artist.jpg folder.jpg \;
+find "$MUSIC_DIR" -maxdepth 2 -name "artist.jpg" -execdir ln -f artist.jpg folder.jpg \;
 
 echo "Concluído."
