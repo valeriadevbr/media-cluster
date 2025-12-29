@@ -14,18 +14,14 @@
 # - lidarr_album_mbid: MusicBrainz Release Group ID (ou Release ID dependendo da versão)
 # - lidarr_albumrelease_mbid: MusicBrainz Release ID
 #
-# Variáveis de Ambiente Opcionais:
-# - FANART_API_KEY: Chave de API do fanart.tv (para artist art e clear logo)
-#
-# Dependências:
-# - curl: Para baixar a arte do iTunes/MusicBrainz/Fanart.tv
+# - curl: Para baixar a arte do iTunes/MusicBrainz
 # - kid3-cli: Para embutir a arte nos arquivos de áudio
 # - sed: Para processamento de strings (JSON parsing simples)
 # - imagemagick: Para validação e redimensionamento de imagens
 # ==============================================================================
 
 # Constantes
-readonly LOG_FILE="/tmp/arr-lidarr-coverart.log"
+readonly LOG_FILE="/tmp/arr-lidarr-album-art.log"
 readonly MIN_WIDTH=500
 readonly COVER_SIZE="1200x1200"
 readonly CURL_OPTS="--connect-timeout 10 --max-time 30 -s -L \
@@ -33,7 +29,6 @@ readonly CURL_OPTS="--connect-timeout 10 --max-time 30 -s -L \
 readonly CACHE_DIR="/tmp/arr-lidarr-coverart-cache"
 readonly MAX_LOG_SIZE=$((1024 * 1024))       # 1MB
 readonly CACHE_TTL_MINUTES=$((60 * 24 * 30)) # 30 dias
-readonly FANART_API_KEY="${FANART_API_KEY:-}"
 
 # Inicializa diretório de cache
 if [[ ! -d "$CACHE_DIR" ]]; then
@@ -63,9 +58,7 @@ rotate_log_if_needed() {
 
 clean_cache() {
   if [[ -d "$CACHE_DIR" ]]; then
-    # Inverso de -mmin -TTL (recente) é -mmin +TTL (antigo)
     local count=$(find "$CACHE_DIR" -type f -mmin +"$CACHE_TTL_MINUTES" | wc -l)
-
     if [[ "$count" -gt 0 ]]; then
       log_msg "Cache: Removendo $count arquivos expirados (> ${CACHE_TTL_MINUTES}min)."
       find "$CACHE_DIR" -type f -mmin +"$CACHE_TTL_MINUTES" -delete
@@ -116,7 +109,6 @@ check_dependencies() {
 
 get_target_dir() {
   if [[ -n "$lidarr_addedtrackpaths" ]]; then
-    # Extrai o diretório da primeira faixa da lista
     local first_track="${lidarr_addedtrackpaths%%|*}"
     echo "${first_track%/*}"
   elif [[ -n "$lidarr_trackfile_path" ]]; then
@@ -197,71 +189,20 @@ fetch_musicbrainz_cover() {
   return 1
 }
 
-fetch_fanart_image() {
-  local output_file="$1"
-  local image_type="$2"     # "artist" ou "logo"
-  local primary_field="$3"  # "artistthumb" ou "hdmusiclogo"
-  local fallback_field="$4" # "" ou "musiclogo"
-  local artist_mbid="$lidarr_artist_mbid"
-
-  if [[ -z "$FANART_API_KEY" ]]; then
-    log_msg "Aviso: FANART_API_KEY não configurada. Pulando fanart.tv."
-    return 1
-  fi
-
-  if [[ -z "$artist_mbid" ]]; then
-    log_msg "Aviso: Artist MBID não disponível para fanart.tv."
-    return 1
-  fi
-
-  local url="https://webservice.fanart.tv/v3/music/${artist_mbid}?api_key=${FANART_API_KEY}"
-  log_msg "Tentando Fanart.tv (${image_type}): $artist_mbid"
-
-  local api_res=$(curl $CURL_OPTS "$url")
-
-  # Extrai URL do campo primário
-  local img_url=$(echo "$api_res" | jq -r ".${primary_field}[0].url // empty")
-
-  # Tenta fallback se disponível
-  if [[ -z "$img_url" && -n "$fallback_field" ]]; then
-    img_url=$(echo "$api_res" | jq -r ".${fallback_field}[0].url // empty")
-  fi
-
-  if [[ -z "$img_url" ]]; then
-    log_msg "Aviso: ${image_type} não encontrado no fanart.tv."
-    return 1
-  fi
-
-  log_msg "Baixando ${image_type}: $img_url"
-
-  if ! curl $CURL_OPTS -o "$output_file" "$img_url"; then
-    log_msg "Erro: Falha no download do fanart.tv (${image_type})."
-    return 1
-  fi
-
-  if [[ ! -s "$output_file" ]]; then
-    rm -f "$output_file"
-    return 1
-  fi
-
-  return 0
-}
-
-fetch_fanart_artist_art() {
-  fetch_fanart_image "$1" "Artist Art" "artistthumb" ""
-}
-
-fetch_fanart_clearlogo() {
-  fetch_fanart_image "$1" "Clear Logo" "hdmusiclogo" "musiclogo"
-}
-
-fetch_fanart_background() {
-  fetch_fanart_image "$1" "Background" "artistbackground" ""
-}
-
 download_artwork() {
   local target_dir="$1"
   local final_cover="${target_dir}/folder.jpg"
+  local target_width="${COVER_SIZE%x*}"
+
+  # 0. Verificação de Qualidade Existente (Fast Exit)
+  if [[ -f "$final_cover" ]]; then
+    local current_width=$(magick identify -format "%w" "$final_cover" 2>/dev/null)
+    if [[ -n "$current_width" ]] && ((current_width >= target_width)); then
+      log_msg "Qualidade suficiente encontrada (${current_width}px >= ${target_width}px). Pulando busca e embutimento."
+      return 2 # Código especial para pular tudo
+    fi
+  fi
+
   local cache_key="${lidarr_artist_name}-${lidarr_album_title}"
   local cache_file=$(get_cache_path "$cache_key")
 
@@ -357,132 +298,6 @@ download_artwork() {
   fi
 }
 
-download_fanart_artist_art() {
-  local artist_dir="${lidarr_artist_path:-${1%/*}}"
-  local final_artist_art="${artist_dir}/folder.jpg"
-  local cache_key="fanart-artist-${lidarr_artist_mbid}"
-  local cache_file="${CACHE_DIR}/$(get_md5 "$cache_key").jpg"
-
-  # Verifica Cache
-  if is_cache_valid "$cache_file"; then
-    log_msg "Cache válido encontrado para artist art."
-    cp "$cache_file" "$final_artist_art"
-    return 0
-  fi
-
-  local tmp_file="${artist_dir}/.folder.tmp"
-
-  log_msg "Buscando artist art do fanart.tv (Cache Miss)..."
-
-  if ! fetch_fanart_artist_art "$tmp_file"; then
-    return 1
-  fi
-
-  # Validação de imagem
-  local width=$(magick identify -format "%w" "$tmp_file" 2>/dev/null)
-  if [[ -z "$width" ]] || ((width < MIN_WIDTH)); then
-    log_msg "Erro: Artist art inválida ou muito pequena."
-    rm -f "$tmp_file"
-    return 1
-  fi
-
-  # Redimensiona se necessário e salva no cache
-  log_msg "Processando artist art (limite ${COVER_SIZE}) e salvando no cache..."
-  magick "$tmp_file" -resize "${COVER_SIZE}>" -quality 95 "$cache_file"
-  rm -f "$tmp_file"
-
-  if [[ -f "$cache_file" ]]; then
-    cp "$cache_file" "$final_artist_art"
-    log_msg "Sucesso: Artist art salva."
-    return 0
-  else
-    log_msg "Erro: Falha ao processar artist art."
-    return 1
-  fi
-}
-
-download_fanart_clearlogo() {
-  local artist_dir="${lidarr_artist_path:-${1%/*}}"
-  local final_logo="${artist_dir}/clearlogo.png"
-  local cache_key="fanart-logo-${lidarr_artist_mbid}"
-  local cache_file="${CACHE_DIR}/$(get_md5 "$cache_key").png"
-
-  # Verifica Cache
-  if is_cache_valid "$cache_file"; then
-    log_msg "Cache válido encontrado para clear logo."
-    cp "$cache_file" "$final_logo"
-    return 0
-  fi
-
-  local tmp_file="${artist_dir}/.clearlogo.tmp"
-
-  log_msg "Buscando clear logo do fanart.tv (Cache Miss)..."
-
-  if ! fetch_fanart_clearlogo "$tmp_file"; then
-    return 1
-  fi
-
-  # Validação de imagem
-  if ! magick identify "$tmp_file" >/dev/null 2>&1; then
-    log_msg "Erro: Clear logo inválido."
-    rm -f "$tmp_file"
-    return 1
-  fi
-
-  # Salva no cache (PNG preserva transparência)
-  log_msg "Salvando clear logo no cache..."
-  cp "$tmp_file" "$cache_file"
-  cp "$cache_file" "$final_logo"
-  rm -f "$tmp_file"
-
-  log_msg "Sucesso: Clear logo salvo."
-  return 0
-}
-
-download_fanart_background() {
-  local artist_dir="${lidarr_artist_path:-${1%/*}}"
-  local final_background="${artist_dir}/fanart.jpg"
-  local cache_key="fanart-background-${lidarr_artist_mbid}"
-  local cache_file="${CACHE_DIR}/$(get_md5 "$cache_key").jpg"
-
-  # Verifica Cache
-  if is_cache_valid "$cache_file"; then
-    log_msg "Cache válido encontrado para background."
-    cp "$cache_file" "$final_background"
-    return 0
-  fi
-
-  local tmp_file="${artist_dir}/.fanart.tmp"
-
-  log_msg "Buscando background do fanart.tv (Cache Miss)..."
-
-  if ! fetch_fanart_background "$tmp_file"; then
-    return 1
-  fi
-
-  # Validação de imagem
-  local width=$(magick identify -format "%w" "$tmp_file" 2>/dev/null)
-  if [[ -z "$width" ]] || ((width < MIN_WIDTH)); then
-    log_msg "Erro: Background inválido ou muito pequeno."
-    rm -f "$tmp_file"
-    return 1
-  fi
-
-  # Redimensiona se necessário e salva no cache
-  log_msg "Processando background (limite ${COVER_SIZE}) e salvando no cache..."
-  magick "$tmp_file" -resize "${COVER_SIZE}>" -quality 95 "$cache_file"
-  rm -f "$tmp_file"
-
-  if [[ -f "$cache_file" ]]; then
-    cp "$cache_file" "$final_background"
-    log_msg "Sucesso: Background salvo."
-    return 0
-  else
-    log_msg "Erro: Falha ao processar background."
-    return 1
-  fi
-}
-
 embed_artwork() {
   local target_dir="$1"
   local cover_path="${target_dir}/folder.jpg"
@@ -502,7 +317,7 @@ embed_artwork() {
 
   for track in "${track_list[@]}"; do
     if [[ -f "$track" ]]; then
-      local kid3_out=$(kid3-cli -c "remove picture" -c "set picture:'$cover_path' ''" "$track" 2>&1)
+      local kid3_out=$(kid3-cli -c "set picture '' ''" -c "set picture:'$cover_path' ''" "$track" 2>&1)
       if [[ $? -ne 0 ]]; then
         log_msg "Erro ao embutir em: ${track##*/}"
         log_msg "Detalhes kid3: $kid3_out"
@@ -529,7 +344,7 @@ if [[ "$lidarr_eventtype" == "Test" ]]; then
   exit 0
 fi
 
-if [[ ! "$lidarr_eventtype" =~ ^(AlbumDownload|TrackRetag|AlbumUpgrade)$ ]]; then
+if [[ ! "$lidarr_eventtype" =~ ^(AlbumDownload|AlbumUpgrade|TrackRetag)$ ]]; then
   log_msg ""
   log_msg "======================================================================"
   log_msg "Evento: $lidarr_eventtype"
@@ -550,22 +365,26 @@ fi
 log_msg ""
 log_msg "======================================================================"
 log_msg "Evento: $lidarr_eventtype"
-log_msg "Processando álbum: $lidarr_artist_name - $lidarr_album_title"
+if [[ "$lidarr_eventtype" == "TrackRetag" ]]; then
+  log_msg "Processando faixa: $lidarr_artist_name - $lidarr_album_title - $lidarr_trackfile_tracktitles"
+else
+  log_msg "Processando álbum: $lidarr_artist_name - $lidarr_album_title"
+fi
 log_msg "======================================================================"
 log_msg ""
 
 # 2. Orquestração
-if download_artwork "$TARGET_DIR"; then
+download_artwork "$TARGET_DIR"
+case $? in
+0) # Sucesso, prosseguir para embutir
   embed_artwork "$TARGET_DIR"
-fi
-
-# 3. Download de Artist Art, Clear Logo e Background (fanart.tv)
-if [[ -n "$lidarr_artist_mbid" ]]; then
-  download_fanart_artist_art "$TARGET_DIR"
-  download_fanart_clearlogo "$TARGET_DIR"
-  download_fanart_background "$TARGET_DIR"
-else
-  log_msg "Aviso: Artist MBID não disponível. Pulando fanart.tv."
-fi
+  ;;
+1) # Falha total
+  log_msg "Aviso: Nenhuma imagem processada."
+  ;;
+2) # Skip (Qualidade já atingida)
+  log_msg "Aviso: Imagem atual possui boa qualidade. Pulando processamento."
+  ;;
+esac
 
 exit 0
