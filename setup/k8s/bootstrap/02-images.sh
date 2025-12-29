@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-
-build_and_load_image "$SONARR_IMAGE_NAME" "$SONARR_DOCKERFILE_PATH" "$DOCKER_BUILD_CONTEXT" "$CLUSTER_NAME"
-build_and_load_image "$RADARR_IMAGE_NAME" "$RADARR_DOCKERFILE_PATH" "$DOCKER_BUILD_CONTEXT" "$CLUSTER_NAME"
-build_and_load_image "$LIDARR_IMAGE_NAME" "$LIDARR_DOCKERFILE_PATH" "$DOCKER_BUILD_CONTEXT" "$CLUSTER_NAME"
+set -a
+. "$(dirname -- "$0")/../../includes/load-env.sh"
+. "$(dirname -- "$0")/../../includes/k8s-utils.sh"
+set +a

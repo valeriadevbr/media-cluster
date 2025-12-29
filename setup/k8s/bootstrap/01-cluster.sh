@@ -1,5 +1,9 @@
 #!/bin/bash
 set -e
+set -a
+. "$(dirname -- "$0")/../../includes/load-env.sh"
+. "$(dirname -- "$0")/../../includes/k8s-utils.sh"
+set +a
 
 if ! kind get clusters | grep -q "$CLUSTER_NAME"; then
   echo "Criando cluster Kind '$CLUSTER_NAME'..."

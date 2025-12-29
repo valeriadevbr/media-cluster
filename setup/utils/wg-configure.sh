@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 set -a
-. "$(dirname -- "$0")/load-env.sh"
+. "$(dirname -- "$0")/../includes/load-env.sh"
 if [ "$(uname)" = "Darwin" ]; then
   HOMEBREW_NO_AUTO_UPDATE=1
   HOMEBREW_NO_ENV_HINTS=1

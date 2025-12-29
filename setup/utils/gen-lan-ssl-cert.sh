@@ -1,7 +1,8 @@
 #!/bin/bash
 set -e
 set -a
-. "$(dirname -- "$0")/load-env.sh"
+. "$(dirname -- "$0")/../includes/load-env.sh"
+. "$(dirname -- "$0")/../includes/generate-local-cert.sh"
 set +a
 
 generate_local_cert \

@@ -15,8 +15,7 @@ spec:
     spec:
       containers:
       - name: sonarr
-        image: ${SONARR_IMAGE_NAME}
-        imagePullPolicy: IfNotPresent
+        image: lscr.io/linuxserver/sonarr:latest
         ports:
         - containerPort: 8989
           name: sonarr
@@ -41,11 +40,15 @@ spec:
           failureThreshold: 3
         env:
         - name: PUID
-          value: "1000"
+          value: "${PUID}"
         - name: PGID
-          value: "1000"
+          value: "${PGID}"
         - name: TZ
           value: "America/Sao_Paulo"
+        - name: DOCKER_MODS
+          value: "linuxserver/mods:universal-package-install"
+        - name: INSTALL_PACKAGES
+          value: "mkvtoolnix"
         volumeMounts:
         - name: configs
           mountPath: /config

@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 set -a
-. "$(dirname -- "$0")/../utils/load-env.sh"
+. "$(dirname -- "$0")/../includes/load-env.sh"
 set +a
 
 BOOTSTRAP_PATH="${K8S_PATH}/bootstrap"
@@ -15,7 +15,7 @@ if [ -d "$BOOTSTRAP_PATH" ]; then
       echo "--------------------------------------------------"
       echo "📜 Executando: $(basename "$script")"
       echo "--------------------------------------------------"
-      source "$script"
+      "$script"
     fi
   done
 else

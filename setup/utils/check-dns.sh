@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 set -a
-. "$(dirname -- "$0")/load-env.sh"
+. "$(dirname -- "$0")/../includes/load-env.sh"
 set +a
 
 echo "Verificando compatibilidade com Caddy..."
