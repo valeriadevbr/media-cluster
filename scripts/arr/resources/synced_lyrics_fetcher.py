@@ -3,14 +3,14 @@ import syncedlyrics
 
 def fetch_lyrics(artist, title):
     try:
-        # Search for lyrics using the requested format: "TRACK_TITLE ARTIST_NAME"
-        lyrics = syncedlyrics.search(f"{title} {artist}",
-                                     providers=["Musixmatch", "LrcLib", "NetEase", "Megalobiz"])
+        lyrics = syncedlyrics.search(
+          f"{title} {artist}",
+          providers=["LrcLib", "Musixmatch", "Megalobiz", "NetEase"]
+        )
         if lyrics:
             return lyrics
         return None
-    except Exception as e:
-        # Silently fail so the shell script can handle the missing lyrics
+    except Exception:
         return None
 
 if __name__ == "__main__":
