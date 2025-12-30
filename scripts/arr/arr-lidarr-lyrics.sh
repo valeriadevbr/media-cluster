@@ -182,11 +182,15 @@ fetch_genius() {
 }
 
 embed_lyrics() {
-  local file="$1" lyrics="$2"
+  local file="$1"
+  local lyrics="$2"
+
+  local orig_mod=$(stat -c %y "$file")
   local escaped_lyrics="${lyrics//\'/\'\\\'\'}"
   local msg=$(kid3-cli -c "set lyrics '$escaped_lyrics'" "$file" 2>&1)
 
   if [[ $? -eq 0 ]]; then
+    touch -d "$orig_mod" "$file"
     log_msg "Sucesso: Letras embutidas em ${file##*/}"
     return 0
   else

@@ -314,8 +314,11 @@ embed_artwork() {
 
   for track in "${track_list[@]}"; do
     if [[ -f "$track" ]]; then
+      local orig_mod=$(stat -c %y "$track")
       local kid3_out=$(kid3-cli -c "set picture '' ''" -c "set picture:'$cover_path' ''" "$track" 2>&1)
-      if [[ $? -ne 0 ]]; then
+      if [[ $? -eq 0 ]]; then
+        touch -d "$orig_mod" "$track"
+      else
         log_msg "Erro ao embutir em: ${track##*/}"
         log_msg "Detalhes kid3: $kid3_out"
       fi
