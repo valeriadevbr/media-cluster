@@ -194,12 +194,13 @@ download_artwork() {
   local final_cover="${target_dir}/folder.jpg"
   local target_width="${COVER_SIZE%x*}"
 
-  # 0. Verificação de Qualidade Existente (Fast Exit)
+  # 0. Verificação de Qualidade Existente (Fast Exit/Skip Download)
   if [[ -f "$final_cover" ]]; then
     local current_width=$(magick identify -format "%w" "$final_cover" 2>/dev/null)
     if [[ -n "$current_width" ]] && ((current_width >= target_width)); then
-      log_msg "Qualidade suficiente encontrada (${current_width}px >= ${target_width}px). Pulando busca e embutimento."
-      return 2 # Código especial para pular tudo
+      log_msg "Qualidade suficiente encontrada (${current_width}px >= ${target_width}px)."
+      log_msg "Pulando download, mas prosseguindo para embutimento."
+      return 0 # Sucesso (já temos a imagem)
     fi
   fi
 
@@ -375,16 +376,10 @@ log_msg ""
 
 # 2. Orquestração
 download_artwork "$TARGET_DIR"
-case $? in
-0) # Sucesso, prosseguir para embutir
+if [[ $? -eq 0 ]]; then
   embed_artwork "$TARGET_DIR"
-  ;;
-1) # Falha total
-  log_msg "Aviso: Nenhuma imagem processada."
-  ;;
-2) # Skip (Qualidade já atingida)
-  log_msg "Aviso: Imagem atual possui boa qualidade. Pulando processamento."
-  ;;
-esac
+else
+  log_msg "Aviso: Nenhuma imagem processada ou disponível para embutir."
+fi
 
 exit 0
