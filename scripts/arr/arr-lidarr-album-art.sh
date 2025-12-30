@@ -42,17 +42,19 @@ log_msg() {
 }
 
 rotate_log_if_needed() {
-  if [[ -f "$LOG_FILE" ]]; then
-    local log_size
-    if [[ "$(uname)" == "Linux" ]]; then
-      log_size=$(stat -c %s "$LOG_FILE" 2>/dev/null)
-    else
-      log_size=$(stat -f %z "$LOG_FILE" 2>/dev/null)
-    fi
+  if [[ ! -f "$LOG_FILE" ]]; then
+    return 0
+  fi
 
-    if [[ -n "$log_size" && "$log_size" -ge "$MAX_LOG_SIZE" ]]; then
-      >"$LOG_FILE"
-    fi
+  local log_size
+  if [[ "$(uname)" == "Linux" ]]; then
+    log_size=$(stat -c %s "$LOG_FILE" 2>/dev/null)
+  else
+    log_size=$(stat -f %z "$LOG_FILE" 2>/dev/null)
+  fi
+
+  if [[ -n "$log_size" && "$log_size" -ge "$MAX_LOG_SIZE" ]]; then
+    >"$LOG_FILE"
   fi
 }
 
@@ -232,14 +234,10 @@ download_artwork() {
 
   if [[ $got_itunes -eq 1 && $got_musicbrainz -eq 1 ]]; then
     local width_itunes=$(magick identify -format "%w" "$tmp_itunes" 2>/dev/null)
-    if [[ -z "$width_itunes" ]]; then
-      width_itunes=0
-    fi
+    width_itunes="${width_itunes:-0}"
 
     local width_musicbrainz=$(magick identify -format "%w" "$tmp_musicbrainz" 2>/dev/null)
-    if [[ -z "$width_musicbrainz" ]]; then
-      width_musicbrainz=0
-    fi
+    width_musicbrainz="${width_musicbrainz:-0}"
 
     log_msg "Comparando fontes: iTunes (${width_itunes}px) vs MusicBrainz (${width_musicbrainz}px)"
 
@@ -270,9 +268,7 @@ download_artwork() {
 
   if [[ -f "$final_cover" ]]; then
     local old_width=$(magick identify -format "%w" "$final_cover" 2>/dev/null)
-    if [[ -z "$old_width" ]]; then
-      old_width=0
-    fi
+    old_width="${old_width:-0}"
 
     if ((width <= old_width)); then
       log_msg "Aviso: Capa existente é melhor/igual (${old_width}px vs ${width}px)."
@@ -349,7 +345,7 @@ if [[ ! "$lidarr_eventtype" =~ ^(AlbumDownload|AlbumUpgrade|TrackRetag)$ ]]; the
   log_msg ""
   log_msg "======================================================================"
   log_msg "Evento: $lidarr_eventtype"
-  log_msg "Nada a fazer."
+  log_msg "Evento não suportado: ignorando."
   log_msg "======================================================================"
   log_msg ""
   exit 0

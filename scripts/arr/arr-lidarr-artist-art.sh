@@ -27,7 +27,9 @@ readonly CACHE_TTL_MINUTES=$((60 * 24 * 30)) # 30 dias
 readonly FANART_API_KEY="${FANART_API_KEY:-}"
 
 # Inicializa diretório de cache
-[[ ! -d "$CACHE_DIR" ]] && mkdir -p "$CACHE_DIR"
+if [[ ! -d "$CACHE_DIR" ]]; then
+  mkdir -p "$CACHE_DIR"
+fi
 
 log_msg() {
   local msg="$1"
@@ -36,10 +38,19 @@ log_msg() {
 }
 
 rotate_log_if_needed() {
-  if [[ -f "$LOG_FILE" ]]; then
-    local log_size
-    [[ "$(uname)" == "Linux" ]] && log_size=$(stat -c %s "$LOG_FILE" 2>/dev/null) || log_size=$(stat -f %z "$LOG_FILE" 2>/dev/null)
-    [[ -n "$log_size" && "$log_size" -ge "$MAX_LOG_SIZE" ]] && >"$LOG_FILE"
+  if [[ ! -f "$LOG_FILE" ]]; then
+    return 0
+  fi
+
+  local log_size
+  if [[ "$(uname)" == "Linux" ]]; then
+    log_size=$(stat -c %s "$LOG_FILE" 2>/dev/null)
+  else
+    log_size=$(stat -f %z "$LOG_FILE" 2>/dev/null)
+  fi
+
+  if [[ -n "$log_size" && "$log_size" -ge "$MAX_LOG_SIZE" ]]; then
+    >"$LOG_FILE"
   fi
 }
 
@@ -58,12 +69,20 @@ get_md5() {
     echo -n "$1" | md5sum | awk '{print $1}'
   elif command -v md5 >/dev/null 2>&1; then
     echo -n "$1" | md5 -q
-  else echo -n "$1" | cksum | awk '{print $1}'; fi
+  else
+    echo -n "$1" | cksum | awk '{print $1}'
+  fi
 }
 
 is_cache_valid() {
   local file="$1"
-  [[ -f "$file" ]] && [[ $(find "$file" -mmin -"$CACHE_TTL_MINUTES" 2>/dev/null) ]]
+  if [[ ! -f "$file" ]]; then
+    return 1
+  fi
+  if [[ $(find "$file" -mmin -"$CACHE_TTL_MINUTES" 2>/dev/null) ]]; then
+    return 0
+  fi
+  return 1
 }
 
 check_dependencies() {
@@ -118,7 +137,9 @@ process_artist_image() {
 
   # Extrai URL do JSON
   local img_url=$(jq -r ".${primary_field}[0].url // empty" "$json_file")
-  [[ -z "$img_url" && -n "$fallback_field" ]] && img_url=$(jq -r ".${fallback_field}[0].url // empty" "$json_file")
+  if [[ -z "$img_url" && -n "$fallback_field" ]]; then
+    img_url=$(jq -r ".${fallback_field}[0].url // empty" "$json_file")
+  fi
 
   if [[ -z "$img_url" || "$img_url" == "null" ]]; then
     log_msg "Aviso: ${image_type} não encontrada no JSON do Fanart.tv."
@@ -131,35 +152,33 @@ process_artist_image() {
   if ! is_cache_valid "$cache_file"; then
     log_msg "Baixando ${image_type}: $img_url"
     local tmp_img="${cache_file}.tmp"
-    if curl $CURL_OPTS -o "$tmp_img" "$img_url" && [[ -s "$tmp_img" ]]; then
-      if [[ "$needs_resize" == "true" ]]; then
-        local width=$(magick identify -format "%w" "$tmp_img" 2>/dev/null)
-        if [[ -n "$width" && "$width" -ge "$MIN_WIDTH" ]]; then
-          log_msg "Redimensionando ${image_type} para ${COVER_SIZE}..."
-          magick "$tmp_img" -resize "${COVER_SIZE}>" -quality 95 "$cache_file"
-        else
-          log_msg "Erro: Imagem muito pequena (${width}px)."
-          rm -f "$tmp_img"
-          return 1
-        fi
-      else
-        if magick identify "$tmp_img" >/dev/null 2>&1; then
-          cp "$tmp_img" "$cache_file"
-        else
-          log_msg "Erro: Imagem inválida."
-          rm -f "$tmp_img"
-          return 1
-        fi
-      fi
-      rm -f "$tmp_img"
-    else
+    if ! curl $CURL_OPTS -o "$tmp_img" "$img_url" || [[ ! -s "$tmp_img" ]]; then
       log_msg "Erro: Falha no download de ${image_type}."
       rm -f "$tmp_img"
       return 1
     fi
+
+    if [[ "$needs_resize" == "true" ]]; then
+      local width=$(magick identify -format "%w" "$tmp_img" 2>/dev/null)
+      if [[ -z "$width" || "$width" -lt "$MIN_WIDTH" ]]; then
+        log_msg "Erro: Imagem muito pequena (${width}px)."
+        rm -f "$tmp_img"
+        return 1
+      fi
+      log_msg "Redimensionando ${image_type} para ${COVER_SIZE}..."
+      magick "$tmp_img" -resize "${COVER_SIZE}>" -quality 95 "$cache_file"
+    else
+      if ! magick identify "$tmp_img" >/dev/null 2>&1; then
+        log_msg "Erro: Imagem inválida."
+        rm -f "$tmp_img"
+        return 1
+      fi
+      cp "$tmp_img" "$cache_file"
+    fi
+    rm -f "$tmp_img"
   fi
 
-  log_msg "Salvando nova arte do artista (${image_type})."
+  log_msg "Salvando arte do artista (${image_type})."
   cp "$cache_file" "$target_file"
   return 0
 }
@@ -183,7 +202,7 @@ if [[ ! "$lidarr_eventtype" =~ ^(AlbumDownload|AlbumUpgrade|TrackRetag)$ ]]; the
   log_msg ""
   log_msg "======================================================================"
   log_msg "Evento: $lidarr_eventtype"
-  log_msg "Nada a fazer."
+  log_msg "Evento não suportado: ignorando."
   log_msg "======================================================================"
   log_msg ""
   exit 0

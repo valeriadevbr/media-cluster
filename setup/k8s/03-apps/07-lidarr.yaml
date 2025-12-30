@@ -19,7 +19,22 @@ spec:
         lifecycle:
           postStart:
             exec:
-              command: ["/bin/sh", "-c", "apk add --no-cache kid3 imagemagick"]
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  apk add --no-cache \
+                    ffmpeg \
+                    gst-plugins-base \
+                    imagemagick \
+                    kid3 \
+                    py3-pip && \
+                  if [ ! -d "/config/.venv" ]; then
+                    python3 -m venv /config/.venv
+                    /config/.venv/bin/pip install yq
+                  fi
+                  ln -sf /config/.venv/bin/yq /usr/local/bin/yq
+                  ln -sf /config/.venv/bin/xq /usr/local/bin/xq
         ports:
         - containerPort: 8686
           name: lidarr
@@ -51,6 +66,10 @@ spec:
           value: "America/Sao_Paulo"
         - name: FANART_API_KEY
           value: "${FANART_API_KEY}"
+        - name: GENIUS_API_KEY
+          value: "${GENIUS_API_KEY}"
+        - name: USE_GENIUS_FALLBACK
+          value: "false"
         volumeMounts:
         - name: configs
           mountPath: /config
