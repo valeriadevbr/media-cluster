@@ -11,8 +11,10 @@
 # - lidarr_trackfile_tracktitles: Títulos das faixas (separados por '|')
 #
 # Dependências:
-# - curl, jq, kid3-cli
+# - curl, jq, kid3-cli, ffprobe
 # ==============================================================================
+
+exec 3>&1
 
 readonly ALBUM="$lidarr_album_title"
 readonly ARTIST="$lidarr_artist_name"
@@ -27,7 +29,7 @@ readonly MAX_LOG_SIZE=$((1024 * 1024)) # 1MB
 log_msg() {
   local msg="$1"
   local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
-  printf "[%s] %s\n" "$timestamp" "$msg" | tee -a "$LOG_FILE" >&2
+  printf "[%s] %s\n" "$timestamp" "$msg" | tee -a "$LOG_FILE" >&1
 }
 
 rotate_log_if_needed() {
@@ -49,12 +51,21 @@ rotate_log_if_needed() {
 }
 
 check_dependencies() {
-  for cmd in curl jq kid3-cli; do
+  for cmd in curl jq kid3-cli ffprobe; do
     if ! command -v "$cmd" >/dev/null 2>&1; then
       log_msg "ERRO: Comando '$cmd' não encontrado."
       exit 1
     fi
   done
+}
+
+get_track_duration() {
+  local file="${1}"
+  ffprobe \
+    -v error \
+    -show_entries format=duration \
+    -of default=noprint_wrappers=1:nokey=1 \
+    "${file}" | awk '{print int($1)}' 2>/dev/null
 }
 
 check_existing_lyrics() {
@@ -73,7 +84,7 @@ check_existing_lyrics() {
 }
 
 fetch_synced_lyrics() {
-  local artist="$1" title="$2"
+  local artist="$1" title="$2" album="$3" duration="$4"
 
   if [[ "$USE_PROXY" == "true" ]]; then
     export HTTP_PROXY="http://webshare.media.svc.cluster.local:3128"
@@ -81,7 +92,7 @@ fetch_synced_lyrics() {
   fi
 
   local lyrics=$(python3 /opt/scripts/resources/synced_lyrics_fetcher.py \
-    "$artist" "$title")
+    "$artist" "$album" "$title" "$duration" 2>&3)
 
   if [[ -n "$lyrics" ]]; then
     echo "$lyrics"
@@ -168,9 +179,10 @@ if [[ -f "$LRC_FILE" ]]; then
   LYRICS=$(cat "$LRC_FILE")
   LOCAL_LRC=true
 else
-  log_msg "Buscando letras via syncedlyrics..."
-  if LYRICS=$(fetch_synced_lyrics "$ARTIST" "$TITLE") && [[ -n "$LYRICS" ]]; then
-    log_msg "Fonte: syncedlyrics"
+  log_msg "Buscando letras..."
+  DURATION=$(get_track_duration "$FILE_PATH")
+  if LYRICS=$(fetch_synced_lyrics "$ARTIST" "$TITLE" "$ALBUM" "$DURATION") && [[ -n "$LYRICS" ]]; then
+    log_msg "Fonte: LRCLib/Ovh/NetEase"
   fi
 fi
 
