@@ -220,88 +220,106 @@
       const apps = [
         {
           name: 'Plex',
-          host: 'plex.media.lan',
+          url: 'https://plex.media.lan',
+          urlAlt: 'http://plex.media.lan',
           pingUrl: 'http://plex:32400/identity',
           color: '#e5a00d',
           icon: 'plex.svg'
         },
         {
           name: 'Emby',
-          host: 'emby.media.lan',
+          url: 'https://emby.media.lan',
+          urlAlt: 'http://emby.media.lan',
           pingUrl: 'http://emby:8096/System/Ping',
           color: '#5dd054',
           icon: 'emby.svg'
         },
         {
           name: 'Sonarr',
-          host: 'sonarr.media.lan',
+          url: 'https://sonarr.media.lan',
+          urlAlt: 'http://sonarr.media.lan',
           pingUrl: 'http://sonarr:8989/ping',
           color: '#00c0fa',
           icon: 'sonarr.svg'
         },
         {
           name: 'Radarr',
-          host: 'radarr.media.lan',
+          url: 'https://radarr.media.lan',
+          urlAlt: 'http://radarr.media.lan',
           pingUrl: 'http://radarr:7878/ping',
           color: '#ffc230',
           icon: 'radarr.svg'
         },
         {
           name: 'Lidarr',
-          host: 'lidarr.media.lan',
+          url: 'https://lidarr.media.lan',
+          urlAlt: 'http://lidarr.media.lan',
           pingUrl: 'http://lidarr:8686/ping',
           color: '#00936e',
           icon: 'lidarr.svg'
         },
         {
           name: 'Bazarr',
-          host: 'bazarr.media.lan',
+          url: 'https://bazarr.media.lan',
+          urlAlt: 'http://bazarr.media.lan',
           pingUrl: 'http://bazarr:6767',
           color: '#b76bf7',
           icon: 'bazarr.svg'
         },
         {
           name: 'Prowlarr',
-          host: 'prowlarr.media.lan',
+          url: 'https://prowlarr.media.lan',
+          urlAlt: 'http://prowlarr.media.lan',
           pingUrl: 'http://prowlarr:9696/ping',
           color: '#ff3333',
           icon: 'prowlarr.svg'
         },
         {
           name: 'Jackett',
-          host: 'jackett.media.lan',
+          url: 'https://jackett.media.lan',
+          urlAlt: 'http://jackett.media.lan',
           pingUrl: 'http://jackett:9117/UI/Dashboard',
           color: '#b7f76b',
           icon: 'jackett.svg'
         },
         {
           name: 'Profilarr',
-          host: 'profilarr.media.lan',
+          url: 'https://profilarr.media.lan',
+          urlAlt: 'http://profilarr.media.lan',
           pingUrl: 'http://profilarr:6868/ping',
           color: '#6b9cf7',
           icon: 'profilarr.svg'
         },
         {
           name: 'qBittorrent',
-          host: 'qbittorrent.media.lan',
+          url: 'https://qbittorrent.media.lan',
+          urlAlt: 'http://qbittorrent.media.lan',
           pingUrl: 'http://qbittorrent:8081',
           color: '#2f67ba',
           icon: 'qbittorrent.svg'
         },
         {
           name: 'Slskd',
-          host: 'slskd.media.lan',
+          url: 'https://slskd.media.lan',
+          urlAlt: 'http://slskd.media.lan',
           pingUrl: 'http://slskd:5030',
           color: '#00c3ff',
           icon: 'slskd.svg'
+        },
+        {
+          name: 'Traefik',
+          url: 'https://traefik.media.lan',
+          pingUrl: 'http://traefik.ingress-traefik.svc.cluster.local:9000/ping',
+          color: '#00c3ff',
+          icon: 'traefik-proxy.svg'
         },
       ];
 
       const grid = document.getElementById('app-grid');
 
       apps.forEach(app => {
-        const url = `https://${app.host}`;
-        const altUrl = `http://${app.host}:${ALT_PORT}`;
+        const url = app.url;
+        const altUrl = app.urlAlt;
         const card = document.createElement('div');
         card.className = 'card';
         card.style.setProperty('--glow-color', app.color);
@@ -309,10 +327,11 @@
 
         card.innerHTML = `
           <div class="status-dot status-unknown" id="status-${app.name}" title="Status: Unknown"></div>
-          <a class="alt-port-dot" href="${altUrl}" title="Alt Port (${ALT_PORT})" rel="noreferrer">
+          ${altUrl ? `
+          <a class="alt-port-dot" href="${altUrl}" title="Alt URL" rel="noreferrer">
             <img src="icons/link.svg" alt="Link" />
             <span class="alt-text">ALT</span>
-          </a>
+          </a>` : ''}
           <div class="icon">
             <img src="icons/${app.icon}" alt="${app.name}" />
           </div>

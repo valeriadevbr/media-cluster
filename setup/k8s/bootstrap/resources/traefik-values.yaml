@@ -1,0 +1,72 @@
+providers:
+  kubernetesIngress:
+    enabled: true
+
+service:
+  type: NodePort
+
+additionalArguments:
+  - "--serverstransport.insecureskipverify=true"
+
+ports:
+  traefik:
+    port: 9000
+    expose:
+      default: true
+    exposedPort: 9000
+    protocol: TCP
+  web:
+    nodePort: 80
+    middlewares:
+      - ingress-traefik-gzip@kubernetescrd
+  web-wan:
+    port: 44000
+    exposedPort: 44000
+    nodePort: 44000
+    expose:
+      default: true
+    middlewares:
+      - ingress-traefik-gzip@kubernetescrd
+  websecure:
+    nodePort: 443
+    http3:
+      enabled: true
+    middlewares:
+      - ingress-traefik-gzip@kubernetescrd
+  websecure-wan:
+    port: 44300
+    exposedPort: 44300
+    nodePort: 44300
+    expose:
+      default: true
+    http3:
+      enabled: true
+    tls:
+      enabled: true
+    middlewares:
+      - ingress-traefik-gzip@kubernetescrd
+
+api:
+  dashboard: true
+  insecure: false
+
+ingressRoute:
+  dashboard:
+    enabled: true
+    matchRule: Host(`traefik.media.lan`)
+    entryPoints:
+      - websecure
+
+deployment:
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 65532
+    runAsGroup: 65532
+  securityContext:
+    capabilities:
+      add:
+        - NET_BIND_SERVICE
+
+ping:
+  enabled: true
+  entryPoint: traefik
