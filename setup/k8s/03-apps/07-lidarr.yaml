@@ -31,7 +31,10 @@ spec:
                   if [ ! -d "/config/.venv" ]; then
                     python3 -m venv /config/.venv
                   fi
-                  /config/.venv/bin/pip install --no-cache-dir yq syncedlyrics
+                  /config/.venv/bin/pip install --no-cache-dir \
+                    lrclib-python \
+                    requests \
+                    yq
         ports:
         - containerPort: 8686
           name: lidarr

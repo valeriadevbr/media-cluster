@@ -14,10 +14,11 @@
 # - curl, jq, kid3-cli
 # ==============================================================================
 
-readonly FORCE_LYRICS="${FORCE_LYRICS:-false}"
-readonly FILE_PATH="$lidarr_trackfile_path"
-readonly ARTIST="$lidarr_artist_name"
 readonly ALBUM="$lidarr_album_title"
+readonly ARTIST="$lidarr_artist_name"
+readonly FILE_PATH="$lidarr_trackfile_path"
+readonly FORCE_LYRICS="${FORCE_LYRICS:-false}"
+readonly USE_PROXY="${USE_PROXY:-false}"
 readonly TITLE="${lidarr_trackfile_tracktitles%%|*}"
 
 readonly LOG_FILE="/tmp/arr-lidarr-lyrics.log"
@@ -74,8 +75,10 @@ check_existing_lyrics() {
 fetch_synced_lyrics() {
   local artist="$1" title="$2"
 
-  export HTTP_PROXY="http://webshare.media.svc.cluster.local:3128"
-  export HTTPS_PROXY="http://webshare.media.svc.cluster.local:3128"
+  if [[ "$USE_PROXY" == "true" ]]; then
+    export HTTP_PROXY="http://webshare.media.svc.cluster.local:3128"
+    export HTTPS_PROXY="http://webshare.media.svc.cluster.local:3128"
+  fi
 
   local lyrics=$(python3 /opt/scripts/resources/synced_lyrics_fetcher.py \
     "$artist" "$title")
