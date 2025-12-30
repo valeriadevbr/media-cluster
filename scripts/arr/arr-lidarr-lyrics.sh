@@ -18,7 +18,7 @@ readonly LOG_FILE="/tmp/arr-lidarr-lyrics.log"
 readonly CACHE_DIR="/tmp/arr-lidarr-lyrics-cache"
 readonly MAX_LOG_SIZE=$((1024 * 1024))
 readonly CURL_OPTS="--connect-timeout 5 --max-time 15 -s -L -A 'LidarrLyricsScript/1.0'"
-readonly GENIUS_API_KEY="${GENIUS_API_KEY:-}"
+FORCE_LYRICS="${FORCE_LYRICS:-false}"
 
 if [[ ! -d "$CACHE_DIR" ]]; then
   mkdir -p "$CACHE_DIR"
@@ -84,9 +84,9 @@ check_existing_lyrics() {
   return 1
 }
 
-fetch_lrclib() {
-  local artist="$1" album="$2" title="$3" duration="$4"
-  local cache_key=$(get_md5 "lrclib-${artist}-${title}-${duration}")
+fetch_synced_lyrics() {
+  local artist="$1" title="$2"
+  local cache_key=$(get_md5 "syncedlyrics-${artist}-${title}")
   local cache_file="${CACHE_DIR}/${cache_key}.txt"
 
   if [[ -f "$cache_file" ]]; then
@@ -94,87 +94,12 @@ fetch_lrclib() {
     return 0
   fi
 
-  local res=$(curl $CURL_OPTS -G \
-    --data-urlencode "artist_name=$artist" \
-    --data-urlencode "track_name=$title" \
-    --data-urlencode "album_name=$album" \
-    --data-urlencode "duration=$duration" \
-    "https://lrclib.net/api/get")
-
-  local lyrics=$(echo "$res" | jq -r ".syncedLyrics // .plainLyrics // empty")
-
-  if [[ -z "$lyrics" || "$lyrics" == "null" ]]; then
-    res=$(curl $CURL_OPTS -G \
-      --data-urlencode "artist_name=$artist" \
-      --data-urlencode "track_name=$title" \
-      "https://lrclib.net/api/search")
-    lyrics=$(echo "$res" | jq -r ".[0].syncedLyrics // .[0].plainLyrics // empty")
-  fi
+  # Call the centralized Python wrapper
+  local lyrics=$(python3 /opt/scripts/resources/synced_lyrics_fetcher.py \
+    "$artist" "$title")
 
   if [[ -n "$lyrics" ]]; then
     echo "$lyrics" >"$cache_file"
-    echo "$lyrics"
-    return 0
-  fi
-
-  return 1
-}
-
-fetch_lyrics_ovh() {
-  local artist="$1" title="$2"
-  local cache_key=$(get_md5 "ovh-${artist}-${title}")
-  local cache_file="${CACHE_DIR}/${cache_key}.txt"
-
-  if [[ -f "$cache_file" ]]; then
-    cat "$cache_file"
-    return 0
-  fi
-
-  local res=$(curl $CURL_OPTS "https://api.lyrics.ovh/v1/${artist}/${title}")
-  local lyrics=$(echo "$res" | jq -r ".lyrics // empty")
-
-  if [[ -n "$lyrics" ]]; then
-    echo "$lyrics" >"$cache_file"
-    echo "$lyrics"
-    return 0
-  fi
-  return 1
-}
-fetch_genius() {
-  local artist="$1" title="$2"
-
-  if [[ -z "$GENIUS_API_KEY" ]]; then
-    return 1
-  fi
-
-  local res=$(curl $CURL_OPTS -H "Authorization: Bearer $GENIUS_API_KEY" \
-    -G --data-urlencode "q=$artist $title" \
-    "https://api.genius.com/search")
-
-  # Get the first hit
-  local hit=$(echo "$res" | jq -c ".response.hits[0].result")
-  local song_url=$(echo "$hit" | jq -r ".url // empty")
-
-  if [[ -z "$song_url" ]]; then
-    return 1
-  fi
-
-  # Validate artist match
-  local valid_artist=$(echo "$hit" | jq --arg a "$artist" -r '
-    (.primary_artist.name | ascii_downcase | gsub("[^a-z0-9]"; "")) as $genius_artist |
-    ($a | ascii_downcase | gsub("[^a-z0-9]"; "")) as $req_artist |
-    if ($genius_artist | contains($req_artist)) or ($req_artist | contains($genius_artist)) then "valid" else empty end
-  ')
-
-  if [[ -z "$valid_artist" ]]; then
-    log_msg "Genius: Artista incompatível ($(echo "$hit" | jq -r .primary_artist.name)). Pulando." >&2
-    return 1
-  fi
-
-  # Fetch HTML and parse with Python
-  local lyrics=$(curl $CURL_OPTS "$song_url" | python3 /opt/scripts/resources/genius_scraper.py)
-
-  if [[ -n "$lyrics" ]]; then
     echo "$lyrics"
     return 0
   fi
@@ -246,7 +171,7 @@ log_msg "Processando: $ARTIST - $ALBUM - $TITLE"
 log_msg "======================================================================"
 log_msg ""
 
-if [[ "${FORCE_LYRICS:-false}" == "true" ]]; then
+if [[ "$FORCE_LYRICS" == "true" ]]; then
   log_msg "Modo FORCE: Sobrescrevendo letras existentes."
 elif check_existing_lyrics "$FILE_PATH"; then
   log_msg "Aviso: Letras já presentes. Pulando."
@@ -263,15 +188,9 @@ if [[ -f "$LRC_FILE" ]]; then
   LYRICS=$(cat "$LRC_FILE")
   LOCAL_LRC=true
 else
-  log_msg "Buscando letras nas APIs (Duração: ${DURATION}s)..."
-  if LYRICS=$(fetch_lrclib "$ARTIST" "$ALBUM" "$TITLE" "$DURATION") && [[ -n "$LYRICS" ]]; then
-    log_msg "Fonte: LRCLIB"
-  elif LYRICS=$(fetch_lyrics_ovh "$ARTIST" "$TITLE") && [[ -n "$LYRICS" ]]; then
-    log_msg "Fonte: Lyrics.ovh"
-  elif [[ "${USE_GENIUS_FALLBACK:-false}" == "true" ]] &&
-    LYRICS=$(fetch_genius "$ARTIST" "$TITLE") &&
-    [[ -n "$LYRICS" ]]; then
-    log_msg "Fonte: Genius"
+  log_msg "Buscando letras via syncedlyrics (Musixmatch/NetEase/LrcLib)..."
+  if LYRICS=$(fetch_synced_lyrics "$ARTIST" "$TITLE") && [[ -n "$LYRICS" ]]; then
+    log_msg "Fonte: syncedlyrics"
   fi
 fi
 
