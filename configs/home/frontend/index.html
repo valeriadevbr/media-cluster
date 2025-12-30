@@ -309,7 +309,7 @@
 
         card.innerHTML = `
           <div class="status-dot status-unknown" id="status-${app.name}" title="Status: Unknown"></div>
-          <a class="alt-port-dot" href="${altUrl}" title="Alt Port (${ALT_PORT})">
+          <a class="alt-port-dot" href="${altUrl}" title="Alt Port (${ALT_PORT})" rel="noreferrer">
             <img src="icons/link.svg" alt="Link" />
             <span class="alt-text">ALT</span>
           </a>
@@ -317,7 +317,7 @@
             <img src="icons/${app.icon}" alt="${app.name}" />
           </div>
           <h2>
-            <a href="${url}" class="main-link">${app.name}</a>
+            <a href="${url}" class="main-link" rel="noreferrer">${app.name}</a>
           </h2>
         `;
 
