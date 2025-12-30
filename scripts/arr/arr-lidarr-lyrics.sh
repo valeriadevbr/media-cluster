@@ -11,16 +11,40 @@
 # - lidarr_trackfile_tracktitles: Títulos das faixas (separados por '|')
 #
 # Dependências:
-# - curl, jq, kid3-cli, ffprobe
+# - curl, jq, kid3-cli
 # ==============================================================================
 
+readonly FORCE_LYRICS="${FORCE_LYRICS:-false}"
+readonly FILE_PATH="$lidarr_trackfile_path"
+readonly ARTIST="$lidarr_artist_name"
+readonly ALBUM="$lidarr_album_title"
+readonly TITLE="${lidarr_trackfile_tracktitles%%|*}"
+
 readonly LOG_FILE="/tmp/arr-lidarr-lyrics.log"
-FORCE_LYRICS="${FORCE_LYRICS:-false}"
+readonly MAX_LOG_SIZE=$((1024 * 1024)) # 1MB
 
 log_msg() {
   local msg="$1"
   local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
   printf "[%s] %s\n" "$timestamp" "$msg" | tee -a "$LOG_FILE" >&2
+}
+
+rotate_log_if_needed() {
+  if [[ ! -f "$LOG_FILE" ]]; then
+    return 0
+  fi
+
+  local log_size
+  if [[ "$(uname)" == "Linux" ]]; then
+    log_size=$(stat -c %s "$LOG_FILE" 2>/dev/null)
+  else
+    log_size=$(stat -f %z "$LOG_FILE" 2>/dev/null)
+  fi
+
+  if [[ -n "$log_size" && "$log_size" -ge "$MAX_LOG_SIZE" ]]; then
+    # Limpa o log se ultrapassar o limite
+    : >"$LOG_FILE"
+  fi
 }
 
 check_dependencies() {
@@ -50,6 +74,9 @@ check_existing_lyrics() {
 fetch_synced_lyrics() {
   local artist="$1" title="$2"
 
+  export HTTP_PROXY="http://webshare.media.svc.cluster.local:3128"
+  export HTTPS_PROXY="http://webshare.media.svc.cluster.local:3128"
+
   local lyrics=$(python3 /opt/scripts/resources/synced_lyrics_fetcher.py \
     "$artist" "$title")
 
@@ -78,7 +105,12 @@ embed_lyrics() {
   fi
 }
 
+######################
+## Logica Principal ##
+######################
+
 check_dependencies
+rotate_log_if_needed
 
 if [[ "$lidarr_eventtype" == "Test" ]]; then
   log_msg ""
@@ -100,8 +132,6 @@ if [[ ! "$lidarr_eventtype" =~ ^(TrackRetag)$ ]]; then
   exit 0
 fi
 
-FILE_PATH="$lidarr_trackfile_path"
-
 if [[ -z "$FILE_PATH" ]]; then
   log_msg "Erro: Caminho do arquivo (lidarr_trackfile_path) não fornecido."
   exit 0
@@ -111,10 +141,6 @@ if [[ ! -f "$FILE_PATH" ]]; then
   log_msg "Erro: Arquivo não encontrado: $FILE_PATH"
   exit 0
 fi
-
-ARTIST="$lidarr_artist_name"
-ALBUM="$lidarr_album_title"
-TITLE="${lidarr_trackfile_tracktitles%%|*}"
 
 log_msg ""
 log_msg "======================================================================"
