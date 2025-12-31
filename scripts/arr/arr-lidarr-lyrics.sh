@@ -26,10 +26,16 @@ readonly TITLE="${lidarr_trackfile_tracktitles%%|*}"
 readonly LOG_FILE="/tmp/arr-lidarr-lyrics.log"
 readonly MAX_LOG_SIZE=$((1024 * 1024)) # 1MB
 
+if [[ ! -f "$LOG_FILE" ]]; then
+  touch "$LOG_FILE"
+  chown "${PUID}:${PGID}" "$LOG_FILE" 2>/dev/null || true
+  chmod 666 "$LOG_FILE"
+fi
+
 log_msg() {
   local msg="$1"
   local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
-  printf "[%s] %s\n" "$timestamp" "$msg" | tee -a "$LOG_FILE" >&1
+  printf "[%s] %s\n" "$timestamp" "$msg" | tee -a "$LOG_FILE" >&3
 }
 
 rotate_log_if_needed() {
@@ -45,7 +51,6 @@ rotate_log_if_needed() {
   fi
 
   if [[ -n "$log_size" && "$log_size" -ge "$MAX_LOG_SIZE" ]]; then
-    # Limpa o log se ultrapassar o limite
     : >"$LOG_FILE"
   fi
 }
@@ -163,14 +168,16 @@ log_msg "Processando: $ARTIST - $ALBUM - $TITLE"
 log_msg "======================================================================"
 log_msg ""
 
-if [[ "$FORCE_LYRICS" == "true" ]]; then
+LRC_FILE="${FILE_PATH%.*}.lrc"
+
+if [[ -f "$LRC_FILE" ]]; then
+  log_msg "Arquivo .lrc local encontrado. Embutindo letras."
+elif [[ "$FORCE_LYRICS" == "true" ]]; then
   log_msg "Modo FORCE: Sobrescrevendo letras existentes."
 elif check_existing_lyrics "$FILE_PATH"; then
   log_msg "Aviso: Letras sincronizadas já presentes. Pulando."
   exit 0
 fi
-
-LRC_FILE="${FILE_PATH%.*}.lrc"
 LOCAL_LRC=false
 LYRICS=""
 

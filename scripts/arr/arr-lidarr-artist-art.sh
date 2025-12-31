@@ -16,6 +16,8 @@
 # - curl, jq, imagemagick (magick)
 # ==============================================================================
 
+exec 3>&1
+
 # Constantes
 readonly LOG_FILE="/tmp/arr-lidarr-artist-art.log"
 readonly MIN_WIDTH=500
@@ -31,10 +33,16 @@ if [[ ! -d "$CACHE_DIR" ]]; then
   mkdir -p "$CACHE_DIR"
 fi
 
+if [[ ! -f "$LOG_FILE" ]]; then
+  touch "$LOG_FILE"
+  chown "${PUID}:${PGID}" "$LOG_FILE" 2>/dev/null || true
+  chmod 666 "$LOG_FILE"
+fi
+
 log_msg() {
   local msg="$1"
   local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
-  printf "[%s] %s\n" "$timestamp" "$msg" | tee -a "$LOG_FILE"
+  printf "[%s] %s\n" "$timestamp" "$msg" | tee -a "$LOG_FILE" >&3
 }
 
 rotate_log_if_needed() {

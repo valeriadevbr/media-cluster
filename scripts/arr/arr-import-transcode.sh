@@ -12,6 +12,14 @@ export PATH="$PATH:/opt/homebrew/bin"
 KEEP_LANGS="${KEEP_LANGS:-por,eng}"
 LOG_FILE="/tmp/arr-import-transcode.log"
 
+if [[ ! -f "$LOG_FILE" ]]; then
+  touch "$LOG_FILE"
+  chown "${PUID}:${PGID}" "$LOG_FILE" 2>/dev/null || true
+  chmod 666 "$LOG_FILE"
+fi
+
+exec 3>&1
+
 # ================================================
 # Funções Auxiliares (Baseadas no arr-transcode.sh)
 # ================================================
@@ -19,7 +27,7 @@ LOG_FILE="/tmp/arr-import-transcode.log"
 log_msg() {
   local msg="$1"
   local ts="[$(date '+%Y-%m-%d %H:%M:%S')]"
-  echo "$ts $msg" | tee -a "$LOG_FILE"
+  echo "$ts $msg" | tee -a "$LOG_FILE" >&3
 }
 
 check_dependencies() {
@@ -203,7 +211,7 @@ SUB_TRACKS=$(get_track_ids_by_type "$INPUT_FILE" "subtitles" "keep" | tr '\n' ',
 MKV_CMD="nice -n 19 mkvmerge -o \"$OUTPUT_FILE\""
 [[ -n "$VIDEO_TRACKS" ]] && MKV_CMD="$MKV_CMD -d $VIDEO_TRACKS" || MKV_CMD="$MKV_CMD -D"
 [[ -n "$AUDIO_TRACKS" ]] && MKV_CMD="$MKV_CMD -a $AUDIO_TRACKS" || MKV_CMD="$MKV_CMD -A"
-[[ -n "$SUB_TRACKS" ]]   && MKV_CMD="$MKV_CMD -s $SUB_TRACKS"   || MKV_CMD="$MKV_CMD -S"
+[[ -n "$SUB_TRACKS" ]] && MKV_CMD="$MKV_CMD -s $SUB_TRACKS" || MKV_CMD="$MKV_CMD -S"
 MKV_CMD="$MKV_CMD \"$INPUT_FILE\""
 
 # 3. Execução
