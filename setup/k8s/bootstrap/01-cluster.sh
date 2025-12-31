@@ -7,7 +7,7 @@ set +a
 
 if ! kind get clusters | grep -q "$CLUSTER_NAME"; then
   echo "Criando cluster Kind '$CLUSTER_NAME'..."
-  subst_manifest "${SETUP_PATH}/k8s/kind-config.yaml" |
+  subst_manifest "${SETUP_PATH}/k8s/bootstrap/resources/kind-config.yaml" |
     kind create cluster --name "$CLUSTER_NAME" --image kindest/node:v1.31.1 --config -
 
   echo "🔧 Ajustando MTU diretamente no Node e Desativando Offloads (Fix para HostNetwork/Traefik)..."

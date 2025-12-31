@@ -1,41 +1,48 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: prowlarr
+  name: emby
   namespace: media
 spec:
+  strategy:
+    type: Recreate
   replicas: 1
   selector:
     matchLabels:
-      app: prowlarr
+      app: emby
   template:
     metadata:
       labels:
-        app: prowlarr
+        app: emby
     spec:
+      priorityClassName: critical-media
+      dnsPolicy: ClusterFirstWithHostNet
+      hostNetwork: true
       containers:
-        - name: prowlarr
-          image: lscr.io/linuxserver/prowlarr:latest
+        - name: emby
+          image: emby/embyserver_arm64v8:latest
           ports:
-            - containerPort: 9696
-              name: prowlarr
+            - name: webui
+              containerPort: 8096
+            - name: discovery
+              containerPort: 7359
+              protocol: UDP
           resources:
             requests:
-              memory: "256Mi"
-              cpu: "100m"
-            limits:
-              memory: "1Gi"
+              memory: "2Gi"
               cpu: "1000m"
+            limits:
+              memory: "6Gi"
           livenessProbe:
             tcpSocket:
-              port: 9696
-            initialDelaySeconds: 15
+              port: 8096
+            initialDelaySeconds: 30
             periodSeconds: 20
             failureThreshold: 3
           readinessProbe:
             tcpSocket:
-              port: 9696
-            initialDelaySeconds: 10
+              port: 8096
+            initialDelaySeconds: 15
             periodSeconds: 10
             failureThreshold: 3
           env:
@@ -48,9 +55,11 @@ spec:
           volumeMounts:
             - name: configs
               mountPath: /config
-              subPath: prowlarr
+              subPath: emby
             - name: media
               mountPath: /media
+            - name: transcode
+              mountPath: /transcode
       volumes:
         - name: configs
           persistentVolumeClaim:
@@ -58,49 +67,58 @@ spec:
         - name: media
           persistentVolumeClaim:
             claimName: media-pvc
+        - name: transcode
+          emptyDir:
+            medium: Memory
+            sizeLimit: 4Gi
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: prowlarr
+  name: emby
   namespace: media
 spec:
   selector:
-    app: prowlarr
+    app: emby
   ports:
-    - port: 9696
-      targetPort: 9696
+    - name: webui
+      port: 8096
+      targetPort: 8096
+    - name: discovery
+      port: 7359
+      targetPort: 7359
+      protocol: UDP
   type: ClusterIP
 ---
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
-  name: prowlarr-lan
-  namespace: media
-spec:
-  entryPoints:
-    - websecure
-  routes:
-    - match: Host(`prowlarr.media.lan`)
-      kind: Rule
-      services:
-        - name: prowlarr
-          port: 9696
----
-apiVersion: traefik.io/v1alpha1
-kind: IngressRoute
-metadata:
-  name: prowlarr-lan-http
+  name: emby-lan
   namespace: media
 spec:
   entryPoints:
     - web
+    - websecure
   routes:
-    - match: Host(`prowlarr.media.lan`)
+    - match: Host(`emby.media.lan`)
       kind: Rule
-      middlewares:
-        - name: https-redirect
-          namespace: media
       services:
-        - name: prowlarr
-          port: 9696
+        - name: emby
+          port: 8096
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: emby-wan
+  namespace: media
+spec:
+  entryPoints:
+    - web-wan
+    - websecure-wan
+  routes:
+    - match: Host(`emby.${WAN_HOSTNAME}`)
+      kind: Rule
+      services:
+        - name: emby
+          port: 8096
+  tls: {}

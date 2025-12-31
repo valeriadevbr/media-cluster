@@ -16,14 +16,7 @@ echo "🌐 Aplicando e aguardando infraestrutura (DNS)..."
 apply_with_subst "${K8S_PATH}/02-infra/"
 kubectl rollout status deployment/dns -n infra --timeout=60s
 
-# 3. Apps Prioritários (Plex/Emby)
-echo "🚀 Aplicando e aguardando apps prioritários (Plex/Emby)..."
-apply_with_subst "${K8S_PATH}/03-apps/01-plex.yaml"
-apply_with_subst "${K8S_PATH}/03-apps/02-emby.yaml"
-kubectl rollout status deployment/plex -n media --timeout=120s
-kubectl rollout status deployment/emby -n media --timeout=120s
-
-# 4. Restante das aplicações
+# 3. Aplicações
 echo "📦 Aplicando restante das aplicações..."
 apply_with_subst "${K8S_PATH}/03-apps/"
 

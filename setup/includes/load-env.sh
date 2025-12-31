@@ -8,6 +8,7 @@ else
 fi
 
 source "${SCRIPT_DIR}/../.env"
+OS="$(uname)"
 PUID=$(id -u)
 PGID=$(id -g)
 set +a

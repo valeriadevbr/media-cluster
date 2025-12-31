@@ -14,58 +14,58 @@ spec:
         app: slskd
     spec:
       containers:
-      - name: slskd
-        image: slskd/slskd:latest
-        ports:
-          - name: slskd-webui
-            containerPort: 5030
-          - name: slskd-peer
-            containerPort: 50300
-        resources:
-          requests:
-            memory: "512Mi"
-            cpu: "250m"
-          limits:
-            memory: "2Gi"
-            cpu: "2000m"
-        livenessProbe:
-          tcpSocket:
-            port: 5030
-          initialDelaySeconds: 60
-          periodSeconds: 20
-          failureThreshold: 5
-        readinessProbe:
-          tcpSocket:
-            port: 5030
-          initialDelaySeconds: 60
-          periodSeconds: 10
-          failureThreshold: 5
-        env:
-        - name: TZ
-          value: "America/Sao_Paulo"
-        - name: SLSKD_REMOTE_CONFIGURATION
-          value: "true"
-        - name: SLSKD_SHARED_DIR
-          value: "/music"
-        volumeMounts:
-        - name: configs
-          mountPath: /app
-          subPath: slskd
-        - name: downloads
-          mountPath: /app/downloads
-        - name: media
-          mountPath: /music
-          subPath: Music
+        - name: slskd
+          image: slskd/slskd:latest
+          ports:
+            - name: slskd-webui
+              containerPort: 5030
+            - name: slskd-peer
+              containerPort: 50300
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "2Gi"
+              cpu: "2000m"
+          livenessProbe:
+            tcpSocket:
+              port: 5030
+            initialDelaySeconds: 60
+            periodSeconds: 20
+            failureThreshold: 5
+          readinessProbe:
+            tcpSocket:
+              port: 5030
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            failureThreshold: 5
+          env:
+            - name: TZ
+              value: "America/Sao_Paulo"
+            - name: SLSKD_REMOTE_CONFIGURATION
+              value: "true"
+            - name: SLSKD_SHARED_DIR
+              value: "/music"
+          volumeMounts:
+            - name: configs
+              mountPath: /app
+              subPath: slskd
+            - name: downloads
+              mountPath: /app/downloads
+            - name: media
+              mountPath: /music
+              subPath: Music
       volumes:
-      - name: configs
-        persistentVolumeClaim:
-          claimName: configs-pvc
-      - name: downloads
-        persistentVolumeClaim:
-          claimName: downloads-pvc
-      - name: media
-        persistentVolumeClaim:
-          claimName: media-pvc
+        - name: configs
+          persistentVolumeClaim:
+            claimName: configs-pvc
+        - name: downloads
+          persistentVolumeClaim:
+            claimName: downloads-pvc
+        - name: media
+          persistentVolumeClaim:
+            claimName: media-pvc
 ---
 apiVersion: v1
 kind: Service

@@ -14,66 +14,66 @@ spec:
         app: radarr
     spec:
       containers:
-      - name: radarr
-        image: lscr.io/linuxserver/radarr:latest
-        ports:
-        - containerPort: 7878
-          name: radarr
-        resources:
-          requests:
-            memory: "256Mi"
-            cpu: "100m"
-          limits:
-            memory: "1Gi"
-            cpu: "1000m"
-        livenessProbe:
-          tcpSocket:
-            port: 7878
-          initialDelaySeconds: 15
-          periodSeconds: 20
-          failureThreshold: 3
-        readinessProbe:
-          tcpSocket:
-            port: 7878
-          initialDelaySeconds: 10
-          periodSeconds: 10
-          failureThreshold: 3
-        env:
-        - name: PUID
-          value: "${PUID}"
-        - name: PGID
-          value: "${PGID}"
-        - name: TZ
-          value: "America/Sao_Paulo"
-        - name: DOCKER_MODS
-          value: "linuxserver/mods:universal-package-install"
-        - name: INSTALL_PACKAGES
-          value: "mkvtoolnix"
-        volumeMounts:
-        - name: configs
-          mountPath: /config
-          subPath: radarr
-        - name: downloads
-          mountPath: /downloads
-        - name: media
-          mountPath: /media
-        - name: scripts
-          mountPath: /opt/scripts
-          subPath: arr
-          readOnly: true
+        - name: radarr
+          image: lscr.io/linuxserver/radarr:latest
+          ports:
+            - containerPort: 7878
+              name: radarr
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+          livenessProbe:
+            tcpSocket:
+              port: 7878
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            failureThreshold: 3
+          readinessProbe:
+            tcpSocket:
+              port: 7878
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+          env:
+            - name: PUID
+              value: "${PUID}"
+            - name: PGID
+              value: "${PGID}"
+            - name: TZ
+              value: "America/Sao_Paulo"
+            - name: DOCKER_MODS
+              value: "linuxserver/mods:universal-package-install"
+            - name: INSTALL_PACKAGES
+              value: "mkvtoolnix"
+          volumeMounts:
+            - name: configs
+              mountPath: /config
+              subPath: radarr
+            - name: downloads
+              mountPath: /downloads
+            - name: media
+              mountPath: /media
+            - name: scripts
+              mountPath: /opt/scripts
+              subPath: arr
+              readOnly: true
       volumes:
-      - name: configs
-        persistentVolumeClaim:
-          claimName: configs-pvc
-      - name: downloads
-        persistentVolumeClaim:
-          claimName: downloads-pvc
-      - name: media
-        persistentVolumeClaim:
-          claimName: media-pvc
-      - name: scripts
-        persistentVolumeClaim:
-          claimName: scripts-pvc
+        - name: configs
+          persistentVolumeClaim:
+            claimName: configs-pvc
+        - name: downloads
+          persistentVolumeClaim:
+            claimName: downloads-pvc
+        - name: media
+          persistentVolumeClaim:
+            claimName: media-pvc
+        - name: scripts
+          persistentVolumeClaim:
+            claimName: scripts-pvc
 ---
 apiVersion: v1
 kind: Service

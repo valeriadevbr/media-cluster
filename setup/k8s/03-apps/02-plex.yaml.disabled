@@ -1,0 +1,163 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: plex
+  namespace: media
+spec:
+  strategy:
+    type: Recreate
+  replicas: 1
+  selector:
+    matchLabels:
+      app: plex
+  template:
+    metadata:
+      labels:
+        app: plex
+    spec:
+      priorityClassName: critical-media
+      dnsPolicy: ClusterFirstWithHostNet
+      hostNetwork: true
+      containers:
+        - name: plex
+          image: plexinc/pms-docker:latest
+          ports:
+            - containerPort: 32400
+              name: pms
+            - name: gdm-32410
+              containerPort: 32410
+              protocol: UDP
+            - name: gdm-32412
+              containerPort: 32412
+              protocol: UDP
+            - name: gdm-32413
+              containerPort: 32413
+              protocol: UDP
+            - name: gdm-32414
+              containerPort: 32414
+              protocol: UDP
+            - name: companion
+              containerPort: 8324
+          resources:
+            requests:
+              memory: "2Gi"
+              cpu: "1000m"
+            limits:
+              memory: "6Gi"
+          livenessProbe:
+            tcpSocket:
+              port: 32400
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            failureThreshold: 3
+          readinessProbe:
+            tcpSocket:
+              port: 32400
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            failureThreshold: 3
+          env:
+            - name: PUID
+              value: "${PUID}"
+            - name: PGID
+              value: "${PGID}"
+            - name: TZ
+              value: "America/Sao_Paulo"
+            - name: ADVERTISE_IP
+              value: "${PLEX_ADVERTISE_IP}"
+            - name: PLEX_CLAIM
+              value: "${PLEX_CLAIM}"
+            - name: VERSION
+              value: "docker"
+            - name: TRANSCODE_DIR
+              value: "/transcode"
+          volumeMounts:
+            - name: configs
+              mountPath: /config
+              subPath: plex
+            - name: media
+              mountPath: /media
+            - name: transcode
+              mountPath: /transcode
+      volumes:
+        - name: configs
+          persistentVolumeClaim:
+            claimName: configs-pvc
+        - name: media
+          persistentVolumeClaim:
+            claimName: media-pvc
+        - name: transcode
+          emptyDir:
+            medium: Memory
+            sizeLimit: 4Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: plex
+  namespace: media
+spec:
+  selector:
+    app: plex
+  type: ClusterIP
+  ports:
+    - name: pms
+      port: 32400
+      targetPort: 32400
+      protocol: TCP
+    - name: gdm-32410
+      port: 32410
+      targetPort: 32410
+      protocol: UDP
+    - name: gdm-32412
+      port: 32412
+      targetPort: 32412
+      protocol: UDP
+    - name: gdm-32413
+      port: 32413
+      targetPort: 32413
+      protocol: UDP
+    - name: gdm-32414
+      port: 32414
+      targetPort: 32414
+      protocol: UDP
+    - name: companion
+      port: 8324
+      targetPort: 8324
+      protocol: TCP
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: plex-lan
+  namespace: media
+spec:
+  entryPoints:
+    - web
+    - websecure
+  routes:
+    - match: Host(`plex.media.lan`)
+      kind: Rule
+      services:
+        - name: plex
+          port: 32400
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: plex-wan
+  namespace: media
+spec:
+  entryPoints:
+    - web-wan
+    - websecure-wan
+  routes:
+    - match: Host(`plex.${WAN_HOSTNAME}`)
+      kind: Rule
+      middlewares:
+        - name: plex-local-mask
+          namespace: media
+      services:
+        - name: plex
+          port: 32400
+  tls: {}

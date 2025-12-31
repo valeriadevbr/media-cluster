@@ -1,57 +1,60 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: emby
+  name: plex
   namespace: media
 spec:
   ports:
-    - name: webui
-      port: 8096
-      targetPort: 8096
+    - name: pms
+      port: 32400
       protocol: TCP
+      targetPort: 32400
 ---
 apiVersion: v1
 kind: Endpoints
 metadata:
-  name: emby
+  name: plex
   namespace: media
 subsets:
   - addresses:
       - ip: "${DOCKER_HOST_IP}"
     ports:
-      - name: webui
-        port: 8096
+      - name: pms
+        port: 32400
         protocol: TCP
 ---
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
-  name: emby-lan
+  name: plex-lan
   namespace: media
 spec:
   entryPoints:
     - web
     - websecure
   routes:
-    - match: Host(`emby.media.lan`)
+    - match: Host(`plex.media.lan`)
       kind: Rule
       services:
-        - name: emby
-          port: 8096
+        - name: plex
+          port: 32400
 ---
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
-  name: emby-wan
+  name: plex-wan
   namespace: media
 spec:
   entryPoints:
     - web-wan
     - websecure-wan
   routes:
-    - match: Host(`emby.${WAN_HOSTNAME}`)
+    - match: Host(`plex.${WAN_HOSTNAME}`)
       kind: Rule
+      middlewares:
+        - name: plex-local-mask
+          namespace: media
       services:
-        - name: emby
-          port: 8096
+        - name: plex
+          port: 32400
   tls: {}
