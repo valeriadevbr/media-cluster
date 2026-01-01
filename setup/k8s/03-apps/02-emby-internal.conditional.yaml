@@ -20,7 +20,7 @@ spec:
       hostNetwork: true
       containers:
         - name: emby
-          image: emby/embyserver_arm64v8:latest
+          image: lscr.io/linuxserver/emby:latest
           ports:
             - name: webui
               containerPort: 8096

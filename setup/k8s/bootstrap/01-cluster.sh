@@ -7,8 +7,39 @@ set +a
 
 if ! kind get clusters | grep -q "$CLUSTER_NAME"; then
   echo "Criando cluster Kind '$CLUSTER_NAME'..."
-  subst_manifest "${SETUP_PATH}/k8s/bootstrap/resources/kind-config.yaml" |
-    kind create cluster --name "$CLUSTER_NAME" --image kindest/node:v1.31.1 --config -
+
+  KIND_CONFIG=$(cat "${SETUP_PATH}/k8s/bootstrap/resources/kind-config.yaml")
+
+  if [ "${MEDIA_SERVERS_IN_CLUSTER}" = "true" ]; then
+    echo "🔓 Injecting Media Server ports using yq..."
+    export MEDIA_PORTS_YAML=$(
+      cat <<EOF
+- containerPort: 8096
+  hostPort: 8096
+  protocol: TCP
+- containerPort: 7359
+  hostPort: 7359
+  protocol: UDP
+- containerPort: 32400
+  hostPort: 32400
+  protocol: TCP
+- containerPort: 32410
+  hostPort: 32410
+  protocol: UDP
+- containerPort: 32412
+  hostPort: 32412
+  protocol: UDP
+- containerPort: 32413
+  hostPort: 32413
+  protocol: UDP
+- containerPort: 32414
+  hostPort: 32414
+  protocol: UDP
+EOF
+    )
+    KIND_CONFIG=$(echo "$KIND_CONFIG" | yq eval '.nodes[0].extraPortMappings += env(MEDIA_PORTS_YAML)' -)
+  fi
+  echo "$KIND_CONFIG" | envsubst | kind create cluster --name "$CLUSTER_NAME" --image kindest/node:v1.31.1 --config -
 
   echo "🔧 Ajustando MTU diretamente no Node e Desativando Offloads (Fix para HostNetwork/Traefik)..."
   docker exec "$CLUSTER_NAME-control-plane" ip link set eth0 mtu "${DOCKER_MTU}"

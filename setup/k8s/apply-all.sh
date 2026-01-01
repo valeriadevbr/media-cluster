@@ -18,6 +18,23 @@ kubectl rollout status deployment/dns -n infra --timeout=60s
 
 # 3. Aplicações
 echo "📦 Aplicando restante das aplicações..."
+
+if [ "${MEDIA_SERVERS_IN_CLUSTER}" = "true" ]; then
+  echo "🎬 Applying Plex (Internal Cluster)..."
+  apply_k8s_file "${K8S_PATH}/03-apps/02-plex-internal.conditional.yaml"
+else
+  echo "🔗 Applying Plex (External/Shim)..."
+  apply_k8s_file "${K8S_PATH}/03-apps/02-plex-external.conditional.yaml"
+fi
+
+if [ "${MEDIA_SERVERS_IN_CLUSTER}" = "true" ]; then
+  echo "🎬 Applying Emby (Internal Cluster)..."
+  apply_k8s_file "${K8S_PATH}/03-apps/02-emby-internal.conditional.yaml"
+else
+  echo "🔗 Applying Emby (External/Shim)..."
+  apply_k8s_file "${K8S_PATH}/03-apps/02-emby-external.conditional.yaml"
+fi
+
 apply_with_subst "${K8S_PATH}/03-apps/"
 
 echo "Tudo aplicado com sucesso."

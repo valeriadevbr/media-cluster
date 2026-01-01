@@ -9,10 +9,10 @@ subst_manifest() {
 apply_k8s_file() {
   local file="$1"
   if [[ "$file" == *"crd"* ]]; then
-     echo "Applying CRD with server-side apply: $file"
-     subst_manifest "$file" | kubectl apply --server-side -f -
+    echo "Applying CRD with server-side apply: $file"
+    subst_manifest "$file" | kubectl apply --server-side -f -
   else
-     subst_manifest "$file" | kubectl apply -f -
+    subst_manifest "$file" | kubectl apply -f -
   fi
 }
 
@@ -20,6 +20,9 @@ apply_with_subst() {
   local target="$1"
   if [ -d "$target" ]; then
     for file in "$target"*.yaml; do
+      if [[ "$file" == *".conditional.yaml" ]]; then
+        continue
+      fi
       apply_k8s_file "$file"
     done
   # Check if target is a file

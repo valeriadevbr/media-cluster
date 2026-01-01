@@ -11,6 +11,17 @@ if [[ "$OS" == "Darwin" ]]; then
   set +a
 fi
 
+# Instalar yq
+if ! command -v yq &>/dev/null; then
+  echo "Instalando yq..."
+  if [[ "$OS" == "Darwin" ]]; then
+    brew install yq -q
+  else
+    curl -L https://github.com/mikefarah/yq/releases/download/v4.44.3/yq_linux_amd64 -o /usr/local/bin/yq
+    chmod +x /usr/local/bin/yq
+  fi
+fi
+
 # Instalar Kind
 if ! command -v kind &>/dev/null; then
   echo "Instalando Kind..."
