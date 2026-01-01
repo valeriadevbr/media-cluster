@@ -15,4 +15,6 @@ openssl req \
   -key "${CERTS_PATH}/ca/ca.key" \
   -out "${CERTS_PATH}/ca/ca.crt"
 
-sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain "${CERTS_PATH}/ca/ca.crt"
+if [[ "$OS" == "Darwin" ]]; then
+  sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain "${CERTS_PATH}/ca/ca.crt"
+fi

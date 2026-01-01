@@ -1,11 +1,9 @@
-# Outputs the file content with environment variables substituted
 subst_manifest() {
   local file="$1"
   [ -e "$file" ] || return
   envsubst <"$file"
 }
 
-# Applies a single K8s manifest file with envsubst
 apply_k8s_file() {
   local file="$1"
   if [[ "$file" == *"crd"* ]]; then
@@ -25,7 +23,6 @@ apply_with_subst() {
       fi
       apply_k8s_file "$file"
     done
-  # Check if target is a file
   elif [ -f "$target" ]; then
     apply_k8s_file "$target"
   else
@@ -45,7 +42,6 @@ create_tls_secret() {
     --dry-run=client -o yaml | kubectl apply -f -
 }
 
-# Validates if an image exists in Docker, builds if missing, and loads into Kind
 build_and_load_image() {
   local image_name="$1"
   local dockerfile_path="$2"
