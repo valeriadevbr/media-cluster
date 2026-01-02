@@ -16,7 +16,7 @@
 # Configs
 /configs/*
 !/configs/bind/
-!/configs/home/
+!/configs/dashboard/
 !/configs/kind/
 !/configs/grafana/
 

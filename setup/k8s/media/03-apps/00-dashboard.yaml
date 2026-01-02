@@ -1,17 +1,17 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: home
+  name: dashboard
   namespace: media
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: home
+      app: dashboard
   template:
     metadata:
       labels:
-        app: home
+        app: dashboard
     spec:
       containers:
         - name: pinger
@@ -31,7 +31,7 @@ spec:
               memory: 64Mi
           volumeMounts:
             - name: content
-              subPath: home/backend/pinger.py
+              subPath: dashboard/backend/pinger.py
               mountPath: /app/pinger.py
         - name: nginx
           image: nginx:alpine
@@ -46,10 +46,10 @@ spec:
               memory: 64Mi
           volumeMounts:
             - name: content
-              subPath: home/frontend
+              subPath: dashboard/frontend
               mountPath: /usr/share/nginx/html
             - name: content
-              subPath: home/nginx/default.conf
+              subPath: dashboard/nginx/default.conf
               mountPath: /etc/nginx/conf.d/default.conf
       volumes:
         - name: content
@@ -59,11 +59,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: home
+  name: dashboard
   namespace: media
 spec:
   selector:
-    app: home
+    app: dashboard
   ports:
     - port: 80
       targetPort: 80
@@ -72,7 +72,7 @@ spec:
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
-  name: home-lan
+  name: dashboard-lan
   namespace: media
 spec:
   entryPoints:
@@ -81,13 +81,13 @@ spec:
     - match: Host(`dashboard.media.lan`)
       kind: Rule
       services:
-        - name: home
+        - name: dashboard
           port: 80
 ---
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
-  name: home-lan-http
+  name: dashboard-lan-http
   namespace: media
 spec:
   entryPoints:
@@ -99,5 +99,5 @@ spec:
         - name: https-redirect
           namespace: media
       services:
-        - name: home
+        - name: dashboard
           port: 80
