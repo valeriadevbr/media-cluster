@@ -21,3 +21,4 @@ subjectAltName = @alt_names
 [ alt_names ]
 DNS.1 = *.media.lan
 DNS.2 = media.lan
+DNS.3 = localhost

@@ -1,0 +1,98 @@
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: test
+  namespace: media
+subsets:
+  - addresses:
+      - ip: "${DOCKER_HOST_IP}"
+    ports:
+      - name: webui
+        port: 4000
+        protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: test
+  namespace: media
+spec:
+  ports:
+    - name: webui
+      port: 80
+      targetPort: 4000
+      protocol: TCP
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: test-lan
+  namespace: media
+spec:
+  entryPoints:
+    - web
+    - websecure
+  routes:
+    - match: Host(`test.media.lan`)
+      kind: Rule
+      services:
+        - name: test
+          port: 80
+    - match: Host(`localhost`)
+      kind: Rule
+      services:
+        - name: test
+          port: 80
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: www-redirect
+  namespace: media
+spec:
+  redirectRegex:
+    regex: "^https?://www\\.(.*)"
+    replacement: "https://${1}"
+    permanent: true
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: test-wan
+  namespace: media
+spec:
+  entryPoints:
+    - websecure-wan
+  routes:
+    - match: Host(`${WAN_HOSTNAME}`)
+      kind: Rule
+      services:
+        - name: test
+          port: 80
+    - match: Host(`www.${WAN_HOSTNAME}`)
+      kind: Rule
+      middlewares:
+        - name: www-redirect
+          namespace: media
+      services:
+        - name: test
+          port: 80
+  tls: {}
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: test-wan-http
+  namespace: media
+spec:
+  entryPoints:
+    - web-wan
+  routes:
+    - match: Host(`${WAN_HOSTNAME}`) || Host(`www.${WAN_HOSTNAME}`)
+      kind: Rule
+      middlewares:
+        - name: https-redirect
+          namespace: media
+      services:
+        - name: test
+          port: 80
