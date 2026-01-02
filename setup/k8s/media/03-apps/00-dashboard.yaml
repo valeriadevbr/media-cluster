@@ -51,10 +51,16 @@ spec:
             - name: content
               subPath: dashboard/nginx/default.conf
               mountPath: /etc/nginx/conf.d/default.conf
+            - name: cert
+              subPath: ca/ca.crt
+              mountPath: /usr/share/nginx/ca/ca.crt
       volumes:
         - name: content
           persistentVolumeClaim:
             claimName: configs-pvc
+        - name: cert
+          persistentVolumeClaim:
+            claimName: certs-pvc
 ---
 apiVersion: v1
 kind: Service
@@ -76,28 +82,11 @@ metadata:
   namespace: media
 spec:
   entryPoints:
+    - web
     - websecure
   routes:
     - match: Host(`dashboard.media.lan`)
       kind: Rule
-      services:
-        - name: dashboard
-          port: 80
----
-apiVersion: traefik.io/v1alpha1
-kind: IngressRoute
-metadata:
-  name: dashboard-lan-http
-  namespace: media
-spec:
-  entryPoints:
-    - web
-  routes:
-    - match: Host(`dashboard.media.lan`)
-      kind: Rule
-      middlewares:
-        - name: https-redirect
-          namespace: media
       services:
         - name: dashboard
           port: 80

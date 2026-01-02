@@ -118,3 +118,34 @@ spec:
   selector:
     matchLabels:
       type: local-downloads
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: certs-pv
+  labels:
+    type: local-certs
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 10Mi
+  accessModes:
+    - ReadOnlyMany
+  hostPath:
+    path: /mnt/ssl
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: certs-pvc
+  namespace: media
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadOnlyMany
+  resources:
+    requests:
+      storage: 10Mi
+  selector:
+    matchLabels:
+      type: local-certs

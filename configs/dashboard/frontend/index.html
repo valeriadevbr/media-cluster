@@ -20,6 +20,7 @@
         color: var(--text-color);
         margin: 0;
         display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
         min-height: 100vh;
@@ -210,13 +211,38 @@
         box-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
       }
 
+      .footer {
+        width: 100%;
+        text-align: center;
+        padding: 20px 0;
+        margin-top: auto;
+        font-size: 0.8rem;
+        color: rgba(255, 255, 255, 0.4);
+        background: rgba(0, 0, 0, 0.2);
+        backdrop-filter: blur(10px);
+      }
+
+      .footer a {
+        color: rgba(255, 255, 255, 0.6);
+        text-decoration: none;
+        transition: color 0.3s;
+        border-bottom: 1px dashed rgba(255, 255, 255, 0.3);
+        padding-bottom: 2px;
+      }
+
+      .footer a:hover {
+        color: #fff;
+        border-bottom-color: #fff;
+      }
     </style>
   </head>
   <body>
     <div class="grid" id="app-grid">
     </div>
+    <footer class="footer">
+      <a href="/ca.crt" download>🔐 Install Local CA Certificate</a>
+    </footer>
     <script>
-      const ALT_PORT = '80';
       const apps = [
         {
           name: 'Plex',
@@ -393,7 +419,6 @@
       function updateAllStatuses() {
         if (socket && socket.readyState === WebSocket.OPEN) {
             apps.forEach((app, index) => {
-                // Stagger slightly just to be nice, though Async can handle it
                 setTimeout(() => {
                     socket.send(JSON.stringify({
                         name: app.name,
@@ -404,10 +429,7 @@
         }
       }
 
-      // Initialize connection
       connectWebSocket();
-
-      // Poll every 30 seconds via WS
       setInterval(updateAllStatuses, 30000);
     </script>
   </body>

@@ -42,5 +42,7 @@ nodes:
         containerPath: /mnt/scripts
       - hostPath: ${DOWNLOADS_PATH}
         containerPath: /mnt/downloads
+      - hostPath: ${CERTS_PATH}
+        containerPath: /mnt/ssl
       - hostPath: ${CONFIGS_PATH}/kind/resolv.conf
         containerPath: /etc/kubernetes/resolv.conf
