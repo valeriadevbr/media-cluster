@@ -9,7 +9,7 @@ BOOTSTRAP_PATH="${K8S_PATH}/bootstrap"
 echo "${BOOTSTRAP_PATH}"
 
 if [ -d "$BOOTSTRAP_PATH" ]; then
-  echo "🚀 Iniciando Bootstrap do Cluster..."
+  echo "🚀 Iniciando Bootstrap dos Clusters..."
   for script in $(ls "$BOOTSTRAP_PATH"/*.sh | sort); do
     if [ -x "$script" ] || [ "${script##*.}" == "sh" ]; then
       echo "--------------------------------------------------"

@@ -6,25 +6,27 @@ subst_manifest() {
 
 apply_k8s_file() {
   local file="$1"
+  local cluster_name="${2:-$MEDIA_CLUSTER_NAME}"
   if [[ "$file" == *"crd"* ]]; then
-    echo "Applying CRD with server-side apply: $file"
-    subst_manifest "$file" | kubectl apply --server-side -f -
+    echo "Applying CRD with server-side apply: $file (Cluster: $cluster_name)"
+    subst_manifest "$file" | kubectl apply --context="kind-${cluster_name}" --server-side -f -
   else
-    subst_manifest "$file" | kubectl apply -f -
+    subst_manifest "$file" | kubectl apply --context="kind-${cluster_name}" -f -
   fi
 }
 
 apply_with_subst() {
   local target="$1"
+  local cluster_name="${2:-$MEDIA_CLUSTER_NAME}"
   if [ -d "$target" ]; then
     for file in "$target"*.yaml; do
       if [[ "$file" == *".conditional.yaml" ]]; then
         continue
       fi
-      apply_k8s_file "$file"
+      apply_k8s_file "$file" "$cluster_name"
     done
   elif [ -f "$target" ]; then
-    apply_k8s_file "$target"
+    apply_k8s_file "$target" "$cluster_name"
   else
     echo "Warning: '$target' is not a valid file or directory"
   fi
@@ -35,11 +37,13 @@ create_tls_secret() {
   local namespace="$2"
   local cert="$3"
   local key="$4"
+  local cluster_name="${5:-$MEDIA_CLUSTER_NAME}"
+
   kubectl create secret tls "$secret_name" \
     --namespace "$namespace" \
     --cert="$cert" \
     --key="$key" \
-    --dry-run=client -o yaml | kubectl apply -f -
+    --dry-run=client -o yaml | kubectl apply --context="kind-${cluster_name}" -f -
 }
 
 build_and_load_image() {

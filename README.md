@@ -1,27 +1,34 @@
 # Media Cluster
 
-Uma stack completa de servidor de mídia baseada em Kubernetes rodando no Kind (Kubernetes in Docker). Este projeto automatiza o deploy de uma suíte de mídia completa incluindo Plex, Emby, a stack *Arr (Sonarr, Radarr, Lidarr, etc.) e ferramentas de download.
+Uma stack completa de servidor de mídia baseada em Kubernetes rodando em **Dual Cluster** no Kind (Kubernetes in Docker). Este projeto automatiza o deploy de uma suíte de mídia completa, separando serviços de infraestrutura crítica (DNS) das aplicações de média.
+
+## 🏗 Arquitetura
+
+O ambiente é dividido em dois clusters Kind para garantir resiliência do DNS local:
+1.  **`infra-cluster`**: Roda serviços essenciais de rede e DNS (BIND). Garante que a resolução de nomes `.media.lan` continue funcionando mesmo que o cluster de mídia seja reiniciado.
+2.  **`media-cluster`**: Roda as aplicações (Plex, Emby, *Arrs, Traefik).
 
 ## 📁 Estrutura do Projeto
 
 - **`setup/`**: Scripts de inicialização e manifestos Kubernetes.
-  - `k8s/bootstrap/`: Scripts para criar o cluster Kind e instalar dependências.
-  - `k8s/`: Manifestos Kubernetes para infraestrutura core e aplicações.
+  - `k8s/`
+    - `bootstrap/`: Scripts para criar os clusters (`01-cluster-infra.sh`, `02-cluster-media.sh`).
+    - `infra/`: Manifestos do cluster Infra (Core, Storage, DNS).
+    - `media/`: Manifestos do cluster Media (Core, Ingress, Apps).
+    - `apply-*.sh`: Scripts para aplicar resources em cada cluster.
+    - `unload-*.sh`: Scripts para destruição graciosa.
   - `includes/`: Scripts utilitários compartilhados.
-- **`scripts/`**: Scripts de automação para gerenciamento de mídia (pós-processamento, transcode, etc.).
-- **`configs/`**: Arquivos de configuração persistentes para aplicações.
+- **`scripts/`**: Scripts de automação para gerenciamento de mídia.
+- **`configs/`**: Arquivos de configuração persistentes.
 - **`ssl/`**: Certificados SSL.
 
 ## 🚀 Começando
 
 ### Pré-requisitos
-
 - Docker
 - macOS ou Linux
-- `git`
-- `curl`
-
-Os scripts de bootstrap tentarão instalar outras dependências como `kind`, `helm`, `kubectl` e `yq`.
+- `git`, `curl`
+- (Opcional) `kind`, `helm`, `kubectl` (os scripts tentam instalar se necessário)
 
 ### 1. Configuração
 
@@ -33,40 +40,63 @@ nano setup/.env
 ```
 
 **Variáveis Importantes:**
-- `MEDIA_SERVERS_IN_CLUSTER`: Defina como `"true"` para rodar Plex/Emby como pods dentro do cluster. Defina como `"false"` (padrão) para rotear o tráfego para instâncias externas (ex: Docker nativo).
-- `MEDIA_PATH`: Caminho para sua biblioteca de mídia no host.
-- `DOWNLOADS_PATH`: Caminho para sua pasta de downloads no host.
+- `MEDIA_SERVERS_IN_CLUSTER`: `"true"` para rodar Plex/Emby no cluster, `"false"` (padrão) para rotear para instâncias externas.
+- `MEDIA_PATH`: Caminho sua biblioteca de mídia no host.
+- `DOWNLOADS_PATH`: Caminho para downloads no host.
 
-### 2. Bootstrap do Cluster
+### 2. Quick Start (Recomendado)
 
-Execute o script de criação do cluster. Isso verificará as ferramentas, criará o cluster Kind e configurará a rede (incluindo mapeamento de portas para os servidores de mídia configurados).
-
-```bash
-./setup/k8s/bootstrap/01-cluster.sh
-```
-
-**Nota:** Se você alterar `MEDIA_SERVERS_IN_CLUSTER` depois, você deve recriar o cluster (`kind delete cluster --name media-cluster` e rodar o script novamente).
-
-### 3. Deploy das Aplicações
-
-Faça o deploy da infraestrutura (Traefik, DNS, Storage) e Aplicações (*Arrs, Plex, Emby):
+O script `init.sh` automatiza todo o processo: cria os clusters, configura a infraestrutura e faz o deploy das aplicações.
 
 ```bash
-./setup/k8s/apply-all.sh
+./setup/init.sh
 ```
 
-Este script detecta automaticamente sua configuração de `MEDIA_SERVERS_IN_CLUSTER` e aplica os manifestos apropriados.
+### 3. Instalação Manual (Passo a Passo)
+
+Se preferir rodar etapa por etapa:
+
+**Passo 1: Bootstrap dos Clusters (Infra & Media)**
+```bash
+./setup/k8s/setup.sh
+```
+Isso roda `01-cluster-infra.sh` (cria infra e instala DNS) e `02-cluster-media.sh` (cria media cluster).
+
+**Passo 2: Deploy das Aplicações de Mídia**
+```bash
+./setup/k8s/apply-media.sh
+```
 
 ## 🛠️ Gerenciamento
 
-- **Aplicar arquivo específico**: `./setup/k8s/apply.sh <arquivo.yaml>`
-- **Verificar Pods**: `kubectl get pods -n media`
-- **Acessar Serviços**:
-  - Traefik Dashboard: `traefik.media.lan` (se configurado no hosts)
-  - Apps: Expostos via IngressRoutes ou NodePorts definidos no `kind-config.yaml`.
+- **Aplicar Manifesto**:
+  ```bash
+  # Media Cluster (Padrão)
+  ./setup/k8s/apply.sh <arquivo.yaml>
+
+  # Infra Cluster
+  ./setup/k8s/apply.sh <arquivo.yaml> "$INFRA_CLUSTER_NAME"
+  ```
+- **Verificar Pods**:
+  ```bash
+  kubectl get pods -n media --context kind-media-cluster
+  kubectl get pods -n infra --context kind-infra-cluster
+  ```
+
+## 🧹 Unload / Destruição
+
+Para destruir os ambientes (graceful shutdown):
+
+- **Destruir TUDO**:
+  ```bash
+  ./setup/k8s/unload.sh
+  ```
+- **Destruir apenas Media**: `./setup/k8s/unload-media.sh`
+- **Destruir apenas Infra**: `./setup/k8s/unload-infra.sh`
 
 ## 🧩 Funcionalidades
 
-- **Deploy Condicional**: Rode servidores de mídia pesados (Plex/Emby) dentro ou fora do cluster de forma transparente.
-- **Bootstrap Automatizado**: Dependências e configuração do cluster são gerenciadas principalmente por scripts.
-- **Integração Kind**: Otimizado para desenvolvimento local/home lab com montagens HostPath para mídia.
+- **DNS Resiliente**: DNS separado em cluster dedicado.
+- **Deploy Condicional**: Plex/Emby dentro ou fora do cluster.
+- **Automação Completa**: Scripts idempotentes para setup e teardown.
+- **Integração Desktop**: Ajustes automáticos de PF (Packet Filter) no macOS para roteamento de rede.

@@ -111,29 +111,29 @@ spec:
         app: default-backend
     spec:
       containers:
-      - name: nginx
-        image: nginx:alpine
-        ports:
-        - containerPort: 80
-        volumeMounts:
-        - name: html-volume
-          mountPath: /usr/share/nginx/html
-        - name: config-volume
-          mountPath: /etc/nginx/conf.d/default.conf
-          subPath: default.conf
+        - name: nginx
+          image: nginx:alpine
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: html-volume
+              mountPath: /usr/share/nginx/html
+            - name: config-volume
+              mountPath: /etc/nginx/conf.d/default.conf
+              subPath: default.conf
       volumes:
-      - name: html-volume
-        configMap:
-          name: default-backend-html
-          items:
-            - key: index.html
-              path: index.html
-      - name: config-volume
-        configMap:
-          name: default-backend-html
-          items:
-            - key: default.conf
-              path: default.conf
+        - name: html-volume
+          configMap:
+            name: default-backend-html
+            items:
+              - key: index.html
+                path: index.html
+        - name: config-volume
+          configMap:
+            name: default-backend-html
+            items:
+              - key: default.conf
+                path: default.conf
 ---
 apiVersion: v1
 kind: Service
@@ -144,8 +144,8 @@ spec:
   selector:
     app: default-backend
   ports:
-  - port: 80
-    targetPort: 80
+    - port: 80
+      targetPort: 80
 ---
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute

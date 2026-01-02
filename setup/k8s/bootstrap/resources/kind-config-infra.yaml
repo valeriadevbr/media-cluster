@@ -1,0 +1,27 @@
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+  - role: control-plane
+    kubeadmConfigPatches:
+      - |
+        kind: ClusterConfiguration
+        apiServer:
+          extraArgs:
+            service-node-port-range: 1-65535
+      - |
+        kind: KubeletConfiguration
+        resolvConf: "/etc/kubernetes/resolv.conf"
+    extraPortMappings:
+      - containerPort: 53 # DNS TCP
+        hostPort: 53
+        protocol: TCP
+      - containerPort: 53 # DNS UDP
+        hostPort: 53
+        protocol: UDP
+    extraMounts:
+      - hostPath: ${CONFIGS_PATH}
+        containerPath: /mnt/configs
+      - hostPath: ${SCRIPTS_PATH}
+        containerPath: /mnt/scripts
+      - hostPath: ${CONFIGS_PATH}/kind/resolv.conf
+        containerPath: /etc/kubernetes/resolv.conf
