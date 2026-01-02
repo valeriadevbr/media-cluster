@@ -14,7 +14,9 @@ LOG_FILE="/tmp/arr-import-transcode.log"
 
 if [[ ! -f "$LOG_FILE" ]]; then
   touch "$LOG_FILE"
-  chown "${PUID}:${PGID}" "$LOG_FILE" 2>/dev/null || true
+  if [[ -n "$PUID" && -n "$PGID" ]]; then
+    chown "${PUID}:${PGID}" "$LOG_FILE" 2>/dev/null || true
+  fi
   chmod 666 "$LOG_FILE"
 fi
 
@@ -26,8 +28,8 @@ exec 3>&1
 
 log_msg() {
   local msg="$1"
-  local ts="[$(date '+%Y-%m-%d %H:%M:%S')]"
-  echo "$ts $msg" | tee -a "$LOG_FILE" >&3
+  local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+  printf "[%s] %s\n" "$timestamp" "$msg" | tee -a "$LOG_FILE" >&3
 }
 
 check_dependencies() {
@@ -37,142 +39,6 @@ check_dependencies() {
       exit 1
     fi
   done
-}
-
-get_subtitles_to_remove() {
-  local file="$1"
-  local langs_3c=()
-  local langs_ietf=()
-  IFS=',' read -ra langs <<<"$KEEP_LANGS"
-  for lang in "${langs[@]}"; do
-    lang_lower=$(echo "$lang" | tr '[:upper:]' '[:lower:]')
-    [[ ${#lang_lower} -eq 3 ]] && langs_3c+=("$lang_lower") || langs_ietf+=("$lang_lower")
-  done
-  local jq_filter=".tracks[] | select(.type == \"subtitles\")"
-  local conditions=()
-  if [[ ${#langs_3c[@]} -gt 0 ]]; then
-    local lang_condition=""
-    for lang in "${langs_3c[@]}"; do
-      [[ -z "$lang_condition" ]] && lang_condition="(.properties.language // \"\" | ascii_downcase) != \"$lang\"" || lang_condition="$lang_condition and (.properties.language // \"\" | ascii_downcase) != \"$lang\""
-    done
-    conditions+=("($lang_condition)")
-  fi
-  if [[ ${#langs_ietf[@]} -gt 0 ]]; then
-    local ietf_condition=""
-    for lang in "${langs_ietf[@]}"; do
-      [[ -z "$ietf_condition" ]] && ietf_condition="(.properties.language_ietf // \"\" | ascii_downcase) != \"$lang\"" || ietf_condition="$ietf_condition and (.properties.language_ietf // \"\" | ascii_downcase) != \"$lang\""
-    done
-    conditions+=("($ietf_condition)")
-  fi
-  if [[ ${#conditions[@]} -eq 2 ]]; then
-    jq_filter="$jq_filter | select(${conditions[0]} and ${conditions[1]})"
-  elif [[ ${#conditions[@]} -eq 1 ]]; then
-    jq_filter="$jq_filter | select(${conditions[0]})"
-  fi
-  jq_filter="$jq_filter | select(.properties.language != null and .properties.language != \"unknown\")"
-  jq_filter="$jq_filter | \"\\(.id):\\(.properties.language // \"\"):\\(.properties.track_name // \"\")\""
-  mkvmerge -J "$file" | jq -r "$jq_filter"
-}
-
-log_kept_tracks() {
-  local input_file="$1"
-  local kept_tracks_ids=$(get_track_ids_by_type "$input_file" "subtitles" "keep")
-  if [[ -n "$kept_tracks_ids" ]]; then
-    log_msg ""
-    log_msg "Faixas de legenda mantidas:"
-    local info_json=$(mkvmerge -J "$input_file" 2>/dev/null)
-    for tid in $kept_tracks_ids; do
-      local lang=$(echo "$info_json" | jq -r ".tracks[] | select(.id==$tid and .type==\"subtitles\") | .properties.language // \"\"")
-      local name=$(echo "$info_json" | jq -r ".tracks[] | select(.id==$tid and .type==\"subtitles\") | .properties.track_name // \"\"")
-      if [[ -n "$lang" && "$lang" != "null" ]]; then
-        [[ -n "$name" && "$name" != "null" && "$name" != "unknown" ]] && log_msg "  - Faixa $tid: $lang ($name)" || log_msg "  - Faixa $tid: $lang"
-      else
-        log_msg "  - Faixa $tid: (sem linguagem especificada)"
-      fi
-    done
-  else
-    log_msg "Nenhuma faixa de legenda será mantida."
-  fi
-}
-
-log_removed_tracks() {
-  local input_file="$1"
-  local subs_to_remove=$(get_subtitles_to_remove "$input_file")
-  log_msg ""
-  log_msg "Faixas de legenda a remover:"
-  if [[ -n "$subs_to_remove" ]]; then
-    while IFS=: read -r track_id language track_name; do
-      if [[ -n "$track_id" && "$track_id" =~ ^[0-9]+$ ]]; then
-        [[ -n "$track_name" && "$track_name" != "unknown" && "$track_name" != "" ]] && log_msg "  - Faixa $track_id: $language ($track_name)" || log_msg "  - Faixa $track_id: $language"
-      fi
-    done <<<"$subs_to_remove"
-  fi
-}
-
-get_track_ids_by_type() {
-  local file="$1"
-  local track_type="$2"
-  local language_filter="$3"
-
-  if [[ "$language_filter" == "keep" ]]; then
-    local langs_3c=()
-    local langs_ietf=()
-    IFS=',' read -ra keep_array <<<"$KEEP_LANGS"
-    for lang in "${keep_array[@]}"; do
-      lang_lower=$(echo "$lang" | tr '[:upper:]' '[:lower:]')
-      if [[ ${#lang_lower} -eq 3 ]]; then
-        langs_3c+=("$lang_lower")
-      elif [[ ${#lang_lower} -ge 2 ]]; then
-        langs_ietf+=("$lang_lower")
-      fi
-    done
-
-    local jq_filter=".tracks[] | select(.type == \"$track_type\")"
-    local conditions=()
-
-    if [[ ${#langs_3c[@]} -gt 0 ]]; then
-      local lang_condition=""
-      for lang in "${langs_3c[@]}"; do
-        if [[ -z "$lang_condition" ]]; then
-          lang_condition="(.properties.language // \"\" | ascii_downcase) == \"$lang\""
-        else
-          lang_condition="$lang_condition or (.properties.language // \"\" | ascii_downcase) == \"$lang\""
-        fi
-      done
-      conditions+=("($lang_condition)")
-    fi
-
-    if [[ ${#langs_ietf[@]} -gt 0 ]]; then
-      local ietf_condition=""
-      for lang in "${langs_ietf[@]}"; do
-        if [[ -z "$ietf_condition" ]]; then
-          ietf_condition="(.properties.language_ietf // \"\" | ascii_downcase) == \"$lang\""
-        else
-          ietf_condition="$ietf_condition or (.properties.language_ietf // \"\" | ascii_downcase) == \"$lang\""
-        fi
-      done
-      conditions+=("($ietf_condition)")
-    fi
-
-    if [[ ${#conditions[@]} -eq 2 ]]; then
-      jq_filter="$jq_filter | select(${conditions[0]} or ${conditions[1]})"
-    elif [[ ${#conditions[@]} -eq 1 ]]; then
-      jq_filter="$jq_filter | select(${conditions[0]})"
-    else
-      jq_filter="$jq_filter | select(false)"
-    fi
-
-    jq_filter="$jq_filter | select(.properties.language != null and .properties.language != \"unknown\")"
-    jq_filter="$jq_filter | \"\\(.id)\""
-
-    mkvmerge -J "$file" | jq -r "$jq_filter"
-  else
-    mkvmerge -J "$file" | jq -r --arg type "$track_type" '
-            .tracks[] |
-            select(.type == $type) |
-            "\(.id)"
-        '
-  fi
 }
 
 # ================================================
@@ -200,22 +66,109 @@ if [[ ! -f "$INPUT_FILE" ]]; then
   exit 2
 fi
 
-# 2. Construir Comando MKVMerge
-log_kept_tracks "$INPUT_FILE"
-log_removed_tracks "$INPUT_FILE"
+# 2. Análise de Faixas (Single Pass)
+log_msg "🔍 Analisando faixas..."
 
-VIDEO_TRACKS=$(get_track_ids_by_type "$INPUT_FILE" "video" "all" | tr '\n' ',' | sed 's/,$//')
-AUDIO_TRACKS=$(get_track_ids_by_type "$INPUT_FILE" "audio" "all" | tr '\n' ',' | sed 's/,$//')
-SUB_TRACKS=$(get_track_ids_by_type "$INPUT_FILE" "subtitles" "keep" | tr '\n' ',' | sed 's/,$//')
+# Prepara lista de idiomas permitidos para o JQ
+IFS=',' read -ra LANGS_ARRAY <<<"$KEEP_LANGS"
+JSON_LANGS=$(printf '%s\n' "${LANGS_ARRAY[@]}" | jq -R . | jq -s 'map(ascii_downcase)')
+
+# Extrai metadados de TODAS as faixas de áudio e legenda de uma vez
+# Formato de saída por linha: ID|TYPE|LANG|IETF|NAME|IS_PREFERRED
+TRACKS_DATA=$(mkvmerge -J "$INPUT_FILE" | jq -r --argjson langs "$JSON_LANGS" '
+  .tracks[]
+  | select(.type == "audio" or .type == "subtitles")
+  | . as $t
+  | (.properties.language // "") as $lang
+  | (.properties.language_ietf // "") as $ietf
+  | (($lang | ascii_downcase) as $l | $l | IN($langs[])) or
+    (($ietf | ascii_downcase) as $i | $i | IN($langs[])) as $is_pref
+  | [ $t.id, $t.type, $lang, $ietf, ($t.properties.track_name // ""), $is_pref ]
+  | @tsv
+')
+
+# Arrays para armazenar decisões
+declare -a audio_all audio_keep audio_logs
+declare -a sub_all sub_keep sub_logs
+
+# Processa linha a linha a saída do JQ
+while IFS=$'\t' read -r id type lang ietf name is_pref; do
+  # Formata nome para log: language language_ietf (track_name)
+  display_name="${lang}"
+  [[ -n "$ietf" ]] && display_name="${display_name}/${ietf}"
+  [[ -n "$name" ]] && display_name="${display_name} (${name})"
+
+  if [[ "$type" == "audio" ]]; then
+    audio_all+=("$id")
+    if [[ "$is_pref" == "true" ]]; then
+      audio_keep+=("$id")
+      audio_logs+=("  - [MANTIDO] Faixa $id: $display_name")
+    else
+      audio_logs+=("  - [REMOVIDO] Faixa $id: $display_name")
+    fi
+  elif [[ "$type" == "subtitles" ]]; then
+    sub_all+=("$id")
+    if [[ "$is_pref" == "true" ]]; then
+      sub_keep+=("$id")
+      sub_logs+=("  - [MANTIDO] Faixa $id: $display_name")
+    else
+      sub_logs+=("  - [REMOVIDO] Faixa $id: $display_name")
+    fi
+  fi
+done <<<"$TRACKS_DATA"
+
+# 3. Lógica de Fallback de Áudio
+# Se havia áudio, mas nenhum foi selecionado (nenhum match de idioma), mantém TODOS.
+if [[ ${#audio_all[@]} -gt 0 && ${#audio_keep[@]} -eq 0 ]]; then
+  log_msg "⚠️  Aviso: Nenhum áudio corresponde aos idiomas preferidos ($KEEP_LANGS)."
+  log_msg "   -> ATIVANDO FALLBACK: Mantendo todas as faixas de áudio para evitar arquivo mudo."
+
+  # Reseta lista de keep para all
+  audio_keep=("${audio_all[@]}")
+
+  # Regenera logs de áudio para refletir a decisão
+  audio_logs=()
+  while IFS=$'\t' read -r id type lang ietf name is_pref; do
+    if [[ "$type" == "audio" ]]; then
+      display_name="${lang}"
+      [[ -n "$ietf" ]] && display_name="${display_name}/${ietf}"
+      [[ -n "$name" ]] && display_name="${display_name} (${name})"
+      audio_logs+=("  - [FALLBACK] Faixa $id: $display_name")
+    fi
+  done <<<"$TRACKS_DATA"
+fi
+
+# 4. Exibe Logs Agrupados e Ordenados
+if [[ ${#audio_logs[@]} -gt 0 ]]; then
+  log_msg "🔊 Áudio:"
+  printf "%s\n" "${audio_logs[@]}" | sort -k 2,2 -k 5
+fi
+
+if [[ ${#sub_logs[@]} -gt 0 ]]; then
+  log_msg "💬 Legendas:"
+  printf "%s\n" "${sub_logs[@]}" | sort -k 2,2 -k 5
+fi
+
+# 5. Constrói Comando Final
+VIDEO_TRACKS=$(mkvmerge -J "$INPUT_FILE" | jq -r '.tracks[] | select(.type=="video") | .id' | tr '\n' ',' | sed 's/,$//')
+AUDIO_IDS=$(
+  IFS=,
+  echo "${audio_keep[*]}"
+)
+SUB_IDS=$(
+  IFS=,
+  echo "${sub_keep[*]}"
+)
 
 MKV_CMD="nice -n 19 mkvmerge -o \"$OUTPUT_FILE\""
 [[ -n "$VIDEO_TRACKS" ]] && MKV_CMD="$MKV_CMD -d $VIDEO_TRACKS" || MKV_CMD="$MKV_CMD -D"
-[[ -n "$AUDIO_TRACKS" ]] && MKV_CMD="$MKV_CMD -a $AUDIO_TRACKS" || MKV_CMD="$MKV_CMD -A"
-[[ -n "$SUB_TRACKS" ]] && MKV_CMD="$MKV_CMD -s $SUB_TRACKS" || MKV_CMD="$MKV_CMD -S"
+[[ -n "$AUDIO_IDS" ]] && MKV_CMD="$MKV_CMD -a $AUDIO_IDS" || MKV_CMD="$MKV_CMD -A"
+[[ -n "$SUB_IDS" ]] && MKV_CMD="$MKV_CMD -s $SUB_IDS" || MKV_CMD="$MKV_CMD -S"
 MKV_CMD="$MKV_CMD \"$INPUT_FILE\""
 
-# 3. Execução
+# 6. Execução
 mkdir -p "$(dirname "$OUTPUT_FILE")"
+log_msg ""
 log_msg "⚙️  Executando mkvmerge..."
 
 eval "$MKV_CMD"

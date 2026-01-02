@@ -1,0 +1,110 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lingarr
+  namespace: media
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lingarr
+  template:
+    metadata:
+      labels:
+        app: lingarr
+    spec:
+      containers:
+        - name: lingarr
+          image: lingarr/lingarr:latest
+          ports:
+            - containerPort: 9876
+              name: lingarr
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "50m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          livenessProbe:
+            tcpSocket:
+              port: 9876
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            failureThreshold: 3
+          readinessProbe:
+            tcpSocket:
+              port: 9876
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+          env:
+            - name: ASPNETCORE_URLS
+              value: "http://+:9876"
+            - name: PUID
+              value: "${PUID}"
+            - name: PGID
+              value: "${PGID}"
+            - name: MAX_CONCURRENT_JOBS
+              value: "1"
+            - name: TZ
+              value: "America/Sao_Paulo"
+          volumeMounts:
+            - name: configs
+              mountPath: /app/config
+              subPath: lingarr
+            - name: media
+              mountPath: /media
+      volumes:
+        - name: configs
+          persistentVolumeClaim:
+            claimName: configs-pvc
+        - name: media
+          persistentVolumeClaim:
+            claimName: media-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: lingarr
+  namespace: media
+spec:
+  selector:
+    app: lingarr
+  ports:
+    - port: 9876
+      targetPort: 9876
+  type: ClusterIP
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: lingarr-lan
+  namespace: media
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`lingarr.media.lan`)
+      kind: Rule
+      services:
+        - name: lingarr
+          port: 9876
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: lingarr-lan-http
+  namespace: media
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: Host(`lingarr.media.lan`)
+      kind: Rule
+      middlewares:
+        - name: https-redirect
+          namespace: media
+      services:
+        - name: lingarr
+          port: 9876
