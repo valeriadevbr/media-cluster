@@ -51,16 +51,10 @@ spec:
             - name: content
               subPath: dashboard/nginx/default.conf
               mountPath: /etc/nginx/conf.d/default.conf
-            - name: cert
-              subPath: ca/ca.crt
-              mountPath: /usr/share/nginx/ca/ca.crt
       volumes:
         - name: content
           persistentVolumeClaim:
             claimName: configs-pvc
-        - name: cert
-          persistentVolumeClaim:
-            claimName: certs-pvc
 ---
 apiVersion: v1
 kind: Service
@@ -85,7 +79,7 @@ spec:
     - web
     - websecure
   routes:
-    - match: Host(`dashboard.media.lan`)
+    - match: Host(`dashboard.media.lan`) || Host(`dashboard.media.${WAN_HOSTNAME}`)
       kind: Rule
       services:
         - name: dashboard

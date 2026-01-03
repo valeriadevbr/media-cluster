@@ -8,8 +8,21 @@ set +a
 sudo certbot certonly --standalone \
   -d "$WAN_HOSTNAME" \
   -d "www.$WAN_HOSTNAME" \
-  -d "plex.$WAN_HOSTNAME" \
-  -d "emby.$WAN_HOSTNAME"
+  -d "media.$WAN_HOSTNAME" \
+  -d "bazarr.media.$WAN_HOSTNAME" \
+  -d "dashboard.media.$WAN_HOSTNAME" \
+  -d "emby.media.$WAN_HOSTNAME" \
+  -d "jackett.media.$WAN_HOSTNAME" \
+  -d "lidarr.media.$WAN_HOSTNAME" \
+  -d "lingarr.media.$WAN_HOSTNAME" \
+  -d "plex.media.$WAN_HOSTNAME" \
+  -d "profilarr.media.$WAN_HOSTNAME" \
+  -d "prowlarr.media.$WAN_HOSTNAME" \
+  -d "qbittorrent.media.$WAN_HOSTNAME" \
+  -d "radarr.media.$WAN_HOSTNAME" \
+  -d "slskd.media.$WAN_HOSTNAME" \
+  -d "sonarr.media.$WAN_HOSTNAME" \
+  -d "traefik.media.$WAN_HOSTNAME"
 
 LE_DIR="/etc/letsencrypt/live/$WAN_HOSTNAME"
 DEST_DIR="$CERTS_PATH/wan"

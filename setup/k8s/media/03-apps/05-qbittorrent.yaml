@@ -106,7 +106,7 @@ spec:
     - web
     - websecure
   routes:
-    - match: Host(`qbittorrent.media.lan`)
+    - match: Host(`qbittorrent.media.lan`) || Host(`qbittorrent.media.${WAN_HOSTNAME}`)
       kind: Rule
       services:
         - name: qbittorrent

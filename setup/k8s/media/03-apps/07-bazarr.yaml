@@ -80,7 +80,7 @@ spec:
   entryPoints:
     - websecure
   routes:
-    - match: Host(`bazarr.media.lan`)
+    - match: Host(`bazarr.media.lan`) || Host(`bazarr.media.${WAN_HOSTNAME}`)
       kind: Rule
       services:
         - name: bazarr
@@ -95,7 +95,7 @@ spec:
   entryPoints:
     - web
   routes:
-    - match: Host(`bazarr.media.lan`)
+    - match: Host(`bazarr.media.lan`) || Host(`bazarr.media.${WAN_HOSTNAME}`)
       kind: Rule
       middlewares:
         - name: https-redirect

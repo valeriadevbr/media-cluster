@@ -96,7 +96,7 @@ spec:
   entryPoints:
     - websecure
   routes:
-    - match: Host(`slskd.media.lan`)
+    - match: Host(`slskd.media.lan`) || Host(`slskd.media.${WAN_HOSTNAME}`)
       kind: Rule
       services:
         - name: slskd
@@ -111,7 +111,7 @@ spec:
   entryPoints:
     - web
   routes:
-    - match: Host(`slskd.media.lan`)
+    - match: Host(`slskd.media.lan`) || Host(`slskd.media.${WAN_HOSTNAME}`)
       kind: Rule
       middlewares:
         - name: https-redirect

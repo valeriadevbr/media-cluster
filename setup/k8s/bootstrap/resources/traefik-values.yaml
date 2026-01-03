@@ -53,7 +53,7 @@ api:
 ingressRoute:
   dashboard:
     enabled: true
-    matchRule: Host(`traefik.media.lan`)
+    matchRule: Host(`traefik.media.lan`) || Host(`traefik.media.${WAN_HOSTNAME}`)
     entryPoints:
       - websecure
 

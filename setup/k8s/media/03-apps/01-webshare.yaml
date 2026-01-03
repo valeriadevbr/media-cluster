@@ -44,7 +44,7 @@ spec:
             - name: EXTRA_CONFIG
               value: |
                 auth iponly
-                allow * * *.media.lan * *
+                allow * * *.media.apedamo.mywire.org * *
                 allow * * *.plex.direct * *
                 allow * * 10.96.0.0/16 * *
                 parent 1000 connect+ 0.0.0.0 0

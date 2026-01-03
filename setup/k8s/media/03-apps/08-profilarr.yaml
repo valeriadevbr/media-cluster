@@ -75,7 +75,7 @@ spec:
   entryPoints:
     - websecure
   routes:
-    - match: Host(`profilarr.media.lan`)
+    - match: Host(`profilarr.media.lan`) || Host(`profilarr.media.${WAN_HOSTNAME}`)
       kind: Rule
       services:
         - name: profilarr
@@ -90,7 +90,7 @@ spec:
   entryPoints:
     - web
   routes:
-    - match: Host(`profilarr.media.lan`)
+    - match: Host(`profilarr.media.lan`) || Host(`profilarr.media.${WAN_HOSTNAME}`)
       kind: Rule
       middlewares:
         - name: https-redirect

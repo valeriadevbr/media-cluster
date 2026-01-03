@@ -85,7 +85,7 @@ spec:
   entryPoints:
     - websecure
   routes:
-    - match: Host(`lingarr.media.lan`)
+    - match: Host(`lingarr.media.lan`) || Host(`lingarr.media.${WAN_HOSTNAME}`)
       kind: Rule
       services:
         - name: lingarr
@@ -100,7 +100,7 @@ spec:
   entryPoints:
     - web
   routes:
-    - match: Host(`lingarr.media.lan`)
+    - match: Host(`lingarr.media.lan`) || Host(`lingarr.media.${WAN_HOSTNAME}`)
       kind: Rule
       middlewares:
         - name: https-redirect

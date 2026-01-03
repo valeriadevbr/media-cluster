@@ -100,7 +100,7 @@ spec:
     - web
     - websecure
   routes:
-    - match: Host(`emby.media.lan`)
+    - match: Host(`emby.media.lan`) || Host(`emby.media.${WAN_HOSTNAME}`)
       kind: Rule
       services:
         - name: emby
@@ -116,7 +116,7 @@ spec:
     - web-wan
     - websecure-wan
   routes:
-    - match: Host(`emby.${WAN_HOSTNAME}`)
+    - match: Host(`emby.media.${WAN_HOSTNAME}`)
       kind: Rule
       services:
         - name: emby

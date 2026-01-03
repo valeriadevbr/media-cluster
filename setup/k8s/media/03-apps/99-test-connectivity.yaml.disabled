@@ -206,22 +206,22 @@ spec:
         app: connectivity-monitor
     spec:
       containers:
-      - name: python
-        image: python:3.11-alpine
-        command: ["python3", "-u", "/app/server.py"]
-        ports:
-        - containerPort: 8000
-        resources:
-          limits:
-            memory: "64Mi"
-            cpu: "50m"
-        volumeMounts:
-        - name: script-volume
-          mountPath: /app
+        - name: python
+          image: python:3.11-alpine
+          command: ["python3", "-u", "/app/server.py"]
+          ports:
+            - containerPort: 8000
+          resources:
+            limits:
+              memory: "64Mi"
+              cpu: "50m"
+          volumeMounts:
+            - name: script-volume
+              mountPath: /app
       volumes:
-      - name: script-volume
-        configMap:
-          name: connectivity-monitor-script
+        - name: script-volume
+          configMap:
+            name: connectivity-monitor-script
 
 ---
 apiVersion: v1
@@ -233,28 +233,21 @@ spec:
   selector:
     app: connectivity-monitor
   ports:
-  - port: 8000
-    targetPort: 8000
+    - port: 8000
+      targetPort: 8000
 ---
-apiVersion: networking.k8s.io/v1
-kind: Ingress
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
 metadata:
   name: connectivity-monitor
   namespace: media
 spec:
-  ingressClassName: traefik
-  tls:
-  - hosts:
-    - "test.media.lan"
-    secretName: media-lan-tls
-  rules:
-  - host: "test.media.lan"
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: connectivity-monitor
-            port:
-              number: 8000
+  entryPoints:
+    - web
+    - websecure
+  routes:
+    - match: Host(`test.media.lan`) || Host(`test.media.${WAN_HOSTNAME}`)
+      kind: Rule
+      services:
+        - name: connectivity-monitor
+          port: 8000

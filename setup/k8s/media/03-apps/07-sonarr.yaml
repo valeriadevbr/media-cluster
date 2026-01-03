@@ -97,7 +97,7 @@ spec:
   entryPoints:
     - websecure
   routes:
-    - match: Host(`sonarr.media.lan`)
+    - match: Host(`sonarr.media.lan`) || Host(`sonarr.media.${WAN_HOSTNAME}`)
       kind: Rule
       services:
         - name: sonarr
@@ -112,7 +112,7 @@ spec:
   entryPoints:
     - web
   routes:
-    - match: Host(`sonarr.media.lan`)
+    - match: Host(`sonarr.media.lan`) || Host(`sonarr.media.${WAN_HOSTNAME}`)
       kind: Rule
       middlewares:
         - name: https-redirect

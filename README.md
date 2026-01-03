@@ -22,6 +22,24 @@ O ambiente é dividido em dois clusters Kind para garantir resiliência do DNS l
 - **`configs/`**: Arquivos de configuração persistentes.
 - **`ssl/`**: Certificados SSL.
 
+## 🔒 Segurança & Certificados
+
+O projeto utiliza uma estratégia híbrida de certificados para garantir segurança e confiança tanto em redes internas quanto externas:
+
+1.  **LAN (Interno)**:
+    - Utiliza uma **CA (Certificado de Autoridade) Local**.
+    - Os certificados para `*.media.lan` são gerados e assinados por essa CA.
+    - *Script*: `setup/utils/gen-lan-ssl-cert.sh`
+
+2.  **WAN (Externo)**:
+    - Utiliza certificados reais (geralmente Let's Encrypt / Certbot) gerados manualmente via script.
+    - O certificado inclui todos os subdomínios necessários (`plex`, `emby`, `dashboard`, etc.) como SANs (Subject Alternative Names).
+    - *Script*: `setup/utils/gen-wan-ssl-cert.sh` - Gera o certificado incluindo todos os hosts configurados no `.env`.
+
+3.  **Isolamento de EntryPoints**:
+    - O **Traefik** é configurado para não expor portas WAN (`44000`, `44300`) por padrão.
+    - Apenas IngressRoutes que explicitamente solicitam esses EntryPoints são expostos externamente, prevenindo vazamento acidental de serviços internos.
+
 ## 🚀 Começando
 
 ### Pré-requisitos
@@ -100,3 +118,16 @@ Para destruir os ambientes (graceful shutdown):
 - **Deploy Condicional**: Plex/Emby dentro ou fora do cluster.
 - **Automação Completa**: Scripts idempotentes para setup e teardown.
 - **Integração Desktop**: Ajustes automáticos de PF (Packet Filter) no macOS para roteamento de rede.
+- **Isolamento de EntryPoints**: Serviços internos protegidos contra exposição acidental na WAN.
+- **Roteamento Split-Horizon**: Resolução de DNS interna otimizada com Bind9.
+
+## 🧪 Testes & Verificação
+
+Scripts e manifestos utilitários para validar a saúde do cluster:
+
+- **Monitor de Conectividade**:
+    - `setup/k8s/media/03-apps/99-test-connectivity.yaml.disabled`
+    - Remove o sufixo `.disabled` e aplique para criar um pod que monitora a latência interna e externa e plota gráficos em tempo real.
+- **Servidor de Teste Local**:
+    - `setup/k8s/media/03-apps/99-test-local-server.yaml.disabled`
+    - Um serviço Nginx simples (Whoami style) para validar regras de roteamento e IngressRoutes complexos.

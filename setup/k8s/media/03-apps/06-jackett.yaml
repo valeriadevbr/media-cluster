@@ -75,7 +75,7 @@ spec:
   entryPoints:
     - websecure
   routes:
-    - match: Host(`jackett.media.lan`)
+    - match: Host(`jackett.media.lan`) || Host(`jackett.media.${WAN_HOSTNAME}`)
       kind: Rule
       services:
         - name: jackett
@@ -90,7 +90,7 @@ spec:
   entryPoints:
     - web
   routes:
-    - match: Host(`jackett.media.lan`)
+    - match: Host(`jackett.media.lan`) || Host(`jackett.media.${WAN_HOSTNAME}`)
       kind: Rule
       middlewares:
         - name: https-redirect

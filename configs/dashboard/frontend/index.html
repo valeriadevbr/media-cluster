@@ -1,365 +1,376 @@
-
 <!DOCTYPE html>
 <html lang="pt-br">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/svg+xml" href="icons/favicon.svg" />
-    <title>Media Server Dash</title>
-    <style>
-      :root {
-        --bg-color: #0f1115;
-        --card-bg: rgba(255, 255, 255, 0.05);
-        --card-hover: rgba(255, 255, 255, 0.1);
-        --text-color: #ffffff;
-      }
 
-      body {
-        font-family: "Inter", -apple-system, system-ui, sans-serif;
-        background-color: var(--bg-color);
-        color: var(--text-color);
-        margin: 0;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        min-height: 100vh;
-        background-image: radial-gradient(circle at top right, rgba(29, 35, 48, 0.5) 0%, transparent 40%),
-          radial-gradient(circle at bottom left, rgba(229, 160, 13, 0.05) 0%, transparent 40%);
-      }
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg" />
+  <title>Media Server Dash</title>
+  <style>
+    :root {
+      --bg-color: #0f1115;
+      --card-bg: rgba(255, 255, 255, 0.05);
+      --card-hover: rgba(255, 255, 255, 0.1);
+      --text-color: #ffffff;
+    }
 
+    body {
+      font-family: "Inter", -apple-system, system-ui, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background-image: radial-gradient(circle at top right, rgba(29, 35, 48, 0.5) 0%, transparent 40%),
+        radial-gradient(circle at bottom left, rgba(229, 160, 13, 0.05) 0%, transparent 40%);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 25px;
+      width: 90%;
+      max-width: 1100px;
+      padding: 40px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 24px;
+      padding: 35px 20px;
+      text-align: center;
+      color: var(--text-color);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      backdrop-filter: blur(12px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card:hover {
+      transform: translateY(-8px);
+      background: var(--card-hover);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+      border-color: rgba(255, 255, 255, 0.2);
+      cursor: pointer;
+    }
+
+    .main-link {
+      text-decoration: none;
+      color: inherit;
+      z-index: 1;
+    }
+
+    .main-link::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+    }
+
+    .icon {
+      width: 52px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+      transition: transform 0.3s ease;
+    }
+
+    .icon svg {
+      width: 100%;
+      height: 100%;
+      fill: currentColor;
+      filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+    }
+
+    .card:hover .icon {
+      transform: scale(1.1);
+    }
+
+    h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin: 0;
+      letter-spacing: 0.5px;
+      z-index: 2;
+    }
+
+    .alt-port-dot {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      width: 32px;
+      height: 32px;
+      background-color: rgba(255, 255, 255, 0.15);
+      border-radius: 50%;
+      cursor: pointer;
+      z-index: 10;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: rgba(255, 255, 255, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      text-decoration: none;
+    }
+
+    .alt-port-dot img {
+      width: 12px;
+      height: 12px;
+      margin-bottom: 2px;
+      filter: invert(1);
+      /* Make black icon white */
+      opacity: 0.9;
+      transition: all 0.2s ease;
+    }
+
+    .alt-text {
+      font-size: 0.35rem;
+      /* Reduced font size */
+      font-weight: 800;
+      line-height: 1;
+      opacity: 0.8;
+    }
+
+    .alt-port-dot:hover {
+      background-color: var(--glow-color, #fff);
+      transform: scale(1.1);
+      box-shadow: 0 0 10px var(--glow-color, #fff);
+      color: #000;
+      border-color: transparent;
+    }
+
+    /* Cores Temáticas removidas em favor da geração via JS */
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at center, var(--glow-color), transparent 70%);
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .card:hover::before {
+      opacity: 0.15;
+    }
+
+    @media (max-width: 700px) {
       .grid {
-        display: grid;
         grid-template-columns: repeat(3, 1fr);
-        gap: 25px;
-        width: 90%;
-        max-width: 1100px;
-        padding: 40px;
       }
+    }
 
-      .card {
-        background: var(--card-bg);
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        border-radius: 24px;
-        padding: 35px 20px;
-        text-align: center;
-        color: var(--text-color);
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        backdrop-filter: blur(12px);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 15px;
-        position: relative;
-        overflow: hidden;
+    @media (max-width: 600px) {
+      .grid {
+        grid-template-columns: repeat(2, 1fr);
       }
+    }
 
-      .card:hover {
-        transform: translateY(-8px);
-        background: var(--card-hover);
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-        border-color: rgba(255, 255, 255, 0.2);
-        cursor: pointer;
+    @media (max-width: 380px) {
+      .grid {
+        grid-template-columns: repeat(1, 1fr);
       }
+    }
 
-      .main-link {
-        text-decoration: none;
-        color: inherit;
-        z-index: 1;
-      }
+    .alt-port-dot:hover img {
+      filter: none;
+      opacity: 1;
+      transform: scale(1.1);
+    }
 
-      .main-link::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        z-index: 1;
-      }
+    /* Status Dot Styles */
+    .status-dot {
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background-color: #6b7280;
+      /* Gray - Unknown */
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+      z-index: 5;
+    }
 
-      .icon {
-        width: 52px;
-        height: 52px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 2;
-        transition: transform 0.3s ease;
-      }
+    .status-up {
+      background-color: #22c55e;
+      /* Green */
+      box-shadow: 0 0 8px rgba(34, 197, 94, 0.6);
+    }
 
-      .icon svg {
-        width: 100%;
-        height: 100%;
-        fill: currentColor;
-        filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
-      }
+    .status-down {
+      background-color: #ef4444;
+      /* Red */
+      box-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
+    }
 
-      .card:hover .icon {
-        transform: scale(1.1);
-      }
+    .footer {
+      width: 100%;
+      text-align: center;
+      padding: 20px 0;
+      margin-top: auto;
+      font-size: 0.8rem;
+      color: rgba(255, 255, 255, 0.4);
+      background: rgba(0, 0, 0, 0.2);
+      backdrop-filter: blur(10px);
+    }
 
-      h2 {
-        font-size: 1rem;
-        font-weight: 600;
-        margin: 0;
-        letter-spacing: 0.5px;
-        z-index: 2;
-      }
+    .footer a {
+      color: rgba(255, 255, 255, 0.6);
+      text-decoration: none;
+      transition: color 0.3s;
+      border-bottom: 1px dashed rgba(255, 255, 255, 0.3);
+      padding-bottom: 2px;
+    }
 
-      .alt-port-dot {
-        position: absolute;
-        top: 15px;
-        right: 15px;
-        width: 32px;
-        height: 32px;
-        background-color: rgba(255, 255, 255, 0.15);
-        border-radius: 50%;
-        cursor: pointer;
-        z-index: 10;
-        transition: all 0.2s ease;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        color: rgba(255, 255, 255, 0.9);
-        border: 1px solid rgba(255,255,255,0.05);
-        text-decoration: none;
-      }
+    .footer a:hover {
+      color: #fff;
+      border-bottom-color: #fff;
+    }
+  </style>
+</head>
 
-      .alt-port-dot img {
-        width: 12px;
-        height: 12px;
-        margin-bottom: 2px;
-        filter: invert(1); /* Make black icon white */
-        opacity: 0.9;
-        transition: all 0.2s ease;
-      }
+<body>
+  <div class="grid" id="app-grid">
+  </div>
+  <footer class="footer">
+    <span style="opacity: 0.7;">Coded by <a href="https://github.com/valeriadevbr" target="_blank"
+        rel="noopener noreferrer">Valéria</a></span> -
+    <a href="https://github.com/valeriadevbr/media-cluster" target="_blank" rel="noopener noreferrer">GitHub Project</a>
+  </footer>
+  <script>
+    const apps = [
+      {
+        name: 'Plex',
+        url: 'https://plex.media.apedamo.mywire.org',
+        urlAlt: 'http://plex.media.apedamo.mywire.org',
+        pingUrl: 'http://plex:32400/identity',
+        color: '#e5a00d',
+        icon: 'plex.svg'
+      },
+      {
+        name: 'Emby',
+        url: 'https://emby.media.apedamo.mywire.org',
+        urlAlt: 'http://emby.media.apedamo.mywire.org',
+        pingUrl: 'http://emby:8096/System/Ping',
+        color: '#5dd054',
+        icon: 'emby.svg'
+      },
+      {
+        name: 'Sonarr',
+        url: 'https://sonarr.media.apedamo.mywire.org',
+        urlAlt: 'http://sonarr.media.apedamo.mywire.org',
+        pingUrl: 'http://sonarr:8989/ping',
+        color: '#00c0fa',
+        icon: 'sonarr.svg'
+      },
+      {
+        name: 'Radarr',
+        url: 'https://radarr.media.apedamo.mywire.org',
+        urlAlt: 'http://radarr.media.apedamo.mywire.org',
+        pingUrl: 'http://radarr:7878/ping',
+        color: '#ffc230',
+        icon: 'radarr.svg'
+      },
+      {
+        name: 'Lidarr',
+        url: 'https://lidarr.media.apedamo.mywire.org',
+        urlAlt: 'http://lidarr.media.apedamo.mywire.org',
+        pingUrl: 'http://lidarr:8686/ping',
+        color: '#00936e',
+        icon: 'lidarr.svg'
+      },
+      {
+        name: 'Bazarr',
+        url: 'https://bazarr.media.apedamo.mywire.org',
+        urlAlt: 'http://bazarr.media.apedamo.mywire.org',
+        pingUrl: 'http://bazarr:6767',
+        color: '#b76bf7',
+        icon: 'bazarr.svg'
+      },
+      {
+        name: 'Prowlarr',
+        url: 'https://prowlarr.media.apedamo.mywire.org',
+        urlAlt: 'http://prowlarr.media.apedamo.mywire.org',
+        pingUrl: 'http://prowlarr:9696/ping',
+        color: '#ff3333',
+        icon: 'prowlarr.svg'
+      },
+      {
+        name: 'Jackett',
+        url: 'https://jackett.media.apedamo.mywire.org',
+        urlAlt: 'http://jackett.media.apedamo.mywire.org',
+        pingUrl: 'http://jackett:9117/UI/Dashboard',
+        color: '#b7f76b',
+        icon: 'jackett.svg'
+      },
+      {
+        name: 'Profilarr',
+        url: 'https://profilarr.media.apedamo.mywire.org',
+        urlAlt: 'http://profilarr.media.apedamo.mywire.org',
+        pingUrl: 'http://profilarr:6868/ping',
+        color: '#6b9cf7',
+        icon: 'profilarr.svg'
+      },
+      {
+        name: 'Lingarr',
+        url: 'https://lingarr.media.apedamo.mywire.org',
+        urlAlt: 'http://lingarr.media.apedamo.mywire.org',
+        pingUrl: 'http://lingarr:9876',
+        color: '#7b6254',
+        icon: 'lingarr.svg'
+      },
+      {
+        name: 'qBittorrent',
+        url: 'https://qbittorrent.media.apedamo.mywire.org',
+        urlAlt: 'http://qbittorrent.media.apedamo.mywire.org',
+        pingUrl: 'http://qbittorrent:8081',
+        color: '#2f67ba',
+        icon: 'qbittorrent.svg'
+      },
+      {
+        name: 'Slskd',
+        url: 'https://slskd.media.apedamo.mywire.org',
+        urlAlt: 'http://slskd.media.apedamo.mywire.org',
+        pingUrl: 'http://slskd:5030',
+        color: '#00c3ff',
+        icon: 'slskd.svg'
+      },
+      {
+        name: 'Traefik',
+        url: 'https://traefik.media.apedamo.mywire.org',
+        pingUrl: 'http://traefik.ingress-traefik.svc.cluster.local:9000/ping',
+        color: '#00c3ff',
+        icon: 'traefik-proxy.svg'
+      },
+    ];
 
-      .alt-text {
-        font-size: 0.35rem; /* Reduced font size */
-        font-weight: 800;
-        line-height: 1;
-        opacity: 0.8;
-      }
+    const grid = document.getElementById('app-grid');
 
-      .alt-port-dot:hover {
-        background-color: var(--glow-color, #fff);
-        transform: scale(1.1);
-        box-shadow: 0 0 10px var(--glow-color, #fff);
-        color: #000;
-        border-color: transparent;
-      }
+    apps.forEach(app => {
+      const url = app.url;
+      const altUrl = app.urlAlt;
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.style.setProperty('--glow-color', app.color);
+      card.style.color = app.color;
 
-      /* Cores Temáticas removidas em favor da geração via JS */
-
-      .card::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background: radial-gradient(circle at center, var(--glow-color), transparent 70%);
-        opacity: 0;
-        transition: opacity 0.3s;
-        pointer-events: none;
-        z-index: 1;
-      }
-
-      .card:hover::before {
-        opacity: 0.15;
-      }
-
-      @media (max-width: 700px) {
-        .grid {
-          grid-template-columns: repeat(3, 1fr);
-        }
-      }
-      @media (max-width: 600px) {
-        .grid {
-          grid-template-columns: repeat(2, 1fr);
-        }
-      }
-      @media (max-width: 380px) {
-        .grid {
-          grid-template-columns: repeat(1, 1fr);
-        }
-      }
-
-      .alt-port-dot:hover img {
-        filter: none;
-        opacity: 1;
-        transform: scale(1.1);
-      }
-      /* Status Dot Styles */
-      .status-dot {
-        position: absolute;
-        top: 15px;
-        left: 15px;
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        background-color: #6b7280; /* Gray - Unknown */
-        border: 2px solid rgba(255, 255, 255, 0.1);
-        box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
-        transition: background-color 0.3s ease, box-shadow 0.3s ease;
-        z-index: 5;
-      }
-
-      .status-up {
-        background-color: #22c55e; /* Green */
-        box-shadow: 0 0 8px rgba(34, 197, 94, 0.6);
-      }
-
-      .status-down {
-        background-color: #ef4444; /* Red */
-        box-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
-      }
-
-      .footer {
-        width: 100%;
-        text-align: center;
-        padding: 20px 0;
-        margin-top: auto;
-        font-size: 0.8rem;
-        color: rgba(255, 255, 255, 0.4);
-        background: rgba(0, 0, 0, 0.2);
-        backdrop-filter: blur(10px);
-      }
-
-      .footer a {
-        color: rgba(255, 255, 255, 0.6);
-        text-decoration: none;
-        transition: color 0.3s;
-        border-bottom: 1px dashed rgba(255, 255, 255, 0.3);
-        padding-bottom: 2px;
-      }
-
-      .footer a:hover {
-        color: #fff;
-        border-bottom-color: #fff;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="grid" id="app-grid">
-    </div>
-    <footer class="footer">
-      <a href="/ca.crt" download>🔐 Install Local CA Certificate</a>
-    </footer>
-    <script>
-      const apps = [
-        {
-          name: 'Plex',
-          url: 'https://plex.media.lan',
-          urlAlt: 'http://plex.media.lan',
-          pingUrl: 'http://plex:32400/identity',
-          color: '#e5a00d',
-          icon: 'plex.svg'
-        },
-        {
-          name: 'Emby',
-          url: 'https://emby.media.lan',
-          urlAlt: 'http://emby.media.lan',
-          pingUrl: 'http://emby:8096/System/Ping',
-          color: '#5dd054',
-          icon: 'emby.svg'
-        },
-        {
-          name: 'Sonarr',
-          url: 'https://sonarr.media.lan',
-          urlAlt: 'http://sonarr.media.lan',
-          pingUrl: 'http://sonarr:8989/ping',
-          color: '#00c0fa',
-          icon: 'sonarr.svg'
-        },
-        {
-          name: 'Radarr',
-          url: 'https://radarr.media.lan',
-          urlAlt: 'http://radarr.media.lan',
-          pingUrl: 'http://radarr:7878/ping',
-          color: '#ffc230',
-          icon: 'radarr.svg'
-        },
-        {
-          name: 'Lidarr',
-          url: 'https://lidarr.media.lan',
-          urlAlt: 'http://lidarr.media.lan',
-          pingUrl: 'http://lidarr:8686/ping',
-          color: '#00936e',
-          icon: 'lidarr.svg'
-        },
-        {
-          name: 'Bazarr',
-          url: 'https://bazarr.media.lan',
-          urlAlt: 'http://bazarr.media.lan',
-          pingUrl: 'http://bazarr:6767',
-          color: '#b76bf7',
-          icon: 'bazarr.svg'
-        },
-        {
-          name: 'Prowlarr',
-          url: 'https://prowlarr.media.lan',
-          urlAlt: 'http://prowlarr.media.lan',
-          pingUrl: 'http://prowlarr:9696/ping',
-          color: '#ff3333',
-          icon: 'prowlarr.svg'
-        },
-        {
-          name: 'Jackett',
-          url: 'https://jackett.media.lan',
-          urlAlt: 'http://jackett.media.lan',
-          pingUrl: 'http://jackett:9117/UI/Dashboard',
-          color: '#b7f76b',
-          icon: 'jackett.svg'
-        },
-        {
-          name: 'Profilarr',
-          url: 'https://profilarr.media.lan',
-          urlAlt: 'http://profilarr.media.lan',
-          pingUrl: 'http://profilarr:6868/ping',
-          color: '#6b9cf7',
-          icon: 'profilarr.svg'
-        },
-        {
-          name: 'Lingarr',
-          url: 'https://lingarr.media.lan',
-          urlAlt: 'http://lingarr.media.lan',
-          pingUrl: 'http://lingarr:9876',
-          color: '#7b6254',
-          icon: 'lingarr.svg'
-        },
-        {
-          name: 'qBittorrent',
-          url: 'https://qbittorrent.media.lan',
-          urlAlt: 'http://qbittorrent.media.lan',
-          pingUrl: 'http://qbittorrent:8081',
-          color: '#2f67ba',
-          icon: 'qbittorrent.svg'
-        },
-        {
-          name: 'Slskd',
-          url: 'https://slskd.media.lan',
-          urlAlt: 'http://slskd.media.lan',
-          pingUrl: 'http://slskd:5030',
-          color: '#00c3ff',
-          icon: 'slskd.svg'
-        },
-        {
-          name: 'Traefik',
-          url: 'https://traefik.media.lan',
-          pingUrl: 'http://traefik.ingress-traefik.svc.cluster.local:9000/ping',
-          color: '#00c3ff',
-          icon: 'traefik-proxy.svg'
-        },
-      ];
-
-      const grid = document.getElementById('app-grid');
-
-      apps.forEach(app => {
-        const url = app.url;
-        const altUrl = app.urlAlt;
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.style.setProperty('--glow-color', app.color);
-        card.style.color = app.color;
-
-        card.innerHTML = `
+      card.innerHTML = `
           <div class="status-dot status-unknown" id="status-${app.name}" title="Status: Unknown"></div>
           ${altUrl ? `
           <a class="alt-port-dot" href="${altUrl}" title="Alt URL" rel="noreferrer">
@@ -374,63 +385,64 @@
           </h2>
         `;
 
-        grid.appendChild(card);
-      });
+      grid.appendChild(card);
+    });
 
-      // WebSocket Connection
-      let socket;
+    // WebSocket Connection
+    let socket;
 
-      function connectWebSocket() {
-        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const wsUrl = `${protocol}//${window.location.host}/ws`;
+    function connectWebSocket() {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = `${protocol}//${window.location.host}/ws`;
 
-        socket = new WebSocket(wsUrl);
+      socket = new WebSocket(wsUrl);
 
-        socket.onopen = () => {
-            console.log("WebSocket Connected");
-            updateAllStatuses();
-        };
+      socket.onopen = () => {
+        console.log("WebSocket Connected");
+        updateAllStatuses();
+      };
 
-        socket.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            const statusElement = document.getElementById(`status-${data.name}`);
-            if (statusElement) {
-                if (data.status === 'up') {
-                    statusElement.className = 'status-dot status-up';
-                    statusElement.title = 'Status: Online';
-                } else {
-                    statusElement.className = 'status-dot status-down';
-                    statusElement.title = 'Status: Offline';
-                }
-            }
-        };
-
-        socket.onclose = () => {
-            console.log("WebSocket Disconnected. Reconnecting in 5s...");
-            setTimeout(connectWebSocket, 5000);
-        };
-
-        socket.onerror = (err) => {
-            console.error("WebSocket Error:", err);
-            socket.close();
-        };
-      }
-
-      function updateAllStatuses() {
-        if (socket && socket.readyState === WebSocket.OPEN) {
-            apps.forEach((app, index) => {
-                setTimeout(() => {
-                    socket.send(JSON.stringify({
-                        name: app.name,
-                        url: app.pingUrl
-                    }));
-                }, index * 50);
-            });
+      socket.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        const statusElement = document.getElementById(`status-${data.name}`);
+        if (statusElement) {
+          if (data.status === 'up') {
+            statusElement.className = 'status-dot status-up';
+            statusElement.title = 'Status: Online';
+          } else {
+            statusElement.className = 'status-dot status-down';
+            statusElement.title = 'Status: Offline';
+          }
         }
-      }
+      };
 
-      connectWebSocket();
-      setInterval(updateAllStatuses, 30000);
-    </script>
-  </body>
+      socket.onclose = () => {
+        console.log("WebSocket Disconnected. Reconnecting in 5s...");
+        setTimeout(connectWebSocket, 5000);
+      };
+
+      socket.onerror = (err) => {
+        console.error("WebSocket Error:", err);
+        socket.close();
+      };
+    }
+
+    function updateAllStatuses() {
+      if (socket && socket.readyState === WebSocket.OPEN) {
+        apps.forEach((app, index) => {
+          setTimeout(() => {
+            socket.send(JSON.stringify({
+              name: app.name,
+              url: app.pingUrl
+            }));
+          }, index * 50);
+        });
+      }
+    }
+
+    connectWebSocket();
+    setInterval(updateAllStatuses, 30000);
+  </script>
+</body>
+
 </html>

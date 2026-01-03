@@ -136,7 +136,7 @@ spec:
     - web
     - websecure
   routes:
-    - match: Host(`plex.media.lan`)
+    - match: Host(`plex.media.lan`) || Host(`plex.media.${WAN_HOSTNAME}`)
       kind: Rule
       services:
         - name: plex
@@ -152,7 +152,7 @@ spec:
     - web-wan
     - websecure-wan
   routes:
-    - match: Host(`plex.${WAN_HOSTNAME}`)
+    - match: Host(`plex.media.${WAN_HOSTNAME}`)
       kind: Rule
       middlewares:
         - name: plex-local-mask
