@@ -23,18 +23,49 @@ spec:
                   - /bin/sh
                   - -c
                   - |
-                    apk add --no-cache \
+                    exec > /config/poststart.log 2>&1
+                    set -x
+                    echo "Starting Hook at $(date)"
+                    sleep 10
+
+                    install_apk() {
+                      for i in 1 2 3 4 5; do
+                        apk add --no-cache "$@" && return 0
+                        echo "APK Attempt $i failed. Retrying in 5s..."
+                        sleep 5
+                      done
+                      return 1
+                    }
+
+                    install_apk \
                       ffmpeg \
                       gst-plugins-base \
                       imagemagick \
                       kid3 \
-                      py3-pip && \
-                    if [ ! -d "/config/.venv" ]; then
-                      python3 -m venv /config/.venv
+                      jq \
+                      py3-pip || { echo "APK Failed after retries"; exit 1; }
+
+                    if [ ! -d "/tmp/.venv" ] || [ ! -f "/tmp/.venv/bin/pip" ]; then
+                      echo "Creating VENV"
+                      rm -rf /tmp/.venv
+                      python3 -m venv /tmp/.venv || { echo "Venv Failed"; exit 1; }
                     fi
-                    /config/.venv/bin/pip install --no-cache-dir \
+
+                    install_pip() {
+                      for i in 1 2 3; do
+                        /tmp/.venv/bin/python3 -m pip install --no-cache-dir "$@" && return 0
+                        echo "PIP Attempt $i failed. Retrying in 5s..."
+                        sleep 5
+                      done
+                      return 1
+                    }
+
+                    install_pip \
                       lrclibapi \
-                      yq
+                      yq || { echo "PIP Failed after retries"; exit 1; }
+
+                    echo "Hook Success"
+                    exit 0
           ports:
             - containerPort: 8686
               name: lidarr
@@ -43,23 +74,23 @@ spec:
               memory: "256Mi"
               cpu: "100m"
             limits:
-              memory: "1Gi"
+              memory: "2Gi"
               cpu: "1000m"
           livenessProbe:
             tcpSocket:
               port: 8686
-            initialDelaySeconds: 15
+            initialDelaySeconds: 180
             periodSeconds: 20
             failureThreshold: 3
           readinessProbe:
             tcpSocket:
               port: 8686
-            initialDelaySeconds: 10
+            initialDelaySeconds: 30
             periodSeconds: 10
             failureThreshold: 3
           env:
             - name: PATH
-              value: "/config/.venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+              value: "/tmp/.venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
             - name: PUID
               value: "${PUID}"
             - name: PGID
