@@ -8,15 +8,27 @@ spec:
     - websecure-wan
     - websecure
   routes:
-    - match: Host(`media.${WAN_HOSTNAME}`) && PathPrefix(`/cert-generation-only`)
+    - match: Host(`${WAN_HOSTNAME}`)
       kind: Rule
       services:
-        - name: speedtest
+        - name: default-backend-external
           port: 80
   tls:
     certResolver: le
     domains:
-      - main: "media.${WAN_HOSTNAME}"
+      - main: "*.${WAN_HOSTNAME}"
         sans:
           - "*.media.${WAN_HOSTNAME}"
-          - "*.${WAN_HOSTNAME}"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: default-backend-external
+  namespace: media
+spec:
+  type: ExternalName
+  externalName: default-backend.infra.svc.cluster.local
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80

@@ -1,5 +1,7 @@
 providers:
-  kubernetesIngress:
+  kubernetesCRD:
+    allowExternalNameServices: true
+    allowCrossNamespace: true
     enabled: true
 
 service:
@@ -46,7 +48,6 @@ ports:
       - ingress-traefik-gzip@kubernetescrd
     tls:
       enabled: true
-      certResolver: le
   websecure-wan:
     port: 44300
     exposedPort: 44300

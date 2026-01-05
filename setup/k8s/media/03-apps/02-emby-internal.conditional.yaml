@@ -100,11 +100,28 @@ spec:
     - web
     - websecure
   routes:
-    - match: Host(`emby.media.lan`) || Host(`emby.media.${WAN_HOSTNAME}`)
+    - match: Host(`emby.media.lan`)
       kind: Rule
       services:
         - name: emby
           port: 8096
+  tls: {}
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: emby-lan-wan-host
+  namespace: media
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`emby.media.${WAN_HOSTNAME}`)
+      kind: Rule
+      services:
+        - name: emby
+          port: 8096
+  tls: {}
 ---
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute

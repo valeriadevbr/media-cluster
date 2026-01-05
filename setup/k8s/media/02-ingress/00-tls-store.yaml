@@ -6,5 +6,5 @@ metadata:
 spec:
   defaultCertificate:
     secretName: media-lan-tls
-  certificates:
-    - secretName: media-wan-tls
+  # certificates:
+  # - secretName: media-wan-tls

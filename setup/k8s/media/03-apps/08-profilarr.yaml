@@ -75,11 +75,28 @@ spec:
   entryPoints:
     - websecure
   routes:
-    - match: Host(`profilarr.media.lan`) || Host(`profilarr.media.${WAN_HOSTNAME}`)
+    - match: Host(`profilarr.media.lan`)
       kind: Rule
       services:
         - name: profilarr
           port: 6868
+  tls: {}
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: profilarr-lan-wan-host
+  namespace: media
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`profilarr.media.${WAN_HOSTNAME}`)
+      kind: Rule
+      services:
+        - name: profilarr
+          port: 6868
+  tls: {}
 ---
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute

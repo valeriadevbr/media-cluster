@@ -53,10 +53,43 @@ spec:
     - web-wan
     - websecure-wan
   routes:
-    - match: Host(`speedtest.media.lan`) || Host(`media.${WAN_HOSTNAME}`)
+    - match: Host(`media.${WAN_HOSTNAME}`)
       kind: Rule
       services:
         - name: speedtest
           port: 3000
-  tls:
-    certResolver: le
+  tls: {}
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: speedtest-lan
+  namespace: media
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`speedtest.media.lan`)
+      kind: Rule
+      services:
+        - name: speedtest
+          port: 3000
+  tls: {}
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: speedtest-lan-http
+  namespace: media
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: Host(`speedtest.media.lan`)
+      kind: Rule
+      middlewares:
+        - name: https-redirect
+          namespace: media
+      services:
+        - name: speedtest
+          port: 3000

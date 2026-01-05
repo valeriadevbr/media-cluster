@@ -106,8 +106,25 @@ spec:
     - web
     - websecure
   routes:
-    - match: Host(`qbittorrent.media.lan`) || Host(`qbittorrent.media.${WAN_HOSTNAME}`)
+    - match: Host(`qbittorrent.media.lan`)
       kind: Rule
       services:
         - name: qbittorrent
           port: 8081
+  tls: {}
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: qbittorrent-lan-wan-host
+  namespace: media
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`qbittorrent.media.${WAN_HOSTNAME}`)
+      kind: Rule
+      services:
+        - name: qbittorrent
+          port: 8081
+  tls: {}

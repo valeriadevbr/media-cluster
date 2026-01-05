@@ -97,11 +97,28 @@ spec:
   entryPoints:
     - websecure
   routes:
-    - match: Host(`sonarr.media.lan`) || Host(`sonarr.media.${WAN_HOSTNAME}`)
+    - match: Host(`sonarr.media.lan`)
       kind: Rule
       services:
         - name: sonarr
           port: 8989
+  tls: {}
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: sonarr-lan-wan-host
+  namespace: media
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`sonarr.media.${WAN_HOSTNAME}`)
+      kind: Rule
+      services:
+        - name: sonarr
+          port: 8989
+  tls: {}
 ---
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute

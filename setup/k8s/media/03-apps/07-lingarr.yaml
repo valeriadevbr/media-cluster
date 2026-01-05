@@ -85,11 +85,28 @@ spec:
   entryPoints:
     - websecure
   routes:
-    - match: Host(`lingarr.media.lan`) || Host(`lingarr.media.${WAN_HOSTNAME}`)
+    - match: Host(`lingarr.media.lan`)
       kind: Rule
       services:
         - name: lingarr
           port: 9876
+  tls: {}
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: lingarr-lan-wan-host
+  namespace: media
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`lingarr.media.${WAN_HOSTNAME}`)
+      kind: Rule
+      services:
+        - name: lingarr
+          port: 9876
+  tls: {}
 ---
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute

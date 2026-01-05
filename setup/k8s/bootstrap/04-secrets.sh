@@ -11,14 +11,14 @@ create_tls_secret media-lan-tls ingress-traefik \
   "${CERTS_PATH}/lan/cert.crt" \
   "${CERTS_PATH}/lan/cert.key"
 
-create_tls_secret media-wan-tls ingress-traefik \
-  "${CERTS_PATH}/wan/cert.crt" \
-  "${CERTS_PATH}/wan/cert.key"
+# create_tls_secret media-wan-tls ingress-traefik \
+#   "${CERTS_PATH}/wan/cert.crt" \
+#   "${CERTS_PATH}/wan/cert.key"
 
 create_tls_secret media-lan-tls media \
   "${CERTS_PATH}/lan/cert.crt" \
   "${CERTS_PATH}/lan/cert.key"
 
-create_tls_secret media-wan-tls media \
-  "${CERTS_PATH}/wan/cert.crt" \
-  "${CERTS_PATH}/wan/cert.key"
+# create_tls_secret media-wan-tls media \
+#   "${CERTS_PATH}/wan/cert.crt" \
+#   "${CERTS_PATH}/wan/cert.key"
