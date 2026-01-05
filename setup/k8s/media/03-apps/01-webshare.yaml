@@ -47,6 +47,10 @@ spec:
                 allow * * *.media.apedamo.mywire.org * *
                 allow * * *.plex.direct * *
                 allow * * 10.96.0.0/16 * *
+                allow * * 10.244.0.0/16 * *
+                allow * * *.svc.cluster.local * *
+                allow * * *.media.svc.cluster.local * *
+                allow * * lidarr,sonarr,radarr,readarr,prowlarr,bazarr,flaresolverr,jackett * *
                 parent 1000 connect+ 0.0.0.0 0
                 allow *
                 parent 1000 ${PROXY_TYPE} ${PROXY_HOST} ${PROXY_PORT} ${PROXY_USERNAME} ${PROXY_PASSWORD}
