@@ -1,0 +1,22 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: wan-wildcard-cert-controller
+  namespace: media
+spec:
+  entryPoints:
+    - websecure-wan
+    - websecure
+  routes:
+    - match: Host(`media.${WAN_HOSTNAME}`) && PathPrefix(`/cert-generation-only`)
+      kind: Rule
+      services:
+        - name: speedtest
+          port: 80
+  tls:
+    certResolver: le
+    domains:
+      - main: "media.${WAN_HOSTNAME}"
+        sans:
+          - "*.media.${WAN_HOSTNAME}"
+          - "*.${WAN_HOSTNAME}"

@@ -5,8 +5,19 @@ providers:
 service:
   type: NodePort
 
+persistence:
+  enabled: false
+
 additionalArguments:
-  - "--serverstransport.insecureskipverify=true"
+  - "--certificatesresolvers.le.acme.email=${ACME_EMAIL}"
+  - "--certificatesresolvers.le.acme.storage=/acme/acme.json"
+  - "--certificatesresolvers.le.acme.dnschallenge.provider=${ACME_PROVIDER}"
+  - "--certificatesresolvers.le.acme.dnschallenge.delayBeforeCheck=60"
+  - "--certificatesresolvers.le.acme.dnschallenge.resolvers=1.1.1.1:53,8.8.8.8:53"
+
+env:
+  - name: DYNU_API_KEY
+    value: "${DYNU_API_KEY}"
 
 ports:
   traefik:
@@ -33,6 +44,9 @@ ports:
       enabled: true
     middlewares:
       - ingress-traefik-gzip@kubernetescrd
+    tls:
+      enabled: true
+      certResolver: le
   websecure-wan:
     port: 44300
     exposedPort: 44300
@@ -43,6 +57,7 @@ ports:
       enabled: true
     tls:
       enabled: true
+      certResolver: le
     middlewares:
       - ingress-traefik-gzip@kubernetescrd
 
@@ -57,7 +72,16 @@ ingressRoute:
     entryPoints:
       - websecure
 
+additionalVolumeMounts:
+  - name: certs-data
+    mountPath: /acme
+
 deployment:
+  additionalVolumes:
+    - name: certs-data
+      hostPath:
+        path: /mnt/configs/traefik
+        type: DirectoryOrCreate
   podSecurityContext:
     runAsNonRoot: true
     runAsUser: 65532
@@ -70,3 +94,7 @@ deployment:
 ping:
   enabled: true
   entryPoint: traefik
+
+logs:
+  general:
+    level: INFO

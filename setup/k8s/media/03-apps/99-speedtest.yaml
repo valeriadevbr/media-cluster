@@ -58,3 +58,5 @@ spec:
       services:
         - name: speedtest
           port: 3000
+  tls:
+    certResolver: le
