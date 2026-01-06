@@ -1,0 +1,68 @@
+---
+# Global Middlewares (namespace: ingress-traefik)
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: gzip
+  namespace: ingress-traefik
+spec:
+  compress: {}
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: error-pages
+  namespace: ingress-traefik
+spec:
+  errors:
+    status:
+      - "400-599"
+    query: "/{status}.html"
+    service:
+      name: default-backend
+      namespace: infra
+      port: 80
+---
+# Media Namespace Middlewares
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: https-redirect
+  namespace: media
+spec:
+  redirectScheme:
+    scheme: https
+    permanent: true
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: www-redirect
+  namespace: media
+spec:
+  redirectRegex:
+    regex: "^https?://www\\.(.*)"
+    replacement: "https://${1}"
+    permanent: true
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: plex-local-mask
+  namespace: media
+spec:
+  headers:
+    customRequestHeaders:
+      X-Forwarded-For: "192.168.2.1"
+      X-Real-IP: "192.168.2.1"
+---
+# Infra Namespace Middlewares
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: https-redirect
+  namespace: infra
+spec:
+  redirectScheme:
+    scheme: https
+    permanent: true

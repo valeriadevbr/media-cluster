@@ -75,6 +75,432 @@ data:
     </body>
     </html>
 
+  400.html: |
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>400 - Bad Request</title>
+        <style>
+            body {
+                background-color: #0f172a;
+                color: #e2e8f0;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                height: 100vh;
+                margin: 0;
+                text-align: center;
+            }
+            .container {
+                background-color: #1e293b;
+                padding: 3rem;
+                border-radius: 1rem;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+                max-width: 500px;
+                width: 90%;
+            }
+            h1 {
+                font-size: 4rem;
+                margin: 0;
+                color: #f59e0b;
+                font-weight: 800;
+            }
+            h2 {
+                margin: 1rem 0;
+                font-size: 1.5rem;
+                font-weight: 600;
+            }
+            p {
+                color: #94a3b8;
+                line-height: 1.6;
+            }
+            .divider {
+                height: 2px;
+                background: linear-gradient(90deg, transparent, #f59e0b, transparent);
+                margin: 2rem 0;
+                width: 100%;
+            }
+            .status-code {
+                font-family: 'Courier New', Courier, monospace;
+                background-color: #334155;
+                padding: 0.2rem 0.5rem;
+                border-radius: 0.25rem;
+                font-size: 0.9rem;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>400</h1>
+            <h2>Bad Request</h2>
+            <div class="divider"></div>
+            <p>The server cannot process your request due to invalid syntax.</p>
+            <p>Please check your request and try again.</p>
+            <br>
+            <span class="status-code">HTTP 400</span>
+        </div>
+    </body>
+    </html>
+
+  401.html: |
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>401 - Unauthorized</title>
+        <style>
+            body {
+                background-color: #0f172a;
+                color: #e2e8f0;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                height: 100vh;
+                margin: 0;
+                text-align: center;
+            }
+            .container {
+                background-color: #1e293b;
+                padding: 3rem;
+                border-radius: 1rem;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+                max-width: 500px;
+                width: 90%;
+            }
+            h1 {
+                font-size: 4rem;
+                margin: 0;
+                color: #ef4444;
+                font-weight: 800;
+            }
+            h2 {
+                margin: 1rem 0;
+                font-size: 1.5rem;
+                font-weight: 600;
+            }
+            p {
+                color: #94a3b8;
+                line-height: 1.6;
+            }
+            .divider {
+                height: 2px;
+                background: linear-gradient(90deg, transparent, #ef4444, transparent);
+                margin: 2rem 0;
+                width: 100%;
+            }
+            .status-code {
+                font-family: 'Courier New', Courier, monospace;
+                background-color: #334155;
+                padding: 0.2rem 0.5rem;
+                border-radius: 0.25rem;
+                font-size: 0.9rem;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>401</h1>
+            <h2>Unauthorized</h2>
+            <div class="divider"></div>
+            <p>Authentication is required to access this resource.</p>
+            <p>Please provide valid credentials.</p>
+            <br>
+            <span class="status-code">HTTP 401</span>
+        </div>
+    </body>
+    </html>
+
+  403.html: |
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>403 - Forbidden</title>
+        <style>
+            body {
+                background-color: #0f172a;
+                color: #e2e8f0;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                height: 100vh;
+                margin: 0;
+                text-align: center;
+            }
+            .container {
+                background-color: #1e293b;
+                padding: 3rem;
+                border-radius: 1rem;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+                max-width: 500px;
+                width: 90%;
+            }
+            h1 {
+                font-size: 4rem;
+                margin: 0;
+                color: #ef4444;
+                font-weight: 800;
+            }
+            h2 {
+                margin: 1rem 0;
+                font-size: 1.5rem;
+                font-weight: 600;
+            }
+            p {
+                color: #94a3b8;
+                line-height: 1.6;
+            }
+            .divider {
+                height: 2px;
+                background: linear-gradient(90deg, transparent, #ef4444, transparent);
+                margin: 2rem 0;
+                width: 100%;
+            }
+            .status-code {
+                font-family: 'Courier New', Courier, monospace;
+                background-color: #334155;
+                padding: 0.2rem 0.5rem;
+                border-radius: 0.25rem;
+                font-size: 0.9rem;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>403</h1>
+            <h2>Forbidden</h2>
+            <div class="divider"></div>
+            <p>You don't have permission to access this resource.</p>
+            <p>Please contact the administrator if you believe this is an error.</p>
+            <br>
+            <span class="status-code">HTTP 403</span>
+        </div>
+    </body>
+    </html>
+
+  500.html: |
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>500 - Internal Server Error</title>
+        <style>
+            body {
+                background-color: #0f172a;
+                color: #e2e8f0;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                height: 100vh;
+                margin: 0;
+                text-align: center;
+            }
+            .container {
+                background-color: #1e293b;
+                padding: 3rem;
+                border-radius: 1rem;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+                max-width: 500px;
+                width: 90%;
+            }
+            h1 {
+                font-size: 4rem;
+                margin: 0;
+                color: #dc2626;
+                font-weight: 800;
+            }
+            h2 {
+                margin: 1rem 0;
+                font-size: 1.5rem;
+                font-weight: 600;
+            }
+            p {
+                color: #94a3b8;
+                line-height: 1.6;
+            }
+            .divider {
+                height: 2px;
+                background: linear-gradient(90deg, transparent, #dc2626, transparent);
+                margin: 2rem 0;
+                width: 100%;
+            }
+            .status-code {
+                font-family: 'Courier New', Courier, monospace;
+                background-color: #334155;
+                padding: 0.2rem 0.5rem;
+                border-radius: 0.25rem;
+                font-size: 0.9rem;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>500</h1>
+            <h2>Internal Server Error</h2>
+            <div class="divider"></div>
+            <p>The server encountered an unexpected condition.</p>
+            <p>Please try again later or contact the administrator.</p>
+            <br>
+            <span class="status-code">HTTP 500</span>
+        </div>
+    </body>
+    </html>
+
+  502.html: |
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>502 - Bad Gateway</title>
+        <style>
+            body {
+                background-color: #0f172a;
+                color: #e2e8f0;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                height: 100vh;
+                margin: 0;
+                text-align: center;
+            }
+            .container {
+                background-color: #1e293b;
+                padding: 3rem;
+                border-radius: 1rem;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+                max-width: 500px;
+                width: 90%;
+            }
+            h1 {
+                font-size: 4rem;
+                margin: 0;
+                color: #dc2626;
+                font-weight: 800;
+            }
+            h2 {
+                margin: 1rem 0;
+                font-size: 1.5rem;
+                font-weight: 600;
+            }
+            p {
+                color: #94a3b8;
+                line-height: 1.6;
+            }
+            .divider {
+                height: 2px;
+                background: linear-gradient(90deg, transparent, #dc2626, transparent);
+                margin: 2rem 0;
+                width: 100%;
+            }
+            .status-code {
+                font-family: 'Courier New', Courier, monospace;
+                background-color: #334155;
+                padding: 0.2rem 0.5rem;
+                border-radius: 0.25rem;
+                font-size: 0.9rem;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>502</h1>
+            <h2>Bad Gateway</h2>
+            <div class="divider"></div>
+            <p>The server received an invalid response from the upstream server.</p>
+            <p>Please try again later.</p>
+            <br>
+            <span class="status-code">HTTP 502</span>
+        </div>
+    </body>
+    </html>
+
+  503.html: |
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>503 - Service Unavailable</title>
+        <style>
+            body {
+                background-color: #0f172a;
+                color: #e2e8f0;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                height: 100vh;
+                margin: 0;
+                text-align: center;
+            }
+            .container {
+                background-color: #1e293b;
+                padding: 3rem;
+                border-radius: 1rem;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+                max-width: 500px;
+                width: 90%;
+            }
+            h1 {
+                font-size: 4rem;
+                margin: 0;
+                color: #f59e0b;
+                font-weight: 800;
+            }
+            h2 {
+                margin: 1rem 0;
+                font-size: 1.5rem;
+                font-weight: 600;
+            }
+            p {
+                color: #94a3b8;
+                line-height: 1.6;
+            }
+            .divider {
+                height: 2px;
+                background: linear-gradient(90deg, transparent, #f59e0b, transparent);
+                margin: 2rem 0;
+                width: 100%;
+            }
+            .status-code {
+                font-family: 'Courier New', Courier, monospace;
+                background-color: #334155;
+                padding: 0.2rem 0.5rem;
+                border-radius: 0.25rem;
+                font-size: 0.9rem;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>503</h1>
+            <h2>Service Unavailable</h2>
+            <div class="divider"></div>
+            <p>The service is temporarily unavailable.</p>
+            <p>Please try again in a few moments.</p>
+            <br>
+            <span class="status-code">HTTP 503</span>
+        </div>
+    </body>
+    </html>
+
   default.conf: |
     server {
         listen       80;
@@ -83,7 +509,12 @@ data:
         root   /usr/share/nginx/html;
         index  index.html;
 
-        # Direct all requests to serve 404 error with content of /index.html
+        # Serve specific error pages based on status code
+        location ~ ^/(\d+)\.html$ {
+            try_files /$1.html /index.html;
+        }
+
+        # Direct all other requests to serve 404 error
         error_page 404 /index.html;
 
         location / {

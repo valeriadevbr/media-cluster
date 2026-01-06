@@ -16,8 +16,9 @@ spec:
   tls:
     certResolver: le
     domains:
-      - main: "*.${WAN_HOSTNAME}"
+      - main: "${WAN_HOSTNAME}"
         sans:
+          - "*.${WAN_HOSTNAME}"
           - "*.media.${WAN_HOSTNAME}"
 ---
 apiVersion: v1
