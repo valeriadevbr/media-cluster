@@ -14,12 +14,7 @@ spec:
         - name: default-backend-external
           port: 80
   tls:
-    certResolver: le
-    domains:
-      - main: "${WAN_HOSTNAME}"
-        sans:
-          - "*.${WAN_HOSTNAME}"
-          - "*.media.${WAN_HOSTNAME}"
+    secretName: wan-wildcard-tls
 ---
 apiVersion: v1
 kind: Service

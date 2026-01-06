@@ -10,16 +10,9 @@ service:
 persistence:
   enabled: false
 
-additionalArguments:
-  - "--certificatesresolvers.le.acme.email=${ACME_EMAIL}"
-  - "--certificatesresolvers.le.acme.storage=/acme/acme.json"
-  - "--certificatesresolvers.le.acme.dnschallenge.provider=${ACME_PROVIDER}"
-  - "--certificatesresolvers.le.acme.dnschallenge.delayBeforeCheck=60"
-  - "--certificatesresolvers.le.acme.dnschallenge.resolvers=1.1.1.1:53,8.8.8.8:53"
+additionalArguments: []
 
-env:
-  - name: DYNU_API_KEY
-    value: "${DYNU_API_KEY}"
+env: []
 
 ports:
   traefik:
@@ -58,7 +51,6 @@ ports:
       enabled: true
     tls:
       enabled: true
-      certResolver: le
     middlewares:
       - ingress-traefik-gzip@kubernetescrd
 

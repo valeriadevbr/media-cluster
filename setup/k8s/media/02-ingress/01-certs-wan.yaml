@@ -1,0 +1,39 @@
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-dynu
+spec:
+  acme:
+    email: ${ACME_EMAIL}
+    server: https://acme-v02.api.letsencrypt.org/directory
+    privateKeySecretRef:
+      name: letsencrypt-dynu-account-key
+    solvers:
+      - dns01:
+          webhook:
+            groupName: acme.dynu.com
+            solverName: dynu
+            config:
+              apiKeySecretRef:
+                name: dynu-api-key-secret
+                key: api-key
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: wan-wildcard-tls
+  namespace: media
+spec:
+  secretName: wan-wildcard-tls
+  issuerRef:
+    name: letsencrypt-dynu
+    kind: ClusterIssuer
+  commonName: "${WAN_HOSTNAME}"
+  dnsNames:
+    - "${WAN_HOSTNAME}"
+    - "*.${WAN_HOSTNAME}"
+    - "*.media.${WAN_HOSTNAME}"
+  usages:
+    - digital signature
+    - key encipherment
+    - server auth
