@@ -78,45 +78,10 @@ metadata:
   namespace: media
 spec:
   entryPoints:
-    - websecure
-  routes:
-    - match: Host(`bazarr.media.lan`)
-      kind: Rule
-      services:
-        - name: bazarr
-          port: 6767
-  tls: {}
----
-apiVersion: traefik.io/v1alpha1
-kind: IngressRoute
-metadata:
-  name: bazarr-lan-wan-host
-  namespace: media
-spec:
-  entryPoints:
-    - websecure
-  routes:
-    - match: Host(`bazarr.media.${WAN_HOSTNAME}`)
-      kind: Rule
-      services:
-        - name: bazarr
-          port: 6767
-  tls: {}
----
-apiVersion: traefik.io/v1alpha1
-kind: IngressRoute
-metadata:
-  name: bazarr-lan-http
-  namespace: media
-spec:
-  entryPoints:
     - web
   routes:
     - match: Host(`bazarr.media.lan`) || Host(`bazarr.media.${WAN_HOSTNAME}`)
       kind: Rule
-      middlewares:
-        - name: https-redirect
-          namespace: media
       services:
         - name: bazarr
           port: 6767

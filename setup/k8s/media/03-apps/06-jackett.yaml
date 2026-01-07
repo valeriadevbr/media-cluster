@@ -73,45 +73,10 @@ metadata:
   namespace: media
 spec:
   entryPoints:
-    - websecure
-  routes:
-    - match: Host(`jackett.media.lan`)
-      kind: Rule
-      services:
-        - name: jackett
-          port: 9117
-  tls: {}
----
-apiVersion: traefik.io/v1alpha1
-kind: IngressRoute
-metadata:
-  name: jackett-lan-wan-host
-  namespace: media
-spec:
-  entryPoints:
-    - websecure
-  routes:
-    - match: Host(`jackett.media.${WAN_HOSTNAME}`)
-      kind: Rule
-      services:
-        - name: jackett
-          port: 9117
-  tls: {}
----
-apiVersion: traefik.io/v1alpha1
-kind: IngressRoute
-metadata:
-  name: jackett-lan-http
-  namespace: media
-spec:
-  entryPoints:
     - web
   routes:
     - match: Host(`jackett.media.lan`) || Host(`jackett.media.${WAN_HOSTNAME}`)
       kind: Rule
-      middlewares:
-        - name: https-redirect
-          namespace: media
       services:
         - name: jackett
           port: 9117

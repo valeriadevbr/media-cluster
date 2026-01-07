@@ -258,7 +258,7 @@
       {
         name: 'Plex',
         url: 'https://plex.media.apedamo.mywire.org',
-        urlAlt: 'http://plex.media.apedamo.mywire.org',
+        urlAlt: 'http://plex.media.lan',
         pingUrl: 'http://plex:32400/identity',
         color: '#e5a00d',
         icon: 'plex.svg'
@@ -266,7 +266,7 @@
       {
         name: 'Emby',
         url: 'https://emby.media.apedamo.mywire.org',
-        urlAlt: 'http://emby.media.apedamo.mywire.org',
+        urlAlt: 'http://emby.media.lan',
         pingUrl: 'http://emby:8096/System/Ping',
         color: '#5dd054',
         icon: 'emby.svg'
@@ -274,7 +274,7 @@
       {
         name: 'Sonarr',
         url: 'https://sonarr.media.apedamo.mywire.org',
-        urlAlt: 'http://sonarr.media.apedamo.mywire.org',
+        urlAlt: 'http://sonarr.media.lan',
         pingUrl: 'http://sonarr:8989/ping',
         color: '#00c0fa',
         icon: 'sonarr.svg'
@@ -282,7 +282,7 @@
       {
         name: 'Radarr',
         url: 'https://radarr.media.apedamo.mywire.org',
-        urlAlt: 'http://radarr.media.apedamo.mywire.org',
+        urlAlt: 'http://radarr.media.lan',
         pingUrl: 'http://radarr:7878/ping',
         color: '#ffc230',
         icon: 'radarr.svg'
@@ -290,7 +290,7 @@
       {
         name: 'Lidarr',
         url: 'https://lidarr.media.apedamo.mywire.org',
-        urlAlt: 'http://lidarr.media.apedamo.mywire.org',
+        urlAlt: 'http://lidarr.media.lan',
         pingUrl: 'http://lidarr:8686/ping',
         color: '#00936e',
         icon: 'lidarr.svg'
@@ -298,7 +298,7 @@
       {
         name: 'Bazarr',
         url: 'https://bazarr.media.apedamo.mywire.org',
-        urlAlt: 'http://bazarr.media.apedamo.mywire.org',
+        urlAlt: 'http://bazarr.media.lan',
         pingUrl: 'http://bazarr:6767',
         color: '#b76bf7',
         icon: 'bazarr.svg'
@@ -306,7 +306,7 @@
       {
         name: 'Prowlarr',
         url: 'https://prowlarr.media.apedamo.mywire.org',
-        urlAlt: 'http://prowlarr.media.apedamo.mywire.org',
+        urlAlt: 'http://prowlarr.media.lan',
         pingUrl: 'http://prowlarr:9696/ping',
         color: '#ff3333',
         icon: 'prowlarr.svg'
@@ -314,7 +314,7 @@
       {
         name: 'Jackett',
         url: 'https://jackett.media.apedamo.mywire.org',
-        urlAlt: 'http://jackett.media.apedamo.mywire.org',
+        urlAlt: 'http://jackett.media.lan',
         pingUrl: 'http://jackett:9117/UI/Dashboard',
         color: '#b7f76b',
         icon: 'jackett.svg'
@@ -322,7 +322,7 @@
       {
         name: 'Profilarr',
         url: 'https://profilarr.media.apedamo.mywire.org',
-        urlAlt: 'http://profilarr.media.apedamo.mywire.org',
+        urlAlt: 'http://profilarr.media.lan',
         pingUrl: 'http://profilarr:6868/ping',
         color: '#6b9cf7',
         icon: 'profilarr.svg'
@@ -330,7 +330,7 @@
       {
         name: 'Lingarr',
         url: 'https://lingarr.media.apedamo.mywire.org',
-        urlAlt: 'http://lingarr.media.apedamo.mywire.org',
+        urlAlt: 'http://lingarr.media.lan',
         pingUrl: 'http://lingarr:9876',
         color: '#7b6254',
         icon: 'lingarr.svg'
@@ -338,7 +338,7 @@
       {
         name: 'qBittorrent',
         url: 'https://qbittorrent.media.apedamo.mywire.org',
-        urlAlt: 'http://qbittorrent.media.apedamo.mywire.org',
+        urlAlt: 'http://qbittorrent.media.lan',
         pingUrl: 'http://qbittorrent:8081',
         color: '#2f67ba',
         icon: 'qbittorrent.svg'
@@ -346,17 +346,34 @@
       {
         name: 'Slskd',
         url: 'https://slskd.media.apedamo.mywire.org',
-        urlAlt: 'http://slskd.media.apedamo.mywire.org',
+        urlAlt: 'http://slskd.media.lan',
         pingUrl: 'http://slskd:5030',
         color: '#00c3ff',
         icon: 'slskd.svg'
       },
       {
-        name: 'Traefik',
+        name: 'Traefik (Infra)',
+        url: 'https://traefik.infra.apedamo.mywire.org',
+        urlAlt: 'https://traefik.infra.lan',
+        pingUrl: 'http://infra-cluster-control-plane:9000/ping',
+        color: '#00c3ff',
+        icon: 'traefik-proxy.svg'
+      },
+      {
+        name: 'Traefik (Media)',
         url: 'https://traefik.media.apedamo.mywire.org',
+        urlAlt: 'https://traefik.media.lan',
         pingUrl: 'http://traefik.ingress-traefik.svc.cluster.local:9000/ping',
         color: '#00c3ff',
         icon: 'traefik-proxy.svg'
+      },
+      {
+        name: 'OpenSpeedTest',
+        url: 'https://speedtest.media.apedamo.mywire.org',
+        urlAlt: 'http://speedtest.media.lan',
+        pingUrl: 'http://speedtest:3000',
+        color: '#00c3ff',
+        icon: 'openspeedtest.svg'
       },
     ];
 

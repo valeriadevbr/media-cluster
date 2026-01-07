@@ -10,12 +10,12 @@ apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: media-lan-tls
-  namespace: ingress-traefik
+  namespace: infra
 spec:
   secretName: media-lan-tls
   duration: 2160h
   renewBefore: 360h
-  commonName: "media.lan"
+  commonName: "*.lan"
   subject:
     organizations:
       - "DevilCOM Network"
@@ -23,6 +23,7 @@ spec:
       - "Media Cluster"
   isCA: false
   privateKey:
+    rotationPolicy: Always
     algorithm: RSA
     encoding: PKCS1
     size: 2048
@@ -30,7 +31,9 @@ spec:
     - server auth
     - client auth
   dnsNames:
+    - "infra.lan"
     - "media.lan"
+    - "*.infra.lan"
     - "*.media.lan"
   issuerRef:
     name: local-ca

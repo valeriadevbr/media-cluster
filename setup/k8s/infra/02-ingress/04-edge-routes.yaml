@@ -1,0 +1,70 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: traefik-media-internal
+  namespace: infra
+spec:
+  type: ExternalName
+  externalName: media-cluster-control-plane
+  ports:
+    - name: web
+      port: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: traefik-media-external
+  namespace: infra
+spec:
+  type: ExternalName
+  externalName: media-cluster-control-plane
+  ports:
+    - name: web
+      port: 81
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: media-internal-catchall
+  namespace: infra
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: HostRegexp(`^.+\.media\.lan$`) || HostRegexp(`^media\.lan$`) || HostRegexp(`^.+\.media\.${WAN_HOSTNAME}$`) || HostRegexp(`^media\.${WAN_HOSTNAME}$`)
+      kind: Rule
+      priority: 100
+      services:
+        - name: traefik-media-internal
+          port: 80
+          passHostHeader: true
+      middlewares:
+        - name: gzip
+          namespace: ingress-traefik
+        - name: error-pages
+          namespace: ingress-traefik
+  tls: {}
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: media-external-catchall
+  namespace: infra
+spec:
+  entryPoints:
+    - websecure-wan
+  routes:
+    - match: HostRegexp(`^.+\.media\.${WAN_HOSTNAME}$`) || HostRegexp(`^media\.${WAN_HOSTNAME}$`)
+      kind: Rule
+      priority: 1000
+      services:
+        - name: traefik-media-external
+          port: 81
+          passHostHeader: true
+      middlewares:
+        - name: gzip
+          namespace: ingress-traefik
+        - name: error-pages
+          namespace: ingress-traefik
+  tls:
+    secretName: wan-wildcard-tls

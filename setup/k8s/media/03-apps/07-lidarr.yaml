@@ -145,45 +145,10 @@ metadata:
   namespace: media
 spec:
   entryPoints:
-    - websecure
-  routes:
-    - match: Host(`lidarr.media.lan`)
-      kind: Rule
-      services:
-        - name: lidarr
-          port: 8686
-  tls: {}
----
-apiVersion: traefik.io/v1alpha1
-kind: IngressRoute
-metadata:
-  name: lidarr-lan-wan-host
-  namespace: media
-spec:
-  entryPoints:
-    - websecure
-  routes:
-    - match: Host(`lidarr.media.${WAN_HOSTNAME}`)
-      kind: Rule
-      services:
-        - name: lidarr
-          port: 8686
-  tls: {}
----
-apiVersion: traefik.io/v1alpha1
-kind: IngressRoute
-metadata:
-  name: lidarr-lan-http
-  namespace: media
-spec:
-  entryPoints:
     - web
   routes:
     - match: Host(`lidarr.media.lan`) || Host(`lidarr.media.${WAN_HOSTNAME}`)
       kind: Rule
-      middlewares:
-        - name: https-redirect
-          namespace: media
       services:
         - name: lidarr
           port: 8686

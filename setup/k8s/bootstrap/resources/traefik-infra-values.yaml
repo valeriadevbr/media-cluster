@@ -10,21 +10,25 @@ service:
 persistence:
   enabled: false
 
-additionalArguments: []
-
-env: []
-
 ports:
   traefik:
     port: 9000
     expose:
       default: true
     exposedPort: 9000
+    nodePort: 9000
     protocol: TCP
   web:
+    port: 8000
+    exposedPort: 80
     nodePort: 80
     middlewares:
-      - ingress-traefik-gzip@kubernetescrd
+      - "ingress-traefik-gzip@kubernetescrd"
+      - "ingress-traefik-error-pages@kubernetescrd"
+    redirections:
+      entryPoint:
+        to: websecure
+        scheme: https
   web-wan:
     port: 44000
     exposedPort: 44000
@@ -32,13 +36,21 @@ ports:
     expose:
       default: true
     middlewares:
-      - ingress-traefik-gzip@kubernetescrd
+      - "ingress-traefik-gzip@kubernetescrd"
+      - "ingress-traefik-error-pages@kubernetescrd"
+    redirections:
+      entryPoint:
+        to: websecure-wan
+        scheme: https
   websecure:
+    port: 8443
+    exposedPort: 443
     nodePort: 443
+    middlewares:
+      - "ingress-traefik-gzip@kubernetescrd"
+      - "ingress-traefik-error-pages@kubernetescrd"
     http3:
       enabled: true
-    middlewares:
-      - ingress-traefik-gzip@kubernetescrd
     tls:
       enabled: true
   websecure-wan:
@@ -47,12 +59,13 @@ ports:
     nodePort: 44300
     expose:
       default: true
+    middlewares:
+      - "ingress-traefik-gzip@kubernetescrd"
+      - "ingress-traefik-error-pages@kubernetescrd"
     http3:
       enabled: true
     tls:
       enabled: true
-    middlewares:
-      - ingress-traefik-gzip@kubernetescrd
 
 api:
   dashboard: true
@@ -61,20 +74,11 @@ api:
 ingressRoute:
   dashboard:
     enabled: true
-    matchRule: Host(`traefik.media.lan`) || Host(`traefik.media.${WAN_HOSTNAME}`)
+    matchRule: Host(`traefik.infra.lan`) || Host(`traefik.infra.${WAN_HOSTNAME}`)
     entryPoints:
       - websecure
 
-additionalVolumeMounts:
-  - name: certs-data
-    mountPath: /acme
-
 deployment:
-  additionalVolumes:
-    - name: certs-data
-      hostPath:
-        path: /mnt/configs/traefik
-        type: DirectoryOrCreate
   podSecurityContext:
     runAsNonRoot: true
     runAsUser: 65532
@@ -91,3 +95,5 @@ ping:
 logs:
   general:
     level: INFO
+  access:
+    enabled: true

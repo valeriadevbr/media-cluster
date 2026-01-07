@@ -11,7 +11,7 @@ ST = SC
 L = Joinville
 O = DevilCOM Network
 OU = TI
-CN = *.media.lan
+CN = *.lan
 
 [req_ext]
 keyUsage = keyEncipherment, dataEncipherment, digitalSignature
@@ -19,6 +19,8 @@ extendedKeyUsage = serverAuth
 subjectAltName = @alt_names
 
 [ alt_names ]
-DNS.1 = *.media.lan
+DNS.1 = infra.lan
 DNS.2 = media.lan
-DNS.3 = localhost
+DNS.3 = *.infra.lan
+DNS.4 = *.media.lan
+DNS.5 = localhost

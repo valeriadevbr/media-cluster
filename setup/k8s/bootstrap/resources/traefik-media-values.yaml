@@ -1,0 +1,60 @@
+providers:
+  kubernetesCRD:
+    enabled: true
+    allowExternalNameServices: true
+    allowCrossNamespace: true
+
+service:
+  type: NodePort
+
+persistence:
+  enabled: false
+
+ports:
+  traefik:
+    port: 9000
+    expose:
+      default: true
+    exposedPort: 9000
+    protocol: TCP
+  web:
+    port: 8000
+    nodePort: 80
+    middlewares:
+      - "ingress-traefik-gzip@kubernetescrd"
+      - "ingress-traefik-error-pages@kubernetescrd"
+  web-external:
+    port: 8001
+    nodePort: 81
+    expose:
+      default: true
+    middlewares:
+      - "ingress-traefik-gzip@kubernetescrd"
+      - "ingress-traefik-error-pages@kubernetescrd"
+
+api:
+  dashboard: true
+  insecure: true
+
+ingressRoute:
+  dashboard:
+    enabled: true
+    matchRule: Host(`traefik.media.lan`) || Host(`traefik.media.${WAN_HOSTNAME}`)
+    entryPoints:
+      - web
+
+deployment:
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 65532
+    runAsGroup: 65532
+
+ping:
+  enabled: true
+  entryPoint: traefik
+
+logs:
+  general:
+    level: INFO
+  access:
+    enabled: true

@@ -45,6 +45,5 @@ EOF
   docker exec "$MEDIA_CLUSTER_NAME-control-plane" ip link set eth0 mtu "${DOCKER_MTU}"
   docker exec "$MEDIA_CLUSTER_NAME-control-plane" ethtool -K eth0 tso off gso off || true
 else
-  echo "Selecionando '$MEDIA_CLUSTER_NAME' existente..."
-  kubectl config use-context "kind-$MEDIA_CLUSTER_NAME"
+  echo "Usando '$MEDIA_CLUSTER_NAME' existente..."
 fi

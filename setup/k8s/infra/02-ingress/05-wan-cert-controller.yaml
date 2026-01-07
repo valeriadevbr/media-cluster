@@ -2,7 +2,7 @@ apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
   name: wan-wildcard-cert-controller
-  namespace: media
+  namespace: infra
 spec:
   entryPoints:
     - websecure-wan
@@ -11,7 +11,7 @@ spec:
     - match: Host(`${WAN_HOSTNAME}`)
       kind: Rule
       services:
-        - name: default-backend-external
+        - name: custom-error-pages-external
           port: 80
   tls:
     secretName: wan-wildcard-tls
@@ -19,11 +19,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: default-backend-external
-  namespace: media
+  name: custom-error-pages-external
+  namespace: infra
 spec:
   type: ExternalName
-  externalName: default-backend.infra.svc.cluster.local
+  externalName: custom-error-pages.infra.svc.cluster.local
   ports:
     - name: http
       port: 80

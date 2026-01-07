@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: wan-cert-backup
+  namespace: infra
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: wan-cert-backup-reader
+  namespace: infra
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: wan-cert-backup-reader-binding
+  namespace: infra
+subjects:
+  - kind: ServiceAccount
+    name: wan-cert-backup
+    namespace: infra
+roleRef:
+  kind: Role
+  name: wan-cert-backup-reader
+  apiGroup: rbac.authorization.k8s.io

@@ -18,6 +18,20 @@ nodes:
       - containerPort: 53 # DNS UDP
         hostPort: 53
         protocol: UDP
+      - containerPort: 80 # HTTP
+        hostPort: 80
+        protocol: TCP
+      - containerPort: 443 # HTTPS
+        hostPort: 443
+        protocol: TCP
+      - containerPort: 9000 # TRAEFIK
+        protocol: TCP
+      - containerPort: 44000 # HTTP WAN
+        hostPort: 44000
+        protocol: TCP
+      - containerPort: 44300 # HTTPS WAN
+        hostPort: 44300
+        protocol: TCP
     extraMounts:
       - hostPath: ${CONFIGS_PATH}
         containerPath: /mnt/configs

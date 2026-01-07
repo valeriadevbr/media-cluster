@@ -5,7 +5,6 @@ set -a
 set +a
 
 "${K8S_PATH}/setup.sh"
-"${K8S_PATH}/apply-media.sh"
 
 if [[ "$OS" == "Darwin" ]]; then
   "${SETUP_PATH}/utils/set-pf-rules.sh"

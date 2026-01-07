@@ -134,30 +134,12 @@ metadata:
 spec:
   entryPoints:
     - web
-    - websecure
   routes:
-    - match: Host(`plex.media.lan`)
+    - match: Host(`plex.media.lan`) || Host(`plex.media.${WAN_HOSTNAME}`)
       kind: Rule
       services:
         - name: plex
           port: 32400
-  tls: {}
----
-apiVersion: traefik.io/v1alpha1
-kind: IngressRoute
-metadata:
-  name: plex-lan-wan-host
-  namespace: media
-spec:
-  entryPoints:
-    - websecure
-  routes:
-    - match: Host(`plex.media.${WAN_HOSTNAME}`)
-      kind: Rule
-      services:
-        - name: plex
-          port: 32400
-  tls: {}
 ---
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
@@ -166,8 +148,7 @@ metadata:
   namespace: media
 spec:
   entryPoints:
-    - web-wan
-    - websecure-wan
+    - web-external
   routes:
     - match: Host(`plex.media.${WAN_HOSTNAME}`)
       kind: Rule
@@ -177,4 +158,3 @@ spec:
       services:
         - name: plex
           port: 32400
-  tls: {}

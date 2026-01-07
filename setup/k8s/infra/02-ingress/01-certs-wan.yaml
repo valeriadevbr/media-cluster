@@ -14,15 +14,13 @@ spec:
             groupName: acme.dynu.com
             solverName: dynu
             config:
-              apiKeySecretRef:
-                name: dynu-api-key-secret
-                key: api-key
+              secretName: dynu-api-key-secret
 ---
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: wan-wildcard-tls
-  namespace: media
+  namespace: infra
 spec:
   secretName: wan-wildcard-tls
   issuerRef:
@@ -32,7 +30,9 @@ spec:
   dnsNames:
     - "${WAN_HOSTNAME}"
     - "*.${WAN_HOSTNAME}"
+    - "*.infra.${WAN_HOSTNAME}"
     - "*.media.${WAN_HOSTNAME}"
+    - "*.cloud.${WAN_HOSTNAME}"
   usages:
     - digital signature
     - key encipherment

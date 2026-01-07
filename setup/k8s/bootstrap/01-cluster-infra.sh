@@ -15,10 +15,9 @@ if ! kind get clusters | grep -q "$INFRA_CLUSTER_NAME"; then
   echo "🔧 Ajustando MTU diretamente no Node e Desativando Offloads (Fix para HostNetwork/Traefik)..."
   docker exec "$INFRA_CLUSTER_NAME-control-plane" ip link set eth0 mtu "${DOCKER_MTU}"
   docker exec "$INFRA_CLUSTER_NAME-control-plane" ethtool -K eth0 tso off gso off || true
+  docker exec "$INFRA_CLUSTER_NAME-control-plane" sysctl -w net.ipv4.ip_unprivileged_port_start=0
 else
-  echo "Selecionando '$INFRA_CLUSTER_NAME' existente..."
-  kubectl config use-context "kind-$INFRA_CLUSTER_NAME"
+  echo "Utilizando '$INFRA_CLUSTER_NAME' existente..."
 fi
 
-echo "📦 Aplicando recursos do Cluster Infra via script..."
-"${K8S_PATH}/apply-infra.sh"
+echo "✅ Cluster Infra pronto."

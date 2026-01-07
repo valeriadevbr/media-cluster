@@ -3,11 +3,12 @@
 
 # Secrets & Environment
 *.env
-*.key
-*.crt
-*.pem
-*.pfx
-*.srl
+ssl/**/*.key
+ssl/**/*.crt
+ssl/**/*.pem
+ssl/**/*.pfx
+ssl/**/*.srl
+ssl/**/*.yaml
 
 # Dotfiles
 .env

@@ -12,17 +12,9 @@ nodes:
         kind: KubeletConfiguration
         resolvConf: "/etc/kubernetes/resolv.conf"
     extraPortMappings:
-      - containerPort: 80 # HTTP
-        hostPort: 80
+      - containerPort: 80 # HTTP LAN (vindo do Edge)
         protocol: TCP
-      - containerPort: 443 # HTTPS
-        hostPort: 443
-        protocol: TCP
-      - containerPort: 44000 # HTTP WAN (web-wan)
-        hostPort: 44000
-        protocol: TCP
-      - containerPort: 44300 # HTTPS WAN (websecure-wan)
-        hostPort: 44300
+      - containerPort: 81 # HTTP WAN (vindo do Edge)
         protocol: TCP
       - containerPort: 50300 # Soulseek Peer TCP
         hostPort: 50300

@@ -31,7 +31,6 @@ metadata:
 spec:
   entryPoints:
     - web
-    - websecure
   routes:
     - match: Host(`emby.media.lan`)
       kind: Rule
@@ -47,7 +46,8 @@ metadata:
   namespace: media
 spec:
   entryPoints:
-    - websecure
+    - web
+    - web-external
   routes:
     - match: Host(`emby.media.${WAN_HOSTNAME}`)
       kind: Rule
@@ -63,8 +63,7 @@ metadata:
   namespace: media
 spec:
   entryPoints:
-    - web-wan
-    - websecure-wan
+    - web-external
   routes:
     - match: Host(`emby.media.${WAN_HOSTNAME}`)
       kind: Rule

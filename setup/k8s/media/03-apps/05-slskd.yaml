@@ -94,45 +94,10 @@ metadata:
   namespace: media
 spec:
   entryPoints:
-    - websecure
-  routes:
-    - match: Host(`slskd.media.lan`)
-      kind: Rule
-      services:
-        - name: slskd
-          port: 5030
-  tls: {}
----
-apiVersion: traefik.io/v1alpha1
-kind: IngressRoute
-metadata:
-  name: slskd-lan-wan-host
-  namespace: media
-spec:
-  entryPoints:
-    - websecure
-  routes:
-    - match: Host(`slskd.media.${WAN_HOSTNAME}`)
-      kind: Rule
-      services:
-        - name: slskd
-          port: 5030
-  tls: {}
----
-apiVersion: traefik.io/v1alpha1
-kind: IngressRoute
-metadata:
-  name: slskd-lan-http
-  namespace: media
-spec:
-  entryPoints:
     - web
   routes:
     - match: Host(`slskd.media.lan`) || Host(`slskd.media.${WAN_HOSTNAME}`)
       kind: Rule
-      middlewares:
-        - name: https-redirect
-          namespace: media
       services:
         - name: slskd
           port: 5030

@@ -13,6 +13,10 @@ spec:
       labels:
         app: dashboard
     spec:
+      hostAliases:
+        - ip: "${INFRA_CLUSTER_IP}"
+          hostnames:
+            - "infra-cluster-control-plane"
       containers:
         - name: pinger
           image: python:3-slim
@@ -77,27 +81,9 @@ metadata:
 spec:
   entryPoints:
     - web
-    - websecure
   routes:
-    - match: Host(`dashboard.media.lan`)
+    - match: Host(`dashboard.media.lan`) || Host(`dashboard.media.${WAN_HOSTNAME}`)
       kind: Rule
       services:
         - name: dashboard
           port: 80
-  tls: {}
----
-apiVersion: traefik.io/v1alpha1
-kind: IngressRoute
-metadata:
-  name: dashboard-lan-wan-host
-  namespace: media
-spec:
-  entryPoints:
-    - websecure
-  routes:
-    - match: Host(`dashboard.media.${WAN_HOSTNAME}`)
-      kind: Rule
-      services:
-        - name: dashboard
-          port: 80
-  tls: {}

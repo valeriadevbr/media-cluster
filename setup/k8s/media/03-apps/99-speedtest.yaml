@@ -44,52 +44,29 @@ spec:
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
-  name: speedtest
-  namespace: media
-spec:
-  entryPoints:
-    - web
-    - websecure
-    - web-wan
-    - websecure-wan
-  routes:
-    - match: Host(`media.${WAN_HOSTNAME}`)
-      kind: Rule
-      services:
-        - name: speedtest
-          port: 3000
-  tls: {}
----
-apiVersion: traefik.io/v1alpha1
-kind: IngressRoute
-metadata:
   name: speedtest-lan
   namespace: media
 spec:
   entryPoints:
-    - websecure
+    - web
   routes:
-    - match: Host(`speedtest.media.lan`)
+    - match: Host(`speedtest.media.lan`) || Host(`speedtest.media.${WAN_HOSTNAME}`) || Host(`media.${WAN_HOSTNAME}`)
       kind: Rule
       services:
         - name: speedtest
           port: 3000
-  tls: {}
 ---
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
-  name: speedtest-lan-http
+  name: speedtest-wan
   namespace: media
 spec:
   entryPoints:
-    - web
+    - web-external
   routes:
-    - match: Host(`speedtest.media.lan`)
+    - match: Host(`speedtest.media.${WAN_HOSTNAME}`) || Host(`media.${WAN_HOSTNAME}`)
       kind: Rule
-      middlewares:
-        - name: https-redirect
-          namespace: media
       services:
         - name: speedtest
           port: 3000
