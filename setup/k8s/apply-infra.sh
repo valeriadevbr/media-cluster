@@ -9,6 +9,8 @@ echo "Aplicando configurações Infra. Raiz definida como: $SETUP_PATH"
 
 echo "🌐 Aplicando Core (${INFRA_CLUSTER_NAME})..."
 apply_with_subst "${K8S_PATH}/infra/00-core/" "$INFRA_CLUSTER_NAME"
+kubectl rollout restart deployment coredns -n kube-system --context="kind-${INFRA_CLUSTER_NAME}"
+kubectl rollout status deployment coredns -n kube-system --context="kind-${INFRA_CLUSTER_NAME}"
 
 echo "💾 Aplicando Storage (${INFRA_CLUSTER_NAME})..."
 apply_with_subst "${K8S_PATH}/infra/01-storage/" "$INFRA_CLUSTER_NAME"

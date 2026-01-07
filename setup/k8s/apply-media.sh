@@ -7,8 +7,12 @@ set +a
 
 echo "Aplicando configurações. Raiz definida como: $SETUP_PATH"
 
-echo "🌐 Aplicando Core e Storage (${MEDIA_CLUSTER_NAME})..."
+echo "🌐 Aplicando Core (${MEDIA_CLUSTER_NAME})..."
 apply_with_subst "${K8S_PATH}/media/00-core/" "$MEDIA_CLUSTER_NAME"
+kubectl rollout restart deployment coredns -n kube-system --context="kind-${MEDIA_CLUSTER_NAME}"
+kubectl rollout status deployment coredns -n kube-system --context="kind-${MEDIA_CLUSTER_NAME}"
+
+echo "🌐 Aplicando Storage (${MEDIA_CLUSTER_NAME})..."
 apply_with_subst "${K8S_PATH}/media/01-storage/" "$MEDIA_CLUSTER_NAME"
 
 echo "🌐 Aplicando Ingress (${MEDIA_CLUSTER_NAME})..."

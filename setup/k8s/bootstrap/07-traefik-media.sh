@@ -21,13 +21,4 @@ subst_manifest "$(dirname "$0")/resources/traefik-media-values.yaml" |
 echo "Aguardando Traefik (Media)..."
 kubectl rollout status deployment traefik -n ingress-traefik --context "kind-${MEDIA_CLUSTER_NAME}"
 
-# Descoberta dinâmica do IP do cluster Media para roteamento inter-cluster
-export MEDIA_CLUSTER_IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "${MEDIA_CLUSTER_NAME}-control-plane")
-echo "🔗 IP do Cluster Media detectado: ${MEDIA_CLUSTER_IP}"
-
-echo "🔧 Patching Traefik HostAliases..."
-kubectl patch deployment traefik -n ingress-traefik --context "kind-${INFRA_CLUSTER_NAME}" \
-  --type='json' \
-  -p="[{\"op\": \"add\", \"path\": \"/spec/template/spec/hostAliases\", \"value\": [{\"ip\": \"${MEDIA_CLUSTER_IP}\", \"hostnames\": [\"media-cluster-control-plane\"]}]}]" || echo "HostAliases patch failed (maybe already applied?)"
-
 echo "Traefik Media pronto."

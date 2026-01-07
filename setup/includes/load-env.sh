@@ -11,7 +11,4 @@ source "${SCRIPT_DIR}/../.env"
 OS="$(uname)"
 PUID=$(id -u)
 PGID=$(id -g)
-if command -v docker >/dev/null 2>&1 && docker ps >/dev/null 2>&1; then
-  INFRA_CLUSTER_IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "${INFRA_CLUSTER_NAME}-control-plane" 2>/dev/null || echo "")
-fi
 set +a

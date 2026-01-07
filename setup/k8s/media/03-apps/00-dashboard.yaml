@@ -13,10 +13,6 @@ spec:
       labels:
         app: dashboard
     spec:
-      hostAliases:
-        - ip: "${INFRA_CLUSTER_IP}"
-          hostnames:
-            - "infra-cluster-control-plane"
       containers:
         - name: pinger
           image: python:3-slim
