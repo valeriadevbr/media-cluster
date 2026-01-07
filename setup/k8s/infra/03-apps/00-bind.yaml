@@ -52,6 +52,7 @@ metadata:
   name: dns
   namespace: infra
 spec:
+  clusterIP: 10.96.0.53
   selector:
     app: dns
   ports:

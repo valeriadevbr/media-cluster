@@ -69,6 +69,16 @@ spec:
       targetPort: 80
   type: ClusterIP
 ---
+# Ping para AdGuard Home
+apiVersion: v1
+kind: Service
+metadata:
+  name: adguard-service
+  namespace: media
+spec:
+  type: ExternalName
+  externalName: infra-cluster-control-plane
+---
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:

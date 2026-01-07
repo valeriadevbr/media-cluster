@@ -1,0 +1,79 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: adguard-deployment
+  namespace: infra
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: adguard
+  template:
+    metadata:
+      labels:
+        app: adguard
+    spec:
+      containers:
+        - name: adguard-home
+          image: adguard/adguardhome:latest
+          ports:
+            - containerPort: 3000
+              name: http-initial
+            - containerPort: 80
+              name: http
+              protocol: TCP
+          volumeMounts:
+            - name: configs
+              subPath: adguard
+              mountPath: /opt/adguardhome/work
+            - name: configs
+              subPath: adguard-conf
+              mountPath: /opt/adguardhome/conf
+      volumes:
+        - name: configs
+          persistentVolumeClaim:
+            claimName: configs-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: adguard-service
+  namespace: infra
+spec:
+  selector:
+    app: adguard
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000
+      name: http-initial
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+      name: http
+  type: ClusterIP
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: adguard-lan
+  namespace: infra
+spec:
+  entryPoints:
+    - web
+    - websecure
+  routes:
+    - match: Host(`adguard.infra.lan`) || Host(`adguard.infra.${WAN_HOSTNAME}`) || Host(`adguard-service`)
+      kind: Rule
+      services:
+        - name: adguard-service
+          port: 80
+    - match: (Host(`adguard-setup.infra.lan`) || Host(`adguard-setup.infra.${WAN_HOSTNAME}`))
+      kind: Rule
+      services:
+        - name: adguard-service
+          port: 3000
+  tls:
+    secretName: media-lan-tls
