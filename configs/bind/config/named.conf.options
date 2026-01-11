@@ -1,6 +1,7 @@
 options {
   directory "/var/cache/bind";
   recursion yes;
+  keep-response-order { any; };
   allow-query { any; };
   dnssec-validation auto;
   forwarders {

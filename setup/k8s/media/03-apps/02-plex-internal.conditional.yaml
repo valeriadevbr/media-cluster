@@ -99,7 +99,8 @@ metadata:
 spec:
   selector:
     app: plex
-  type: ClusterIP
+  type: LoadBalancer
+  externalTrafficPolicy: Local
   ports:
     - name: pms
       port: 32400

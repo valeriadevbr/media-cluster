@@ -24,6 +24,18 @@ spec:
             - containerPort: 80
               name: http
               protocol: TCP
+            - containerPort: 53
+              name: dns-tcp
+              protocol: TCP
+            - containerPort: 53
+              name: dns-udp
+              protocol: UDP
+            - containerPort: 853
+              name: dot-tcp
+              protocol: TCP
+            - containerPort: 853
+              name: dot-udp
+              protocol: UDP
           volumeMounts:
             - name: configs
               subPath: adguard
@@ -31,10 +43,16 @@ spec:
             - name: configs
               subPath: adguard-conf
               mountPath: /opt/adguardhome/conf
+            - name: certs
+              mountPath: /opt/adguardhome/certs
+              readOnly: true
       volumes:
         - name: configs
           persistentVolumeClaim:
             claimName: configs-pvc
+        - name: certs
+          secret:
+            secretName: wan-wildcard-tls
 ---
 apiVersion: v1
 kind: Service
@@ -53,7 +71,28 @@ spec:
       port: 80
       targetPort: 80
       name: http
-  type: ClusterIP
+    - protocol: TCP
+      port: 53
+      targetPort: 53
+      nodePort: 53
+      name: dns-tcp
+    - protocol: UDP
+      port: 53
+      targetPort: 53
+      nodePort: 53
+      name: dns-udp
+    - protocol: TCP
+      port: 853
+      targetPort: 853
+      nodePort: 853
+      name: dot-tcp
+    - protocol: UDP
+      port: 853
+      targetPort: 853
+      nodePort: 853
+      name: dot-udp
+  type: LoadBalancer
+  externalTrafficPolicy: Local
 ---
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute

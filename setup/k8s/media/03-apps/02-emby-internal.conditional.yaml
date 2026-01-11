@@ -88,7 +88,8 @@ spec:
       port: 7359
       targetPort: 7359
       protocol: UDP
-  type: ClusterIP
+  type: LoadBalancer
+  externalTrafficPolicy: Local
 ---
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute

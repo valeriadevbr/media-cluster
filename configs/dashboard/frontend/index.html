@@ -9,44 +9,84 @@
   <meta name="theme-color" content="#0f1115" />
   <title>Media Server Dash</title>
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     :root {
-      --bg-color: #0f1115;
-      --card-bg: rgba(255, 255, 255, 0.05);
-      --card-hover: rgba(255, 255, 255, 0.1);
-      --text-color: #ffffff;
+      --bg: #0f1115;
+      --card: rgba(255, 255, 255, 0.05);
+      --card-h: rgba(255, 255, 255, 0.1);
+      --text: #fff;
+      --border: rgba(255, 255, 255, 0.08);
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     body {
-      font-family: "Inter", -apple-system, system-ui, sans-serif;
-      background-color: var(--bg-color);
-      color: var(--text-color);
+      font-family: "Inter", -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
       margin: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
       min-height: 100vh;
-      background-image: radial-gradient(circle at top right, rgba(29, 35, 48, 0.5) 0%, transparent 40%),
-        radial-gradient(circle at bottom left, rgba(229, 160, 13, 0.05) 0%, transparent 40%);
+      background-image: radial-gradient(circle at top right, rgba(29, 35, 48, 0.5), transparent 40%),
+        radial-gradient(circle at bottom left, rgba(229, 160, 13, 0.05), transparent 40%);
+      background-attachment: fixed;
+    }
+
+    .container {
+      width: 95%;
+      max-width: 1100px;
+      padding: 40px 20px;
+      margin: 0 auto;
+    }
+
+    section {
+      margin-bottom: 30px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      border-radius: 32px;
+      padding: 30px 30px 15px;
+      /* Set to 15px */
+      position: relative;
+      backdrop-filter: blur(5px);
+    }
+
+    .section-title {
+      position: absolute;
+      top: 0;
+      left: 30px;
+      transform: translateY(-50%);
+      z-index: 10;
+      font-size: 1.1rem;
+      font-weight: 700;
+      line-height: 1;
+      margin: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 20px;
+      background: var(--bg);
+      border-radius: 100px;
+      border: 1px solid var(--border);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
     }
 
     .grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 25px;
-      width: 90%;
-      max-width: 1100px;
-      padding: 40px;
+      gap: 30px;
+      /* Increased from 25px */
     }
 
     .card {
-      background: var(--card-bg);
+      background: var(--card);
       border: 1px solid rgba(255, 255, 255, 0.05);
       border-radius: 24px;
       padding: 35px 20px;
       text-align: center;
-      color: var(--text-color);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: var(--transition);
       backdrop-filter: blur(12px);
       display: flex;
       flex-direction: column;
@@ -58,10 +98,24 @@
 
     .card:hover {
       transform: translateY(-8px);
-      background: var(--card-hover);
+      background: var(--card-h);
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
       border-color: rgba(255, 255, 255, 0.2);
       cursor: pointer;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at center, var(--glow-color), transparent 70%);
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+
+    .card:hover::before {
+      opacity: 0.15;
     }
 
     .main-link {
@@ -87,10 +141,9 @@
       transition: transform 0.3s ease;
     }
 
-    .icon svg {
+    .icon img {
       width: 100%;
       height: 100%;
-      fill: currentColor;
       filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
     }
 
@@ -98,7 +151,7 @@
       transform: scale(1.1);
     }
 
-    h2 {
+    h2:not(.section-title) {
       font-size: 1rem;
       font-weight: 600;
       margin: 0;
@@ -108,13 +161,12 @@
 
     .alt-port-dot {
       position: absolute;
-      top: 15px;
-      right: 15px;
+      top: 10px;
+      right: 10px;
       width: 32px;
       height: 32px;
-      background-color: rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.15);
       border-radius: 50%;
-      cursor: pointer;
       z-index: 10;
       transition: all 0.2s ease;
       display: flex;
@@ -131,69 +183,25 @@
       height: 12px;
       margin-bottom: 2px;
       filter: invert(1);
-      /* Make black icon white */
       opacity: 0.9;
       transition: all 0.2s ease;
     }
 
     .alt-text {
       font-size: 0.35rem;
-      /* Reduced font size */
       font-weight: 800;
       line-height: 1;
       opacity: 0.8;
     }
 
     .alt-port-dot:hover {
-      background-color: var(--glow-color, #fff);
+      background: var(--glow-color, #fff);
       transform: scale(1.1);
       box-shadow: 0 0 10px var(--glow-color, #fff);
       color: #000;
       border-color: transparent;
     }
 
-    /* Cores Temáticas removidas em favor da geração via JS */
-
-    .card::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(circle at center, var(--glow-color), transparent 70%);
-      opacity: 0;
-      transition: opacity 0.3s;
-      pointer-events: none;
-      z-index: 1;
-    }
-
-    .card:hover::before {
-      opacity: 0.15;
-    }
-
-    @media (max-width: 700px) {
-      .grid {
-        grid-template-columns: repeat(3, 1fr);
-      }
-    }
-
-    @media (max-width: 600px) {
-      .grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-    }
-
-    @media (max-width: 380px) {
-      .grid {
-        grid-template-columns: repeat(1, 1fr);
-      }
-    }
-
-    .alt-port-dot:hover img {
-      filter: none;
-      opacity: 1;
-      transform: scale(1.1);
-    }
-
-    /* Status Dot Styles */
     .status-dot {
       position: absolute;
       top: 15px;
@@ -201,23 +209,20 @@
       width: 12px;
       height: 12px;
       border-radius: 50%;
-      background-color: #6b7280;
-      /* Gray - Unknown */
+      background: #6b7280;
       border: 2px solid rgba(255, 255, 255, 0.1);
       box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
-      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+      transition: all 0.3s ease;
       z-index: 5;
     }
 
     .status-up {
-      background-color: #22c55e;
-      /* Green */
+      background: #22c55e;
       box-shadow: 0 0 8px rgba(34, 197, 94, 0.6);
     }
 
     .status-down {
-      background-color: #ef4444;
-      /* Red */
+      background: #ef4444;
       box-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
     }
 
@@ -244,11 +249,71 @@
       color: #fff;
       border-bottom-color: #fff;
     }
+
+    @media (max-width: 900px) {
+      .container {
+        width: 98%;
+        padding: 40px 10px;
+      }
+
+      section {
+        padding: 30px 10px 10px;
+        /* Bottom matches sides (10px) */
+        border-radius: 20px;
+      }
+    }
+
+    @media (min-width: 350px) and (max-width: 800px) {
+      .grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+      }
+
+      .card {
+        padding: 20px 10px;
+      }
+
+      .icon {
+        width: 40px;
+        height: 40px;
+      }
+
+      h2:not(.section-title) {
+        font-size: 0.85rem;
+      }
+    }
+
+    @media (max-width: 350px) {
+      .grid {
+        grid-template-columns: repeat(1, 1fr);
+        gap: 12px;
+      }
+
+      .card {
+        padding: 15px 10px;
+        gap: 10px;
+      }
+
+      .icon {
+        width: 36px;
+        height: 36px;
+      }
+
+      h2:not(.section-title) {
+        font-size: 0.8rem;
+      }
+    }
+
+    .alt-port-dot:hover img {
+      filter: none;
+      opacity: 1;
+      transform: scale(1.1);
+    }
   </style>
 </head>
 
 <body>
-  <div class="grid" id="app-grid">
+  <div class="container" id="app-container">
   </div>
   <footer class="footer">
     <span style="opacity: 0.7;">Coded by <a href="https://github.com/valeriadevbr" target="_blank"
@@ -256,148 +321,165 @@
     <a href="https://github.com/valeriadevbr/media-cluster" target="_blank" rel="noopener noreferrer">GitHub Project</a>
   </footer>
   <script>
-    const apps = [
+    const appGroups = [
       {
-        name: 'Plex',
-        url: 'https://plex.media.apedamo.mywire.org',
-        urlAlt: 'http://plex.media.lan',
-        pingUrl: 'http://plex:32400/identity',
-        color: '#e5a00d',
-        icon: 'plex.svg'
+        title: 'Média',
+        apps: [
+          {
+            name: 'Plex',
+            url: 'https://plex.media.apedamo.mywire.org',
+            urlAlt: 'http://plex.media.lan',
+            pingUrl: 'http://plex:32400/identity',
+            color: '#e5a00d',
+            icon: 'plex.svg'
+          },
+          {
+            name: 'Emby',
+            url: 'https://emby.media.apedamo.mywire.org',
+            urlAlt: 'http://emby.media.lan',
+            pingUrl: 'http://emby:8096/System/Ping',
+            color: '#5dd054',
+            icon: 'emby.svg'
+          },
+          {
+            name: 'Sonarr',
+            url: 'https://sonarr.media.apedamo.mywire.org',
+            urlAlt: 'http://sonarr.media.lan',
+            pingUrl: 'http://sonarr:8989/ping',
+            color: '#00c0fa',
+            icon: 'sonarr.svg'
+          },
+          {
+            name: 'Radarr',
+            url: 'https://radarr.media.apedamo.mywire.org',
+            urlAlt: 'http://radarr.media.lan',
+            pingUrl: 'http://radarr:7878/ping',
+            color: '#ffc230',
+            icon: 'radarr.svg'
+          },
+          {
+            name: 'Lidarr',
+            url: 'https://lidarr.media.apedamo.mywire.org',
+            urlAlt: 'http://lidarr.media.lan',
+            pingUrl: 'http://lidarr:8686/ping',
+            color: '#00936e',
+            icon: 'lidarr.svg'
+          },
+          {
+            name: 'Bazarr',
+            url: 'https://bazarr.media.apedamo.mywire.org',
+            urlAlt: 'http://bazarr.media.lan',
+            pingUrl: 'http://bazarr:6767',
+            color: '#b76bf7',
+            icon: 'bazarr.svg'
+          },
+          {
+            name: 'Prowlarr',
+            url: 'https://prowlarr.media.apedamo.mywire.org',
+            urlAlt: 'http://prowlarr.media.lan',
+            pingUrl: 'http://prowlarr:9696/ping',
+            color: '#ff3333',
+            icon: 'prowlarr.svg'
+          },
+          {
+            name: 'Jackett',
+            url: 'https://jackett.media.apedamo.mywire.org',
+            urlAlt: 'http://jackett.media.lan',
+            pingUrl: 'http://jackett:9117/UI/Dashboard',
+            color: '#b7f76b',
+            icon: 'jackett.svg'
+          },
+          {
+            name: 'Profilarr',
+            url: 'https://profilarr.media.apedamo.mywire.org',
+            urlAlt: 'http://profilarr.media.lan',
+            pingUrl: 'http://profilarr:6868/ping',
+            color: '#6b9cf7',
+            icon: 'profilarr.svg'
+          },
+          {
+            name: 'Lingarr',
+            url: 'https://lingarr.media.apedamo.mywire.org',
+            urlAlt: 'http://lingarr.media.lan',
+            pingUrl: 'http://lingarr:9876',
+            color: '#7b6254',
+            icon: 'lingarr.svg'
+          },
+          {
+            name: 'qBittorrent',
+            url: 'https://qbittorrent.media.apedamo.mywire.org',
+            urlAlt: 'http://qbittorrent.media.lan',
+            pingUrl: 'http://qbittorrent:8081',
+            color: '#2f67ba',
+            icon: 'qbittorrent.svg'
+          },
+          {
+            name: 'Slskd',
+            url: 'https://slskd.media.apedamo.mywire.org',
+            urlAlt: 'http://slskd.media.lan',
+            pingUrl: 'http://slskd:5030',
+            color: '#00c3ff',
+            icon: 'slskd.svg'
+          },
+          {
+            name: 'OpenSpeedTest',
+            url: 'https://speedtest.media.apedamo.mywire.org',
+            urlAlt: 'http://speedtest.media.lan',
+            pingUrl: 'http://speedtest:3000',
+            color: '#00c3ff',
+            icon: 'openspeedtest.svg'
+          },
+        ]
       },
       {
-        name: 'Emby',
-        url: 'https://emby.media.apedamo.mywire.org',
-        urlAlt: 'http://emby.media.lan',
-        pingUrl: 'http://emby:8096/System/Ping',
-        color: '#5dd054',
-        icon: 'emby.svg'
-      },
-      {
-        name: 'Sonarr',
-        url: 'https://sonarr.media.apedamo.mywire.org',
-        urlAlt: 'http://sonarr.media.lan',
-        pingUrl: 'http://sonarr:8989/ping',
-        color: '#00c0fa',
-        icon: 'sonarr.svg'
-      },
-      {
-        name: 'Radarr',
-        url: 'https://radarr.media.apedamo.mywire.org',
-        urlAlt: 'http://radarr.media.lan',
-        pingUrl: 'http://radarr:7878/ping',
-        color: '#ffc230',
-        icon: 'radarr.svg'
-      },
-      {
-        name: 'Lidarr',
-        url: 'https://lidarr.media.apedamo.mywire.org',
-        urlAlt: 'http://lidarr.media.lan',
-        pingUrl: 'http://lidarr:8686/ping',
-        color: '#00936e',
-        icon: 'lidarr.svg'
-      },
-      {
-        name: 'Bazarr',
-        url: 'https://bazarr.media.apedamo.mywire.org',
-        urlAlt: 'http://bazarr.media.lan',
-        pingUrl: 'http://bazarr:6767',
-        color: '#b76bf7',
-        icon: 'bazarr.svg'
-      },
-      {
-        name: 'Prowlarr',
-        url: 'https://prowlarr.media.apedamo.mywire.org',
-        urlAlt: 'http://prowlarr.media.lan',
-        pingUrl: 'http://prowlarr:9696/ping',
-        color: '#ff3333',
-        icon: 'prowlarr.svg'
-      },
-      {
-        name: 'Jackett',
-        url: 'https://jackett.media.apedamo.mywire.org',
-        urlAlt: 'http://jackett.media.lan',
-        pingUrl: 'http://jackett:9117/UI/Dashboard',
-        color: '#b7f76b',
-        icon: 'jackett.svg'
-      },
-      {
-        name: 'Profilarr',
-        url: 'https://profilarr.media.apedamo.mywire.org',
-        urlAlt: 'http://profilarr.media.lan',
-        pingUrl: 'http://profilarr:6868/ping',
-        color: '#6b9cf7',
-        icon: 'profilarr.svg'
-      },
-      {
-        name: 'Lingarr',
-        url: 'https://lingarr.media.apedamo.mywire.org',
-        urlAlt: 'http://lingarr.media.lan',
-        pingUrl: 'http://lingarr:9876',
-        color: '#7b6254',
-        icon: 'lingarr.svg'
-      },
-      {
-        name: 'qBittorrent',
-        url: 'https://qbittorrent.media.apedamo.mywire.org',
-        urlAlt: 'http://qbittorrent.media.lan',
-        pingUrl: 'http://qbittorrent:8081',
-        color: '#2f67ba',
-        icon: 'qbittorrent.svg'
-      },
-      {
-        name: 'Slskd',
-        url: 'https://slskd.media.apedamo.mywire.org',
-        urlAlt: 'http://slskd.media.lan',
-        pingUrl: 'http://slskd:5030',
-        color: '#00c3ff',
-        icon: 'slskd.svg'
-      },
-      {
-        name: 'Traefik (Infra)',
-        url: 'https://traefik.infra.apedamo.mywire.org',
-        urlAlt: 'https://traefik.infra.lan',
-        pingUrl: 'http://infra-cluster-control-plane:9000/ping',
-        color: '#24a1c1',
-        icon: 'traefik-proxy.svg'
-      },
-      {
-        name: 'Traefik (Media)',
-        url: 'https://traefik.media.apedamo.mywire.org',
-        urlAlt: 'https://traefik.media.lan',
-        pingUrl: 'http://traefik.ingress-traefik.svc.cluster.local:9000/ping',
-        color: '#24a1c1',
-        icon: 'traefik-proxy.svg'
-      },
-      {
-        name: 'OpenSpeedTest',
-        url: 'https://speedtest.media.apedamo.mywire.org',
-        urlAlt: 'http://speedtest.media.lan',
-        pingUrl: 'http://speedtest:3000',
-        color: '#00c3ff',
-        icon: 'openspeedtest.svg'
-      },
-      {
-        name: 'AdGuard Home',
-        url: 'https://adguard.infra.apedamo.mywire.org',
-        urlAlt: 'http://adguard.infra.lan',
-        pingUrl: 'http://adguard-service',
-        color: '#68bc71',
-        icon: 'adguard-home.svg'
-      },
+        title: 'Infra',
+        apps: [
+          {
+            name: 'Traefik (Infra)',
+            url: 'https://traefik.infra.apedamo.mywire.org',
+            urlAlt: 'https://traefik.infra.lan',
+            pingUrl: 'http://infra-cluster-control-plane:9000/ping',
+            color: '#24a1c1',
+            icon: 'traefik-proxy.svg'
+          },
+          {
+            name: 'Traefik (Media)',
+            url: 'https://traefik.media.apedamo.mywire.org',
+            urlAlt: 'https://traefik.media.lan',
+            pingUrl: 'http://traefik.ingress-traefik.svc.cluster.local:9000/ping',
+            color: '#24a1c1',
+            icon: 'traefik-proxy.svg'
+          },
+          {
+            name: 'AdGuard Home',
+            url: 'https://adguard.infra.apedamo.mywire.org',
+            urlAlt: 'http://adguard.infra.lan',
+            pingUrl: 'http://adguard-service',
+            color: '#68bc71',
+            icon: 'adguard-home.svg'
+          },
+        ]
+      }
     ];
 
-    const grid = document.getElementById('app-grid');
+    const container = document.getElementById('app-container');
 
-    apps.forEach(app => {
-      const url = app.url;
-      const altUrl = app.urlAlt;
-      const card = document.createElement('div');
-      card.className = 'card';
-      card.style.setProperty('--glow-color', app.color);
-      card.style.color = app.color;
+    appGroups.forEach(group => {
+      const section = document.createElement('section');
+      section.innerHTML = `<h2 class="section-title">${group.title}</h2>`;
 
-      card.innerHTML = `
+      const grid = document.createElement('div');
+      grid.className = 'grid';
+
+      group.apps.forEach(app => {
+        const url = app.url;
+        const altUrl = app.urlAlt;
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.style.setProperty('--glow-color', app.color);
+        card.style.color = app.color;
+
+        card.innerHTML = `
           <div class="status-dot status-unknown" id="status-${app.name}" title="Status: Unknown"></div>
           ${altUrl ? `
           <a class="alt-port-dot" href="${altUrl}" title="Alt URL" rel="noreferrer">
@@ -412,7 +494,11 @@
           </h2>
         `;
 
-      grid.appendChild(card);
+        grid.appendChild(card);
+      });
+
+      section.appendChild(grid);
+      container.appendChild(section);
     });
 
     // WebSocket Connection
@@ -456,13 +542,17 @@
 
     function updateAllStatuses() {
       if (socket && socket.readyState === WebSocket.OPEN) {
-        apps.forEach((app, index) => {
-          setTimeout(() => {
-            socket.send(JSON.stringify({
-              name: app.name,
-              url: app.pingUrl
-            }));
-          }, index * 50);
+        let globalIndex = 0;
+        appGroups.forEach(group => {
+          group.apps.forEach(app => {
+            const currentIndex = globalIndex++;
+            setTimeout(() => {
+              socket.send(JSON.stringify({
+                name: app.name,
+                url: app.pingUrl
+              }));
+            }, currentIndex * 50);
+          });
         });
       }
     }
@@ -473,7 +563,7 @@
     // Register Service Worker for PWA
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
+        navigator.serviceWorker.register('./sw.js?v=24')
           .then(reg => console.log('Service Worker registered', reg))
           .catch(err => console.error('Service Worker registration failed', err));
       });

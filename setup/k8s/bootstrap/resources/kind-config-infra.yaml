@@ -18,6 +18,12 @@ nodes:
       - containerPort: 53 # DNS UDP
         hostPort: 53
         protocol: UDP
+      - containerPort: 853 # DoT TCP
+        hostPort: 853
+        protocol: TCP
+      - containerPort: 853 # DoT UDP
+        hostPort: 853
+        protocol: UDP
       - containerPort: 80 # HTTP
         hostPort: 80
         protocol: TCP
