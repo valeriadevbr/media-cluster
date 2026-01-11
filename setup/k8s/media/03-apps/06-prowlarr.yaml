@@ -81,7 +81,7 @@ spec:
   entryPoints:
     - web
   routes:
-    - match: Host(`prowlarr.media.lan`) || Host(`prowlarr.media.${WAN_HOSTNAME}`)
+    - match: Host(`prowlarr.media.lan`) || Host(`prowlarr.media.${WAN_HOSTNAME}`) || Host(`prowlarr-service`)
       kind: Rule
       services:
         - name: prowlarr

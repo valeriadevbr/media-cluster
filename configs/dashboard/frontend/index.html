@@ -27,7 +27,8 @@
       background: var(--bg);
       color: var(--text);
       margin: 0;
-      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
       background-image: radial-gradient(circle at top right, rgba(29, 35, 48, 0.5), transparent 40%),
         radial-gradient(circle at bottom left, rgba(229, 160, 13, 0.05), transparent 40%);
       background-attachment: fixed;
@@ -36,7 +37,8 @@
     .container {
       width: 95%;
       max-width: 1100px;
-      padding: 40px 20px;
+      padding: 40px 20px 80px;
+      /* Added 80px bottom padding for fixed footer */
       margin: 0 auto;
     }
 
@@ -227,14 +229,18 @@
     }
 
     .footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
       width: 100%;
       text-align: center;
-      padding: 20px 0;
-      margin-top: auto;
+      padding: 15px 0;
       font-size: 0.8rem;
       color: rgba(255, 255, 255, 0.4);
-      background: rgba(0, 0, 0, 0.2);
-      backdrop-filter: blur(10px);
+      background: rgba(15, 17, 21, 0.8);
+      backdrop-filter: blur(15px);
+      z-index: 1000;
+      border-top: 1px solid var(--border);
     }
 
     .footer a {
@@ -317,19 +323,19 @@
   </div>
   <footer class="footer">
     <span style="opacity: 0.7;">Coded by <a href="https://github.com/valeriadevbr" target="_blank"
-        rel="noopener noreferrer">Valéria</a></span> -
+        rel="noopener noreferrer">Valéria</a> with Antigravity AI</span> -
     <a href="https://github.com/valeriadevbr/media-cluster" target="_blank" rel="noopener noreferrer">GitHub Project</a>
   </footer>
   <script>
     const appGroups = [
       {
-        title: 'Média',
+        title: 'Servidores',
         apps: [
           {
             name: 'Plex',
             url: 'https://plex.media.apedamo.mywire.org',
             urlAlt: 'http://plex.media.lan',
-            pingUrl: 'http://plex:32400/identity',
+            pingUrl: 'http://plex-service/identity',
             color: '#e5a00d',
             icon: 'plex.svg'
           },
@@ -337,15 +343,20 @@
             name: 'Emby',
             url: 'https://emby.media.apedamo.mywire.org',
             urlAlt: 'http://emby.media.lan',
-            pingUrl: 'http://emby:8096/System/Ping',
+            pingUrl: 'http://emby-service/System/Ping',
             color: '#5dd054',
             icon: 'emby.svg'
-          },
+          }
+        ]
+      },
+      {
+        title: 'Gestão de Mídia',
+        apps: [
           {
             name: 'Sonarr',
             url: 'https://sonarr.media.apedamo.mywire.org',
             urlAlt: 'http://sonarr.media.lan',
-            pingUrl: 'http://sonarr:8989/ping',
+            pingUrl: 'http://sonarr-service/ping',
             color: '#00c0fa',
             icon: 'sonarr.svg'
           },
@@ -353,7 +364,7 @@
             name: 'Radarr',
             url: 'https://radarr.media.apedamo.mywire.org',
             urlAlt: 'http://radarr.media.lan',
-            pingUrl: 'http://radarr:7878/ping',
+            pingUrl: 'http://radarr-service/ping',
             color: '#ffc230',
             icon: 'radarr.svg'
           },
@@ -361,7 +372,7 @@
             name: 'Lidarr',
             url: 'https://lidarr.media.apedamo.mywire.org',
             urlAlt: 'http://lidarr.media.lan',
-            pingUrl: 'http://lidarr:8686/ping',
+            pingUrl: 'http://lidarr-service/ping',
             color: '#00936e',
             icon: 'lidarr.svg'
           },
@@ -369,7 +380,7 @@
             name: 'Bazarr',
             url: 'https://bazarr.media.apedamo.mywire.org',
             urlAlt: 'http://bazarr.media.lan',
-            pingUrl: 'http://bazarr:6767',
+            pingUrl: 'http://bazarr-service',
             color: '#b76bf7',
             icon: 'bazarr.svg'
           },
@@ -377,7 +388,7 @@
             name: 'Prowlarr',
             url: 'https://prowlarr.media.apedamo.mywire.org',
             urlAlt: 'http://prowlarr.media.lan',
-            pingUrl: 'http://prowlarr:9696/ping',
+            pingUrl: 'http://prowlarr-service/ping',
             color: '#ff3333',
             icon: 'prowlarr.svg'
           },
@@ -385,7 +396,7 @@
             name: 'Jackett',
             url: 'https://jackett.media.apedamo.mywire.org',
             urlAlt: 'http://jackett.media.lan',
-            pingUrl: 'http://jackett:9117/UI/Dashboard',
+            pingUrl: 'http://jackett-service/UI/Dashboard',
             color: '#b7f76b',
             icon: 'jackett.svg'
           },
@@ -393,7 +404,7 @@
             name: 'Profilarr',
             url: 'https://profilarr.media.apedamo.mywire.org',
             urlAlt: 'http://profilarr.media.lan',
-            pingUrl: 'http://profilarr:6868/ping',
+            pingUrl: 'http://profilarr-service/ping',
             color: '#6b9cf7',
             icon: 'profilarr.svg'
           },
@@ -401,15 +412,20 @@
             name: 'Lingarr',
             url: 'https://lingarr.media.apedamo.mywire.org',
             urlAlt: 'http://lingarr.media.lan',
-            pingUrl: 'http://lingarr:9876',
+            pingUrl: 'http://lingarr-service',
             color: '#7b6254',
             icon: 'lingarr.svg'
-          },
+          }
+        ]
+      },
+      {
+        title: 'Downloads',
+        apps: [
           {
             name: 'qBittorrent',
             url: 'https://qbittorrent.media.apedamo.mywire.org',
             urlAlt: 'http://qbittorrent.media.lan',
-            pingUrl: 'http://qbittorrent:8081',
+            pingUrl: 'http://qbittorrent-service',
             color: '#2f67ba',
             icon: 'qbittorrent.svg'
           },
@@ -417,14 +433,14 @@
             name: 'Slskd',
             url: 'https://slskd.media.apedamo.mywire.org',
             urlAlt: 'http://slskd.media.lan',
-            pingUrl: 'http://slskd:5030',
+            pingUrl: 'http://slskd-service',
             color: '#00c3ff',
             icon: 'slskd.svg'
-          },
+          }
         ]
       },
       {
-        title: 'Infra',
+        title: 'Infraestrutura',
         apps: [
           {
             name: 'Traefik (Infra)',
@@ -438,7 +454,7 @@
             name: 'Traefik (Media)',
             url: 'https://traefik.media.apedamo.mywire.org',
             urlAlt: 'https://traefik.media.lan',
-            pingUrl: 'http://traefik.ingress-traefik.svc.cluster.local:9000/ping',
+            pingUrl: 'http://traefik-media-service/ping',
             color: '#24a1c1',
             icon: 'traefik-proxy.svg'
           },
@@ -446,7 +462,7 @@
             name: 'AdGuard Home',
             url: 'https://adguard.infra.apedamo.mywire.org',
             urlAlt: 'http://adguard.infra.lan',
-            pingUrl: 'http://adguard-service',
+            pingUrl: 'http://adguard-service.infra',
             color: '#68bc71',
             icon: 'adguard-home.svg'
           },
@@ -454,10 +470,10 @@
             name: 'OpenSpeedTest',
             url: 'https://speedtest.infra.apedamo.mywire.org',
             urlAlt: 'http://speedtest.infra.lan',
-            pingUrl: 'http://speedtest-service',
+            pingUrl: 'http://speedtest.infra:3000',
             color: '#00c3ff',
             icon: 'openspeedtest.svg'
-          },
+          }
         ]
       }
     ];
@@ -563,7 +579,7 @@
     // Register Service Worker for PWA
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=25')
+        navigator.serviceWorker.register('./sw.js?v=36')
           .then(reg => console.log('Service Worker registered', reg))
           .catch(err => console.error('Service Worker registration failed', err));
       });

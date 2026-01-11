@@ -75,7 +75,7 @@ spec:
   entryPoints:
     - web
   routes:
-    - match: Host(`profilarr.media.lan`) || Host(`profilarr.media.${WAN_HOSTNAME}`)
+    - match: Host(`profilarr.media.lan`) || Host(`profilarr.media.${WAN_HOSTNAME}`) || Host(`profilarr-service`)
       kind: Rule
       services:
         - name: profilarr

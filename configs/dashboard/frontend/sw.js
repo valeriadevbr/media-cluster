@@ -1,4 +1,4 @@
-const CACHE_NAME = 'media-dash-v24';
+const CACHE_NAME = 'home-dash-v31';
 const ASSETS = [
   './',
   './index.html',

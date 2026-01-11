@@ -75,7 +75,7 @@ spec:
   entryPoints:
     - web
   routes:
-    - match: Host(`jackett.media.lan`) || Host(`jackett.media.${WAN_HOSTNAME}`)
+    - match: Host(`jackett.media.lan`) || Host(`jackett.media.${WAN_HOSTNAME}`) || Host(`jackett-service`)
       kind: Rule
       services:
         - name: jackett

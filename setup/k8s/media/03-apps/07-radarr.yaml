@@ -97,7 +97,7 @@ spec:
   entryPoints:
     - web
   routes:
-    - match: Host(`radarr.media.lan`) || Host(`radarr.media.${WAN_HOSTNAME}`)
+    - match: Host(`radarr.media.lan`) || Host(`radarr.media.${WAN_HOSTNAME}`) || Host(`radarr-service`)
       kind: Rule
       services:
         - name: radarr

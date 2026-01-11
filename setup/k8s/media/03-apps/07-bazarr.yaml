@@ -80,7 +80,7 @@ spec:
   entryPoints:
     - web
   routes:
-    - match: Host(`bazarr.media.lan`) || Host(`bazarr.media.${WAN_HOSTNAME}`)
+    - match: Host(`bazarr.media.lan`) || Host(`bazarr.media.${WAN_HOSTNAME}`) || Host(`bazarr-service`)
       kind: Rule
       services:
         - name: bazarr

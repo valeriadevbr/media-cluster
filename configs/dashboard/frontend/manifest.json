@@ -1,7 +1,7 @@
 {
-  "name": "Media Cluster Dashboard",
-  "short_name": "MediaDash",
-  "description": "Dashboard for Media Cluster Services",
+  "name": "Home Cluster Dashboard",
+  "short_name": "HomeDash",
+  "description": "Dashboard for Home Cluster Services",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#0f1115",

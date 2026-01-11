@@ -100,7 +100,7 @@ spec:
   entryPoints:
     - web
   routes:
-    - match: Host(`emby.media.lan`) || Host(`emby.media.${WAN_HOSTNAME}`)
+    - match: Host(`emby.media.lan`) || Host(`emby.media.${WAN_HOSTNAME}`) || Host(`emby-service`)
       kind: Rule
       services:
         - name: emby
