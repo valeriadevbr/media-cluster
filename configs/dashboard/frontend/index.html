@@ -443,20 +443,11 @@
         title: 'Infraestrutura',
         apps: [
           {
-            name: 'Traefik (Infra)',
-            url: 'https://traefik.infra.apedamo.mywire.org',
-            urlAlt: 'https://traefik.infra.lan',
-            pingUrl: 'http://infra-cluster-control-plane:9000/ping',
-            color: '#24a1c1',
-            icon: 'traefik-proxy.svg'
-          },
-          {
-            name: 'Traefik (Media)',
-            url: 'https://traefik.media.apedamo.mywire.org',
-            urlAlt: 'https://traefik.media.lan',
-            pingUrl: 'http://traefik-media-service/ping',
-            color: '#24a1c1',
-            icon: 'traefik-proxy.svg'
+            name: 'Gateway',
+            url: 'https://gateway.infra.apedamo.mywire.org',
+            pingUrl: 'http://192.168.2.254',
+            color: '#fb923c',
+            icon: 'gateway.svg'
           },
           {
             name: 'AdGuard Home',
@@ -473,6 +464,22 @@
             pingUrl: 'http://speedtest.infra:3000',
             color: '#00c3ff',
             icon: 'openspeedtest.svg'
+          },
+          {
+            name: 'Traefik (Infra)',
+            url: 'https://traefik.infra.apedamo.mywire.org',
+            urlAlt: 'https://traefik.infra.lan',
+            pingUrl: 'http://infra-cluster-control-plane:9000/ping',
+            color: '#24a1c1',
+            icon: 'traefik-proxy.svg'
+          },
+          {
+            name: 'Traefik (Media)',
+            url: 'https://traefik.media.apedamo.mywire.org',
+            urlAlt: 'https://traefik.media.lan',
+            pingUrl: 'http://traefik-media-service/ping',
+            color: '#24a1c1',
+            icon: 'traefik-proxy.svg'
           }
         ]
       }
