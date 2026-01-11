@@ -69,11 +69,23 @@ spec:
       targetPort: 80
   type: ClusterIP
 ---
+
+---
 # Ping para AdGuard Home
 apiVersion: v1
 kind: Service
 metadata:
   name: adguard-service
+  namespace: media
+spec:
+  type: ExternalName
+  externalName: infra-cluster-control-plane
+---
+# Ping para SpeedTest (Infra)
+apiVersion: v1
+kind: Service
+metadata:
+  name: speedtest-service
   namespace: media
 spec:
   type: ExternalName

@@ -421,14 +421,6 @@
             color: '#00c3ff',
             icon: 'slskd.svg'
           },
-          {
-            name: 'OpenSpeedTest',
-            url: 'https://speedtest.media.apedamo.mywire.org',
-            urlAlt: 'http://speedtest.media.lan',
-            pingUrl: 'http://speedtest:3000',
-            color: '#00c3ff',
-            icon: 'openspeedtest.svg'
-          },
         ]
       },
       {
@@ -457,6 +449,14 @@
             pingUrl: 'http://adguard-service',
             color: '#68bc71',
             icon: 'adguard-home.svg'
+          },
+          {
+            name: 'OpenSpeedTest',
+            url: 'https://speedtest.infra.apedamo.mywire.org',
+            urlAlt: 'http://speedtest.infra.lan',
+            pingUrl: 'http://speedtest-service',
+            color: '#00c3ff',
+            icon: 'openspeedtest.svg'
           },
         ]
       }
@@ -563,7 +563,7 @@
     // Register Service Worker for PWA
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js?v=24')
+        navigator.serviceWorker.register('./sw.js?v=25')
           .then(reg => console.log('Service Worker registered', reg))
           .catch(err => console.error('Service Worker registration failed', err));
       });
