@@ -37,3 +37,18 @@ spec:
     - digital signature
     - key encipherment
     - server auth
+  keystores:
+    pkcs12:
+      create: true
+      passwordSecretRef:
+        key: password
+        name: wan-cert-password
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: wan-cert-password
+  namespace: infra
+type: Opaque
+stringData:
+  password: ""

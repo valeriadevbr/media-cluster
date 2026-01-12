@@ -14,8 +14,8 @@ if ! kind get clusters | grep -q "$MEDIA_CLUSTER_NAME"; then
     echo "🔓 Injecting Media Server ports using yq..."
     export MEDIA_PORTS_YAML=$(
       cat <<EOF
-- containerPort: 8096
-  hostPort: 8096
+- containerPort: 8920
+  hostPort: 8920
   protocol: TCP
 - containerPort: 7359
   hostPort: 7359
