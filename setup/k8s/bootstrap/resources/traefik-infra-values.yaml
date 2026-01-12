@@ -23,12 +23,7 @@ ports:
     exposedPort: 80
     nodePort: 80
     middlewares:
-      - "ingress-traefik-gzip@kubernetescrd"
       - "ingress-traefik-error-pages@kubernetescrd"
-    redirections:
-      entryPoint:
-        to: websecure
-        scheme: https
   web-wan:
     port: 44000
     exposedPort: 44000
@@ -36,18 +31,12 @@ ports:
     expose:
       default: true
     middlewares:
-      - "ingress-traefik-gzip@kubernetescrd"
       - "ingress-traefik-error-pages@kubernetescrd"
-    redirections:
-      entryPoint:
-        to: websecure-wan
-        scheme: https
   websecure:
     port: 8443
     exposedPort: 443
     nodePort: 443
     middlewares:
-      - "ingress-traefik-gzip@kubernetescrd"
       - "ingress-traefik-error-pages@kubernetescrd"
     http3:
       enabled: true
@@ -60,7 +49,6 @@ ports:
     expose:
       default: true
     middlewares:
-      - "ingress-traefik-gzip@kubernetescrd"
       - "ingress-traefik-error-pages@kubernetescrd"
     http3:
       enabled: true
@@ -94,6 +82,6 @@ ping:
 
 logs:
   general:
-    level: INFO
+    level: ERROR
   access:
-    enabled: true
+    enabled: false

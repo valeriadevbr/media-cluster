@@ -41,9 +41,13 @@ EOF
   fi
   echo "$KIND_CONFIG" | envsubst | kind create cluster --name "$MEDIA_CLUSTER_NAME" --image kindest/node:v1.31.1 --config -
 
-  echo "🔧 Ajustando MTU diretamente no Node e Desativando Offloads (Fix para HostNetwork/Traefik)..."
+  echo "🔧 Ajustando configurações de rede..."
   docker exec "$MEDIA_CLUSTER_NAME-control-plane" ip link set eth0 mtu "${DOCKER_MTU}"
-  docker exec "$MEDIA_CLUSTER_NAME-control-plane" ethtool -K eth0 tso off gso off || true
+  docker exec "$MEDIA_CLUSTER_NAME-control-plane" ethtool -K eth0 tso on gso off gro off || true
+  docker exec "$MEDIA_CLUSTER_NAME-control-plane" sysctl -w net.core.rmem_max=16777216
+  docker exec "$MEDIA_CLUSTER_NAME-control-plane" sysctl -w net.core.wmem_max=16777216
+  docker exec "$MEDIA_CLUSTER_NAME-control-plane" sysctl -w net.ipv4.tcp_rmem="4096 87380 16777216"
+  docker exec "$MEDIA_CLUSTER_NAME-control-plane" sysctl -w net.ipv4.tcp_wmem="4096 65536 16777216"
 else
   echo "Usando '$MEDIA_CLUSTER_NAME' existente..."
 fi

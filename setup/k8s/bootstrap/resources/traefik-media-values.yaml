@@ -21,7 +21,6 @@ ports:
     port: 8000
     nodePort: 80
     middlewares:
-      - "ingress-traefik-gzip@kubernetescrd"
       - "ingress-traefik-error-pages@kubernetescrd"
   web-external:
     port: 8001
@@ -29,7 +28,6 @@ ports:
     expose:
       default: true
     middlewares:
-      - "ingress-traefik-gzip@kubernetescrd"
       - "ingress-traefik-error-pages@kubernetescrd"
 
 api:
@@ -55,6 +53,6 @@ ping:
 
 logs:
   general:
-    level: INFO
+    level: ERROR
   access:
-    enabled: true
+    enabled: false

@@ -48,6 +48,40 @@ spec:
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
+  name: media-plex-http-bypass
+  namespace: infra
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: Host(`plex.media.${WAN_HOSTNAME}`)
+      kind: Rule
+      priority: 2000
+      services:
+        - name: traefik-media-internal
+          port: 80
+          passHostHeader: true
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: media-emby-http-bypass
+  namespace: infra
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: Host(`emby.media.${WAN_HOSTNAME}`)
+      kind: Rule
+      priority: 2000
+      services:
+        - name: traefik-media-internal
+          port: 80
+          passHostHeader: true
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
   name: media-external-catchall
   namespace: infra
 spec:

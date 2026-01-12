@@ -17,16 +17,9 @@ spec:
     spec:
       containers:
         - name: speedtest
-          image: openspeedtest/latest
+          image: linuxserver/librespeed
           ports:
-            - containerPort: 3000
-          resources:
-            limits:
-              memory: "256Mi"
-              cpu: "500m"
-            requests:
-              memory: "128Mi"
-              cpu: "100m"
+            - containerPort: 80
 ---
 apiVersion: v1
 kind: Service
@@ -39,7 +32,7 @@ spec:
   ports:
     - name: http
       port: 3000
-      targetPort: 3000
+      targetPort: 80
 ---
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
@@ -51,13 +44,12 @@ spec:
     - web
     - websecure
   routes:
-    - match: Host(`speedtest.infra.lan`) || Host(`speedtest.media.lan`) || Host(`speedtest.infra.${WAN_HOSTNAME}`) || Host(`speedtest.media.${WAN_HOSTNAME}`) || Host(`speedtest.${WAN_HOSTNAME}`) || Host(`speedtest-service`)
+    - match: Host(`speedtest.infra.lan`) || Host(`speedtest.infra.${WAN_HOSTNAME}`) || Host(`speedtest-service`)
       kind: Rule
+      priority: 100
       services:
         - name: speedtest
           port: 3000
-  tls:
-    secretName: media-lan-tls
 ---
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
@@ -69,10 +61,8 @@ spec:
     - web-wan
     - websecure-wan
   routes:
-    - match: Host(`speedtest.infra.${WAN_HOSTNAME}`) || Host(`speedtest.media.${WAN_HOSTNAME}`) || Host(`speedtest.${WAN_HOSTNAME}`)
+    - match: Host(`speedtest.infra.${WAN_HOSTNAME}`)
       kind: Rule
       services:
         - name: speedtest
           port: 3000
-  tls:
-    secretName: wan-wildcard-tls

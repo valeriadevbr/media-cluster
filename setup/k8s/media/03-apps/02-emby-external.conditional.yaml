@@ -23,6 +23,8 @@ subsets:
         port: 8096
         protocol: TCP
 ---
+
+---
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
@@ -32,29 +34,11 @@ spec:
   entryPoints:
     - web
   routes:
-    - match: Host(`emby.media.lan`)
+    - match: Host(`emby.media.lan`) || Host(`emby.media.${WAN_HOSTNAME}`) || Host(`emby-service`)
       kind: Rule
       services:
         - name: emby
           port: 8096
-  tls: {}
----
-apiVersion: traefik.io/v1alpha1
-kind: IngressRoute
-metadata:
-  name: emby-lan-wan-host
-  namespace: media
-spec:
-  entryPoints:
-    - web
-    - web-external
-  routes:
-    - match: Host(`emby.media.${WAN_HOSTNAME}`)
-      kind: Rule
-      services:
-        - name: emby
-          port: 8096
-  tls: {}
 ---
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
@@ -70,4 +54,3 @@ spec:
       services:
         - name: emby
           port: 8096
-  tls: {}
