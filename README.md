@@ -1,133 +1,115 @@
 # Media Cluster
 
-Uma stack completa de servidor de mídia baseada em Kubernetes rodando em **Dual Cluster** no Kind (Kubernetes in Docker). Este projeto automatiza o deploy de uma suíte de mídia completa, separando serviços de infraestrutura crítica (DNS) das aplicações de média.
+Uma stack completa de servidor de mídia baseada em Kubernetes, rodando em ambiente **Dual Cluster** no Kind (Kubernetes in Docker). Este projeto automatiza o deploy de uma suíte de mídia completa, priorizando a resiliência de infraestrutura e o isolamento de aplicações.
 
-## 🏗 Arquitetura
+## 🏗 Arquitetura Dual-Cluster
 
-O ambiente é dividido em dois clusters Kind para garantir resiliência do DNS local:
-1.  **`infra-cluster`**: Roda serviços essenciais de rede e DNS (BIND). Garante que a resolução de nomes `.media.lan` continue funcionando mesmo que o cluster de mídia seja reiniciado.
-2.  **`media-cluster`**: Roda as aplicações (Plex, Emby, *Arrs, Traefik).
+O ambiente foi desenhado para separar responsabilidades críticas (DNS/Rede) das aplicações pesadas (Mídia/Transcodificação), garantindo que a infraestrutura básica sobreviva a falhas ou reinícios do cluster de aplicações.
 
-## 📁 Estrutura do Projeto
+### 1. `infra-cluster` (Infraestrutura)
+*   **Responsabilidade**: Serviços essenciais e de baixo nível.
+*   **Componentes Principais**:
+    *   **BIND9 (DNS)**: Resolve domínios `.media.lan` para toda a rede (Split-Horizon).
+    *   **Traefik (Ingress)**: Roteamento de entrada para serviços de infra.
+    *   **Cert-Manager**: Gestão de certificados (opcional/futuro).
+*   **Objetivo**: Manter a resolução de nomes ativa mesmo se o `media-cluster` estiver indisponível ou sendo recriado.
 
-- **`setup/`**: Scripts de inicialização e manifestos Kubernetes.
-  - `k8s/`
-    - `bootstrap/`: Scripts para criar os clusters (`01-cluster-infra.sh`, `02-cluster-media.sh`).
-    - `infra/`: Manifestos do cluster Infra (Core, Storage, DNS).
-    - `media/`: Manifestos do cluster Media (Core, Ingress, Apps).
-    - `apply-*.sh`: Scripts para aplicar resources em cada cluster.
-    - `unload-*.sh`: Scripts para destruição graciosa.
-  - `includes/`: Scripts utilitários compartilhados.
-- **`scripts/`**: Scripts de automação para gerenciamento de mídia.
-- **`configs/`**: Arquivos de configuração persistentes.
-- **`ssl/`**: Certificados SSL.
+### 2. `media-cluster` (Aplicações)
+*   **Responsabilidade**: Hospedar as aplicações de mídia e gerenciamento.
+*   **Componentes Principais**:
+    *   **Media Servers**: Plex, Emby (com suporte a transcodificação e acesso direto via HostPort se configurado).
+    *   **Arrs**: Sonarr, Radarr, Lidarr, Bazarr, Prowlarr.
+    *   **Downloaders**: qBittorrent, Slskd.
+    *   **Traefik (Ingress)**: Roteamento dedicado para as aplicações de mídia.
+*   **Network Tuning**: O bootstrap deste cluster aplica configurações de sysctl (TCP buffers, MTU, TSO/GRO offload) otimizadas para alto tráfego de mídia.
 
-## 🔒 Segurança & Certificados
+---
 
-O projeto utiliza uma estratégia híbrida de certificados para garantir segurança e confiança tanto em redes internas quanto externas:
+## ☸️ Gerenciando Contextos (Contexts)
 
-1.  **LAN (Interno)**:
-    - Utiliza uma **CA (Certificado de Autoridade) Local**.
-    - Os certificados para `*.media.lan` são gerados e assinados por essa CA.
-    - *Script*: `setup/utils/gen-lan-ssl-cert.sh`
+Como existem dois clusters rodando simultaneamente, é crucial saber em qual cluster você está executando comandos `kubectl`.
 
-2.  **WAN (Externo)**:
-    - Utiliza certificados reais (geralmente Let's Encrypt / Certbot) gerados manualmente via script.
-    - O certificado inclui todos os subdomínios necessários (`plex`, `emby`, `dashboard`, etc.) como SANs (Subject Alternative Names).
-    - *Script*: `setup/utils/gen-wan-ssl-cert.sh` - Gera o certificado incluindo todos os hosts configurados no `.env`.
+| Cluster | Contexto Kubernetes | Uso |
+| :--- | :--- | :--- |
+| **Infra** | `kind-infra-cluster` | DNS, Core Networking |
+| **Media** | `kind-media-cluster` | Apps de Mídia, Torrents, Logs de Apps |
 
-3.  **Isolamento de EntryPoints**:
-    - O **Traefik** é configurado para não expor portas WAN (`44000`, `44300`) por padrão.
-    - Apenas IngressRoutes que explicitamente solicitam esses EntryPoints são expostos externamente, prevenindo vazamento acidental de serviços internos.
+### Comandos Úteis
 
-## 🚀 Começando
-
-### Pré-requisitos
-- Docker
-- macOS ou Linux
-- `git`, `curl`
-- (Opcional) `kind`, `helm`, `kubectl` (os scripts tentam instalar se necessário)
-
-### 1. Configuração
-
-Copie o template para um arquivo `.env` e personalize-o:
-
+Alternar entre contextos:
 ```bash
-cp setup/.env.template setup/.env
-nano setup/.env
+# Trabalhar no cluster de Mídia
+kubectl config use-context kind-media-cluster
+
+# Trabalhar no cluster de Infra
+kubectl config use-context kind-infra-cluster
 ```
 
-**Variáveis Importantes:**
-- `MEDIA_SERVERS_IN_CLUSTER`: `"true"` para rodar Plex/Emby no cluster, `"false"` (padrão) para rotear para instâncias externas.
-- `MEDIA_PATH`: Caminho sua biblioteca de mídia no host.
-- `DOWNLOADS_PATH`: Caminho para downloads no host.
+Executar comando em um cluster específico sem mudar o contexto atual:
+```bash
+kubectl get pods -n infra --context kind-infra-cluster
+kubectl get pods -n media --context kind-media-cluster
+```
 
-### 2. Quick Start (Recomendado)
+---
 
-O script `init.sh` automatiza todo o processo: cria os clusters, configura a infraestrutura e faz o deploy das aplicações.
+## 🚀 Instalação e Setup
+
+### 1. Pré-requisitos
+*   **Docker** ou **OrbStack**
+*   **Kind** (`brew install kind`)
+*   **Kubectl** (`brew install kubectl`)
+*   **Configuração**: Copie `.env.template` para `.env` e configure as variáveis de ambiente.
+
+### 2. Inicialização (Bootstrap)
+
+O processo de bootstrap foi unificado. O script principal orquestra a criação dos clusters, tunning de rede e aplicação dos recursos.
 
 ```bash
 ./setup/init.sh
 ```
-
-### 3. Instalação Manual (Passo a Passo)
-
-Se preferir rodar etapa por etapa:
-
-**Passo 1: Bootstrap dos Clusters (Infra & Media)**
+*Se preferir rodar manualmente as etapas de K8s:*
 ```bash
+# Cria os clusters e aplica TODOS os recursos (Infra e Media)
 ./setup/k8s/setup.sh
 ```
-Isso roda `01-cluster-infra.sh` (cria infra e instala DNS) e `02-cluster-media.sh` (cria media cluster).
 
-**Passo 2: Deploy das Aplicações de Mídia**
-```bash
-./setup/k8s/apply-media.sh
-```
+Isso executará sequencialmente os scripts em `setup/k8s/bootstrap/`:
+1.  `01-cluster-infra.sh`: Sobe o cluster Infra e aplica tunning de rede.
+2.  `02-cluster-media.sh`: Sobe o cluster Media, injeta portas (se configurado) e aplica tunning.
+3.  `...`: Instalação de CRDs, Secrets e Cert-Manager.
+4.  `09-resources-infra.sh`: Aplica deployments do cluster Infra (Ingress, DNS, etc).
+5.  `09-resources-media.sh`: Aplica deployments do cluster Media (Plex, Arrs, etc).
 
-## 🛠️ Gerenciamento
+---
 
-- **Aplicar Manifesto**:
-  ```bash
-  # Media Cluster (Padrão)
-  ./setup/k8s/apply.sh <arquivo.yaml>
+## ⚙️ Configurações Avançadas
 
-  # Infra Cluster
-  ./setup/k8s/apply.sh <arquivo.yaml> "$INFRA_CLUSTER_NAME"
-  ```
-- **Verificar Pods**:
-  ```bash
-  kubectl get pods -n media --context kind-media-cluster
-  kubectl get pods -n infra --context kind-infra-cluster
-  ```
+### Tunning de Rede & Performance
+Durante a criação dos clusters, os seguintes ajustes são aplicados aos nós (control-plane) via `sysctl` e `ethtool` para garantir performance máxima em tráfego de rede local e evitar gargalos em transferências SMB/NFS ou streaming 4K:
+*   **MTU**: Ajustado para compatibilidade com a rede Docker.
+*   **Offloading**: TSO, GSO e GRO são desativados para melhor compatibilidade com alguns drivers de rede virtualizados.
+*   **TCP Buffers**: `rmem` e `wmem` ampliados para suportar janelas TCP maiores.
+
+### Mapeamento de Portas (HostPorts)
+A variável `MEDIA_SERVERS_IN_CLUSTER` no `.env` controla como Plex e Emby são expostos:
+*   **`true`**: As portas (ex: 8920, 32400) são mapeadas diretamente no Host (via `hostPort` e `extraPortMappings` do Kind). Isso permite descoberta automática de DLNA/L2.
+*   **`false`**: As aplicações rodam isoladas e o acesso é feito primariamente via Ingress (Traefik).
+
+---
+
+## 📁 Estrutura de Pastas
+
+*   **`setup/k8s/bootstrap/`**: Scripts de ciclo de vida do cluster (Criação -> Configuração -> Deploy de Recursos).
+*   **`setup/k8s/infra/`**: Manifestos Kubernetes do cluster Infra.
+*   **`setup/k8s/media/`**: Manifestos Kubernetes do cluster Media.
+*   **`setup/includes/`**: Bibliotecas de funções Shell compartilhadas (`k8s-utils.sh`, `load-env.sh`).
+*   **`scripts/`**: Utilitários para o usuário final.
 
 ## 🧹 Unload / Destruição
 
-Para destruir os ambientes (graceful shutdown):
+Para remover ambos os clusters e limpar o ambiente:
 
-- **Destruir TUDO**:
-  ```bash
-  ./setup/k8s/unload.sh
-  ```
-- **Destruir apenas Media**: `./setup/k8s/unload-media.sh`
-- **Destruir apenas Infra**: `./setup/k8s/unload-infra.sh`
-
-## 🧩 Funcionalidades
-
-- **DNS Resiliente**: DNS separado em cluster dedicado.
-- **Deploy Condicional**: Plex/Emby dentro ou fora do cluster.
-- **Automação Completa**: Scripts idempotentes para setup e teardown.
-- **Integração Desktop**: Ajustes automáticos de PF (Packet Filter) no macOS para roteamento de rede.
-- **Isolamento de EntryPoints**: Serviços internos protegidos contra exposição acidental na WAN.
-- **Roteamento Split-Horizon**: Resolução de DNS interna otimizada com Bind9.
-
-## 🧪 Testes & Verificação
-
-Scripts e manifestos utilitários para validar a saúde do cluster:
-
-- **Monitor de Conectividade**:
-    - `setup/k8s/media/03-apps/99-test-connectivity.yaml.disabled`
-    - Remove o sufixo `.disabled` e aplique para criar um pod que monitora a latência interna e externa e plota gráficos em tempo real.
-- **Servidor de Teste Local**:
-    - `setup/k8s/media/03-apps/99-test-local-server.yaml.disabled`
-    - Um serviço Nginx simples (Whoami style) para validar regras de roteamento e IngressRoutes complexos.
+```bash
+./setup/k8s/unload.sh
+```
