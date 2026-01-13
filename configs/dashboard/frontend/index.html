@@ -34,10 +34,59 @@
       background-attachment: fixed;
     }
 
+    html {
+      scroll-behavior: smooth;
+    }
+
+    .nav-bar {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      overflow-x: auto;
+      padding: 15px 5px;
+      width: 100%;
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+      background: rgba(15, 17, 21, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      margin-bottom: 20px;
+    }
+
+    .nav-bar::-webkit-scrollbar {
+      display: none;
+    }
+
+    .nav-item {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 8px 16px;
+      border-radius: 100px;
+      white-space: nowrap;
+      color: rgba(255, 255, 255, 0.6);
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 500;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+
+    .nav-item:hover,
+    .nav-item.active {
+      background: rgba(255, 255, 255, 0.15);
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.2);
+      transform: translateY(-2px);
+    }
+
     .container {
       width: 95%;
       max-width: 1100px;
-      padding: 40px 20px 80px;
+      padding: 20px 20px 80px;
       /* Added 80px bottom padding for fixed footer */
       margin: 0 auto;
     }
@@ -51,6 +100,7 @@
       /* Set to 15px */
       position: relative;
       backdrop-filter: blur(5px);
+      scroll-margin-top: 95px;
     }
 
     .section-title {
@@ -486,9 +536,25 @@
     ];
 
     const container = document.getElementById('app-container');
+    const navBar = document.createElement('nav');
+    navBar.className = 'nav-bar';
 
-    appGroups.forEach(group => {
+    // Create Navigation Items
+    appGroups.forEach((group, index) => {
+      const groupId = 'group-' + index;
+      const navLink = document.createElement('a');
+      navLink.href = '#' + groupId;
+      navLink.className = 'nav-item';
+      navLink.textContent = group.title;
+      navBar.appendChild(navLink);
+    });
+
+    // Insert NavBar before container to be full width
+    document.body.insertBefore(navBar, container);
+
+    appGroups.forEach((group, index) => {
       const section = document.createElement('section');
+      section.id = 'group-' + index;
       section.innerHTML = `<h2 class="section-title">${group.title}</h2>`;
 
       const grid = document.createElement('div');
