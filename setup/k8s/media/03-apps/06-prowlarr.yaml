@@ -16,6 +16,7 @@ spec:
       containers:
         - name: prowlarr
           image: lscr.io/linuxserver/prowlarr:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 9696
               name: prowlarr

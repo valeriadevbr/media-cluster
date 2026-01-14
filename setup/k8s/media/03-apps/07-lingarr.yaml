@@ -16,6 +16,7 @@ spec:
       containers:
         - name: lingarr
           image: lingarr/lingarr:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 9876
               name: lingarr

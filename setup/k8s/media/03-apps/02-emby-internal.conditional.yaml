@@ -21,6 +21,7 @@ spec:
       containers:
         - name: emby
           image: lscr.io/linuxserver/emby:latest
+          imagePullPolicy: Always
           ports:
             - name: webui
               containerPort: 8096

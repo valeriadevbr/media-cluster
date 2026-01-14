@@ -15,7 +15,8 @@ spec:
     spec:
       containers:
         - name: profilarr
-          image: santiagosayshey/profilarr:latest
+          image: ghcr.io/pbanj/profilarr:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 6868
           resources:

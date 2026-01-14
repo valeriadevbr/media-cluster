@@ -16,6 +16,7 @@ spec:
       containers:
         - name: 3proxy
           image: ghcr.io/tarampampam/3proxy
+          imagePullPolicy: Always
           ports:
             - containerPort: 3128
               name: proxy

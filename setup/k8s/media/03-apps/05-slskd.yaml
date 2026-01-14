@@ -16,6 +16,7 @@ spec:
       containers:
         - name: slskd
           image: slskd/slskd:latest
+          imagePullPolicy: Always
           ports:
             - name: slskd-webui
               containerPort: 5030
@@ -27,7 +28,7 @@ spec:
               cpu: "250m"
             limits:
               memory: "2Gi"
-              cpu: "2000m"
+              cpu: "3000m"
           livenessProbe:
             tcpSocket:
               port: 5030
