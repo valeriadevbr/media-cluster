@@ -1,0 +1,306 @@
+diff --git a/internal/analyzer/spectrum.go b/internal/analyzer/spectrum.go
+index 726c0d0..e952d98 100644
+--- a/internal/analyzer/spectrum.go
++++ b/internal/analyzer/spectrum.go
+@@ -8,69 +8,94 @@ import (
+ 	"github.com/mjibson/go-dsp/fft"
+ )
+ 
+-// SpectrumAnalyzer 频谱分析器
++// SpectrumAnalyzer Audio Spectrum Analyzer
+ type SpectrumAnalyzer struct {
+ 	sampleRate int
+ 	windowSize int
+ }
+ 
+-// NewSpectrumAnalyzer 创建频谱分析器
++// NewSpectrumAnalyzer Create new analyzer
+ func NewSpectrumAnalyzer(sampleRate int) *SpectrumAnalyzer {
+-	// 使用合适的窗口大小进行FFT分析
+-	windowSize := 8192 // 8K窗口，提供良好的频率分辨率
++	// Use appropriate window size for FFT
++	windowSize := 8192 // 8K window for good frequency resolution
+ 	return &SpectrumAnalyzer{
+ 		sampleRate: sampleRate,
+ 		windowSize: windowSize,
+ 	}
+ }
+ 
+-// AnalyzeSpectrum 分析音频频谱
++// AnalyzeSpectrum Analyze audio spectrum
++// Improved: Uses multi-window averaging instead of single window
+ func (s *SpectrumAnalyzer) AnalyzeSpectrum(samples []float64) (*SpectrumResult, error) {
+ 	if len(samples) == 0 {
+-		return nil, fmt.Errorf("音频采样数据为空")
++		return nil, fmt.Errorf("Audio samples empty")
+ 	}
+ 
+-	// 如果样本数量太少，使用所有样本
++	// If samples are too few, use single window fallback
+ 	if len(samples) < s.windowSize {
+ 		s.windowSize = nearestPowerOf2(len(samples))
+ 	}
+ 
+-	// 取样本的中间部分进行分析，避免开头和结尾的静音部分
+-	startIdx := len(samples) / 4
+-	endIdx := startIdx + s.windowSize
+-	if endIdx > len(samples) {
+-		endIdx = len(samples)
+-		startIdx = endIdx - s.windowSize
+-		if startIdx < 0 {
+-			startIdx = 0
+-		}
++	numWindows := 10
++	if len(samples) < s.windowSize*numWindows {
++		numWindows = 1
++	}
++
++	var avgPowerSpectrum []float64
++
++	step := (len(samples) - s.windowSize) / numWindows
++	if step < 1 {
++		step = 1
+ 	}
+ 
+-	// 提取分析窗口
+-	window := samples[startIdx:endIdx]
++	for i := 0; i < numWindows; i++ {
++		startIdx := i * step
++		// Offset by 5% to avoid initial silence
++		startIdx += len(samples) / 20
++		if startIdx+s.windowSize > len(samples) {
++			break
++		}
++
++		endIdx := startIdx + s.windowSize
++		window := samples[startIdx:endIdx]
+ 
+-	// 应用汉明窗减少频谱泄漏
+-	windowedSamples := s.applyHammingWindow(window)
++		// Windowing & FFT
++		windowedSamples := s.applyHammingWindow(window)
++		spectrum := fft.FFTReal(windowedSamples)
++		powerSpectrum := s.calculatePowerSpectrum(spectrum)
++
++		if avgPowerSpectrum == nil {
++			avgPowerSpectrum = make([]float64, len(powerSpectrum))
++		}
+ 
+-	// 进行FFT变换
+-	spectrum := fft.FFTReal(windowedSamples)
++		// Accumulate
++		for j := 0; j < len(powerSpectrum); j++ {
++			avgPowerSpectrum[j] += powerSpectrum[j]
++		}
++	}
+ 
+-	// 计算功率谱密度
+-	powerSpectrum := s.calculatePowerSpectrum(spectrum)
++	// Average
++	if avgPowerSpectrum != nil {
++		for j := 0; j < len(avgPowerSpectrum); j++ {
++			avgPowerSpectrum[j] /= float64(numWindows)
++		}
++	} else {
++		return nil, fmt.Errorf("Failed to generate spectrum")
++	}
+ 
+-	// 分析频谱特征
+-	result := s.analyzeFrequencyContent(powerSpectrum)
++	// Analyze features
++	result := s.analyzeFrequencyContent(avgPowerSpectrum)
+ 
+ 	return result, nil
+ }
+ 
+-// applyHammingWindow 应用汉明窗
++// applyHammingWindow Apply Hamming window
+ func (s *SpectrumAnalyzer) applyHammingWindow(samples []float64) []float64 {
+ 	windowed := make([]float64, len(samples))
+ 	n := len(samples)
+ 
+ 	for i, sample := range samples {
+-		// 汉明窗函数: w(n) = 0.54 - 0.46 * cos(2π * n / (N-1))
++		// Hamming: w(n) = 0.54 - 0.46 * cos(2π * n / (N-1))
+ 		window := 0.54 - 0.46*math.Cos(2*math.Pi*float64(i)/float64(n-1))
+ 		windowed[i] = sample * window
+ 	}
+@@ -78,39 +103,39 @@ func (s *SpectrumAnalyzer) applyHammingWindow(samples []float64) []float64 {
+ 	return windowed
+ }
+ 
+-// calculatePowerSpectrum 计算功率谱
++// calculatePowerSpectrum Calculate power spectrum density
+ func (s *SpectrumAnalyzer) calculatePowerSpectrum(spectrum []complex128) []float64 {
+-	power := make([]float64, len(spectrum)/2) // 只需要一半，因为FFT是对称的
++	power := make([]float64, len(spectrum)/2) // Half size due to symmetry
+ 
+ 	for i := 0; i < len(power); i++ {
+-		// 功率 = |复数|^2
++		// Power = |complex|^2
+ 		power[i] = cmplx.Abs(spectrum[i]) * cmplx.Abs(spectrum[i])
+ 	}
+ 
+ 	return power
+ }
+ 
+-// SpectrumResult 频谱分析结果
++// SpectrumResult Analysis result structure
+ type SpectrumResult struct {
+-	MaxFrequency    float64   // 最高有效频率
+-	CutoffFrequency float64   // 截断频率
+-	IsFake          bool      // 是否为假无损
+-	Details         string    // 详细说明
+-	PowerSpectrum   []float64 // 功率谱（用于进一步分析）
++	MaxFrequency    float64   // Max effective frequency
++	CutoffFrequency float64   // Detected cutoff
++	IsFake          bool      // Is likely fake
++	Details         string    // Details
++	PowerSpectrum   []float64 // Raw spectrum
+ }
+ 
+-// analyzeFrequencyContent 分析频率内容
++// analyzeFrequencyContent Analyze frequency content
+ func (s *SpectrumAnalyzer) analyzeFrequencyContent(powerSpectrum []float64) *SpectrumResult {
+-	// 频率分辨率
++	// Frequency resolution
+ 	freqResolution := float64(s.sampleRate) / float64(len(powerSpectrum)*2)
+ 
+-	// 找到最高有效频率
++	// Find max effective frequency
+ 	maxFreq := s.findMaxEffectiveFrequency(powerSpectrum, freqResolution)
+ 
+-	// 检测是否存在明显的频率截断
++	// Detect cutoff
+ 	cutoffFreq := s.detectFrequencyCutoff(powerSpectrum, freqResolution)
+ 
+-	// 判断是否为假无损
++	// Determine status
+ 	isFake, details := s.determineFakeStatus(maxFreq, cutoffFreq)
+ 
+ 	return &SpectrumResult{
+@@ -122,16 +147,26 @@ func (s *SpectrumAnalyzer) analyzeFrequencyContent(powerSpectrum []float64) *Spe
+ 	}
+ }
+ 
+-// findMaxEffectiveFrequency 找到最高有效频率
++// findMaxEffectiveFrequency Find highest frequency with significant energy
+ func (s *SpectrumAnalyzer) findMaxEffectiveFrequency(powerSpectrum []float64, freqResolution float64) float64 {
+-	// 计算噪声基底
++	// Calculate noise floor
+ 	noiseFloor := s.calculateNoiseFloor(powerSpectrum)
+ 
+-	// 从高频往低频搜索，找到最后一个显著高于噪声基底的频率
+-	threshold := noiseFloor * 10 // 阈值设为噪声基底的10倍
++	// Calculate max power
++	maxPower := 0.0
++	for _, p := range powerSpectrum {
++		if p > maxPower {
++			maxPower = p
++		}
++	}
++
++	// Threshold: 4x Noise Floor AND > 0.002% Max Power
++	// Conservative tuning to pass quiet valid songs
++	threshold := noiseFloor * 4.0
++	minSignalThreshold := maxPower * 0.00002
+ 
+ 	for i := len(powerSpectrum) - 1; i >= 0; i-- {
+-		if powerSpectrum[i] > threshold {
++		if powerSpectrum[i] > threshold && powerSpectrum[i] > minSignalThreshold {
+ 			return float64(i) * freqResolution
+ 		}
+ 	}
+@@ -139,9 +174,9 @@ func (s *SpectrumAnalyzer) findMaxEffectiveFrequency(powerSpectrum []float64, fr
+ 	return 0
+ }
+ 
+-// detectFrequencyCutoff 检测频率截断
++// detectFrequencyCutoff Detect sharp drop in frequency spectrum
+ func (s *SpectrumAnalyzer) detectFrequencyCutoff(powerSpectrum []float64, freqResolution float64) float64 {
+-	// 寻找功率急剧下降的点
++	// Find max power
+ 	maxPower := 0.0
+ 	for _, power := range powerSpectrum {
+ 		if power > maxPower {
+@@ -149,12 +184,12 @@ func (s *SpectrumAnalyzer) detectFrequencyCutoff(powerSpectrum []float64, freqRe
+ 		}
+ 	}
+ 
+-	// 阈值设为最大功率的1%
+-	threshold := maxPower * 0.01
++	// Threshold: 10% of max power (Strict: was 1%)
++	threshold := maxPower * 0.10
+ 
+-	// 从高频段开始寻找连续低于阈值的点
++	// Scan from high freq for consecutive low power bins
+ 	consecutiveLow := 0
+-	requiredConsecutive := 10 // 需要连续10个点都低于阈值
++	requiredConsecutive := 5 // Reduced from 10
+ 
+ 	for i := len(powerSpectrum) - 1; i >= 0; i-- {
+ 		if powerSpectrum[i] < threshold {
+@@ -170,9 +205,9 @@ func (s *SpectrumAnalyzer) detectFrequencyCutoff(powerSpectrum []float64, freqRe
+ 	return float64(len(powerSpectrum)) * freqResolution
+ }
+ 
+-// calculateNoiseFloor 计算噪声基底
++// calculateNoiseFloor Estimate noise floor from high frequency tail
+ func (s *SpectrumAnalyzer) calculateNoiseFloor(powerSpectrum []float64) float64 {
+-	// 取功率谱的最后10%作为噪声基底的估计
++	// Use last 10% of spectrum
+ 	startIdx := len(powerSpectrum) * 9 / 10
+ 
+ 	sum := 0.0
+@@ -190,9 +225,9 @@ func (s *SpectrumAnalyzer) calculateNoiseFloor(powerSpectrum []float64) float64
+ 	return sum / float64(count)
+ }
+ 
+-// determineFakeStatus 判断是否为假无损
++// determineFakeStatus Determine if file is fake based on metrics
+ func (s *SpectrumAnalyzer) determineFakeStatus(maxFreq, cutoffFreq float64) (bool, string) {
+-	// 常见的有损编码截断频率
++	// Common prediction cutoffs
+ 	commonCutoffs := map[float64]string{
+ 		16000: "MP3 128kbps",
+ 		17000: "MP3 160kbps",
+@@ -201,27 +236,28 @@ func (s *SpectrumAnalyzer) determineFakeStatus(maxFreq, cutoffFreq float64) (boo
+ 		21000: "MP3 320kbps",
+ 	}
+ 
+-	// 检查是否接近已知的有损编码截断频率
++	// Check against known cutoffs
+ 	for cutoff, format := range commonCutoffs {
+-		if math.Abs(maxFreq-cutoff) < 500 { // 500Hz的容差
+-			return true, fmt.Sprintf("检测到%s格式的典型截断频率 (%.0f Hz)", format, maxFreq)
++		if math.Abs(maxFreq-cutoff) < 500 { // 500Hz tolerance
++			return true, fmt.Sprintf("Detected typical cutoff for %s (%.0f Hz)", format, maxFreq)
+ 		}
+ 	}
+ 
+-	// 如果最高频率低于18kHz，很可能是假无损
+-	if maxFreq < 18000 {
+-		return true, fmt.Sprintf("最高有效频率过低 (%.0f Hz)，可能从有损格式转换而来", maxFreq)
++	// Safe 21.5kHz Rule
++	// Valid 44.1kHz audio should reach near 22kHz. If it cuts before 21.5kHz, it's suspicious.
++	if maxFreq < 21500 {
++		return true, fmt.Sprintf("Max effective freq too low (%.0f Hz < 21500 Hz), likely upsampled", maxFreq)
+ 	}
+ 
+-	// 如果存在明显的频率截断
+-	if cutoffFreq < float64(s.sampleRate)/2*0.9 { // 截断频率低于奈奎斯特频率的90%
+-		return true, fmt.Sprintf("在 %.0f Hz 附近检测到明显的频率截断", cutoffFreq)
++	// Check for obvious sharp cutoff
++	if cutoffFreq < float64(s.sampleRate)/2*0.9 { // cutoff < 90% Nyquist
++		return true, fmt.Sprintf("Detected obvious frequency cutoff around %.0f Hz", cutoffFreq)
+ 	}
+ 
+-	return false, fmt.Sprintf("频谱正常，最高有效频率 %.0f Hz", maxFreq)
++	return false, fmt.Sprintf("Spectrum normal, max effective frequency %.0f Hz", maxFreq)
+ }
+ 
+-// nearestPowerOf2 找到最接近的2的幂
++// nearestPowerOf2 Find nearest power of 2
+ func nearestPowerOf2(n int) int {
+ 	power := 1
+ 	for power < n {

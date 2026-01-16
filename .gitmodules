@@ -1,0 +1,3 @@
+[submodule "scripts/host/resources/audio-loss-checker"]
+	path = scripts/host/resources/audio-loss-checker
+	url = https://github.com/mokele-mbembe/audio-loss-checker.git
