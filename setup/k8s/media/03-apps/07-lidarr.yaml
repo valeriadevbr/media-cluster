@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: lidarr
-          image: lscr.io/linuxserver/lidarr:latest
+          image: ghcr.io/hotio/lidarr:pr-plugins
           imagePullPolicy: Always
           lifecycle:
             postStart:
