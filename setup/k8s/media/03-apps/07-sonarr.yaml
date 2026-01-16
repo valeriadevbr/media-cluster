@@ -46,6 +46,8 @@ spec:
               value: "${PGID}"
             - name: TZ
               value: "America/Sao_Paulo"
+            - name: SONARR__BINDADDRESS
+              value: "0.0.0.0"
             - name: DOCKER_MODS
               value: "linuxserver/mods:universal-package-install"
             - name: INSTALL_PACKAGES
