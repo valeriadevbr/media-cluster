@@ -80,6 +80,8 @@ spec:
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
+  annotations:
+    external-dns.alpha.kubernetes.io/target: "${DOCKER_HOST_IP}"
   name: lingarr-lan
   namespace: media
 spec:

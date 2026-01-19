@@ -1,37 +1,35 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: coredns
-  namespace: kube-system
+   name: coredns
+   namespace: kube-system
 data:
-  Corefile: |
-    .:53 {
-        errors
-        health {
-           lameduck 5s
-        }
-        ready
+   Corefile: |
+      .:53 {
+          errors
+          health {
+             lameduck 5s
+          }
+          ready
 
-        kubernetes cluster.local in-addr.arpa ip6.arpa {
-           pods insecure
-           fallthrough in-addr.arpa ip6.arpa
-           ttl 30
-        }
-        prometheus :9153
+          kubernetes cluster.local in-addr.arpa ip6.arpa {
+             pods insecure
+             fallthrough in-addr.arpa ip6.arpa
+             ttl 30
+          }
+          prometheus :9153
 
-        # DNS Upstream Padrão: usa o resolver do Docker (Kind)
-        forward . 0.250.250.254 {
-           except cluster.local
-        }
+          # Encaminhamento para BIND local
+          forward .lan dns.infra.svc.cluster.local
+          forward apedamo.mywire.org dns.infra.svc.cluster.local
 
-        cache 30
-        loop
-        reload
-        loadbalance
-    }
+          # DNS Upstream Padrão: usa o resolver do Docker (Kind)
+          forward . 0.250.250.254 {
+             except cluster.local .lan apedamo.mywire.org
+          }
 
-    lan:53 {
-        errors
-        cache 30
-        forward . 10.96.0.53
-    }
+          cache 30
+          loop
+          reload
+          loadbalance
+      }

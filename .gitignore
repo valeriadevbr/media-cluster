@@ -25,6 +25,8 @@ ssl/**/*.yaml
 # Specific Config Exclusions
 /configs/bind/cache
 /configs/bind/config/zones
+/configs/bind/config/named.conf.externaldns-key
+/configs/bind/config/named.conf.rdnc-key
 !/configs/bind/config/zones/.gitkeep
 /configs/bind/log
 

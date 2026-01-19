@@ -17,8 +17,7 @@ spec:
       containers:
         - name: bind
           image: internetsystemsconsortium/bind9:9.18
-          command:
-            ["/bin/sh", "-c", "/usr/sbin/named -g > /var/log/stderr.log 2>&1"]
+          command: ["/usr/sbin/named", "-g"]
           ports:
             - name: dns-udp
               containerPort: 53
@@ -52,17 +51,17 @@ metadata:
   name: dns
   namespace: infra
 spec:
-  clusterIP: 10.96.0.53
   selector:
     app: dns
+  type: NodePort
   ports:
     - name: dns-udp
       port: 53
       targetPort: 53
+      nodePort: 30053
       protocol: UDP
     - name: dns-tcp
       port: 53
       targetPort: 53
+      nodePort: 30053
       protocol: TCP
-  type: ClusterIP
-  

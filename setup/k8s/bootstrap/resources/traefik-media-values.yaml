@@ -37,6 +37,8 @@ api:
 ingressRoute:
   dashboard:
     enabled: true
+    annotations:
+      external-dns.alpha.kubernetes.io/target: "${DOCKER_HOST_IP}"
     matchRule: Host(`traefik.media.lan`) || Host(`traefik.media.${WAN_HOSTNAME}`)
     entryPoints:
       - web

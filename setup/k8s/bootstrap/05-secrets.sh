@@ -6,6 +6,7 @@ set -a
 set +a
 
 readonly BACKUP_FILE="${CONFIGS_PATH}/backups/wan-cert.yaml"
+readonly TSIG_KEYS_FILE="${CONFIGS_PATH}/bind/config/named.conf.externaldns-key"
 
 echo "Criando secret da CA Local para cert-manager..."
 kubectl create secret tls local-ca-key-pair \
@@ -20,12 +21,32 @@ kubectl create secret generic dynu-api-key-secret \
   --from-literal=api-key="$DYNU_API_KEY" \
   --dry-run=client -o yaml | kubectl apply --context "kind-${INFRA_CLUSTER_NAME}" -f -
 
+if [ -s "$TSIG_KEYS_FILE" ]; then
+  TSIG_SECRET_VALUE=$(grep 'secret "' "$TSIG_KEYS_FILE" | sed -E 's/.*secret "(.*)";/\1/')
+  if [ -n "$TSIG_SECRET_VALUE" ]; then
+    echo "🔑 Criando secret TSIG para ExternalDNS (Infra)..."
+    kubectl create secret generic rfc2136-tsig-secret \
+      --namespace infra \
+      --from-literal=tsig-secret="$TSIG_SECRET_VALUE" \
+      --dry-run=client -o yaml | kubectl apply --context "kind-${INFRA_CLUSTER_NAME}" -f -
+
+    echo "🔑 Criando secret TSIG para ExternalDNS (Media)..."
+    kubectl create secret generic rfc2136-tsig-secret \
+      --namespace media \
+      --from-literal=tsig-secret="$TSIG_SECRET_VALUE" \
+      --dry-run=client -o yaml | kubectl apply --context "kind-${MEDIA_CLUSTER_NAME}" -f -
+  else
+    echo "⚠️  Não foi possível extrair a secret do arquivo $TSIG_KEYS_FILE."
+  fi
+else
+  echo "⚠️  Arquivo de chaves TSIG não encontrado ($TSIG_KEYS_FILE). Certifique-se de rodar 04-bind-keys.sh primeiro."
+fi
+
 if [ -f "$BACKUP_FILE" ]; then
   echo "♻️  Restaurando certificado WAN do backup (Infra)..."
   kubectl apply --context "kind-${INFRA_CLUSTER_NAME}" -f "$BACKUP_FILE"
 
   echo "♻️  Replicando certificado WAN do backup (Media)..."
-  # O backup original está no namespace 'infra'. Ajustamos para 'media' antes de aplicar
   cat "$BACKUP_FILE" | sed 's/namespace: infra/namespace: media/' | kubectl apply --context "kind-${MEDIA_CLUSTER_NAME}" -f -
 else
   echo "ℹ️  Nenhum backup de certificado WAN encontrado. O Cert-Manager irá gerar um novo no cluster INFRA."
