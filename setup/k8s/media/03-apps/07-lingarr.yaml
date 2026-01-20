@@ -22,23 +22,23 @@ spec:
               name: lingarr
           resources:
             requests:
-              memory: "128Mi"
-              cpu: "50m"
+              memory: "256Mi"
+              cpu: "200m"
             limits:
-              memory: "512Mi"
-              cpu: "500m"
+              memory: "1Gi"
+              cpu: "1000m"
           livenessProbe:
             tcpSocket:
               port: 9876
-            initialDelaySeconds: 15
+            initialDelaySeconds: 180
             periodSeconds: 20
-            failureThreshold: 3
+            failureThreshold: 10
           readinessProbe:
             tcpSocket:
               port: 9876
-            initialDelaySeconds: 10
-            periodSeconds: 10
-            failureThreshold: 3
+            initialDelaySeconds: 60
+            periodSeconds: 20
+            failureThreshold: 10
           env:
             - name: ASPNETCORE_URLS
               value: "http://+:9876"

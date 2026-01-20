@@ -54,6 +54,7 @@ spec:
   selector:
     app: dns
   type: NodePort
+  clusterIP: 10.96.0.53
   ports:
     - name: dns-udp
       port: 53
