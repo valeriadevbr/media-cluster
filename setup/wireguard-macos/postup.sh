@@ -2,7 +2,7 @@
 
 # $1 recebe o nome da interface (ex: utun4) passado pelo %i no wg0.conf
 WG_IFace=$1
-INET_IFace="en0"
+INET_IFace="${LAN_INTERFACE}"
 PF_ANCHOR_NAME="com.apple/wireguard"
 
 /usr/sbin/sysctl -w net.inet.ip.forwarding=1
@@ -14,7 +14,6 @@ fi
 sudo pfctl -E -a "${PF_ANCHOR_NAME}" -F all > /dev/null
 sudo pfctl -a "${PF_ANCHOR_NAME}" -f - << EOF > /dev/null
 set skip on lo0
-
 nat on $INET_IFace inet from ${WG_SUBNET} to any -> 192.168.2.1
 pass in quick on $WG_IFace inet from ${WG_SUBNET} to ${DOCKER_HOST_SUBNET}
 pass out quick on $INET_IFace inet from any to ${DOCKER_HOST_SUBNET}

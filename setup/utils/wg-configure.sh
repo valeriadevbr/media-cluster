@@ -18,7 +18,9 @@ sudo mkdir -p "$WG_DIR"
 for script in "$BACKUP_DIR"/*.sh; do
   if [ -f "$script" ]; then
     script_name=$(basename "$script")
-    envsubst '${WG_SUBNET} ${WG_SERVER_IP} ${DOCKER_HOST_IP} ${DOCKER_HOST_SUBNET}' <"$script" | sudo tee "$WG_DIR/$script_name" >/dev/null
+    envsubst \
+      '${WG_SUBNET} ${WG_SERVER_IP} ${DOCKER_HOST_IP} ${DOCKER_HOST_SUBNET} ${LAN_INTERFACE}' \
+      <"$script" | sudo tee "$WG_DIR/$script_name" >/dev/null
   fi
 done
 

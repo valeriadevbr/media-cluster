@@ -7,7 +7,6 @@ set +a
 "${K8S_PATH}/setup.sh"
 
 if [[ "$OS" == "Darwin" ]]; then
-  "${SETUP_PATH}/utils/set-pf-rules.sh"
   sudo sysctl -w kern.maxfiles=1048576
   sudo sysctl -w kern.maxfilesperproc=1048576
 fi
