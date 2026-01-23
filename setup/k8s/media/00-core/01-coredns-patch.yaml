@@ -20,12 +20,13 @@ data:
           prometheus :9153
 
           # Encaminhamento para BIND no cluster Infra (NodePort)
-          forward lan 192.168.97.2:30053
+          forward media.lan 192.168.97.2:30053
+          forward infra.lan 192.168.97.2:30053
           forward ${WAN_HOSTNAME} 192.168.97.2:30053
 
           # Descoberta Nativa: pergunta ao DNS interno do Docker (Kind)
           forward . 0.250.250.254 {
-             except cluster.local lan ${WAN_HOSTNAME}
+             except cluster.local media.lan infra.lan ${WAN_HOSTNAME}
           }
 
           cache 30

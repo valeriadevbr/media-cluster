@@ -17,6 +17,9 @@ spec:
     spec:
       priorityClassName: critical-media
       dnsPolicy: ClusterFirstWithHostNet
+      dnsConfig:
+        searches:
+          - ${WAN_HOSTNAME}
       hostNetwork: true
       containers:
         - name: emby

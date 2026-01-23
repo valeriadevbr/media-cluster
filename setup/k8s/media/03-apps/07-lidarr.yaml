@@ -97,7 +97,7 @@ spec:
             - name: PGID
               value: "${PGID}"
             - name: TZ
-              value: "America/Sao_Paulo"
+              value: "UTC" # <-- fix para lidarr não mostrar a data de release errada
             - name: FANART_API_KEY
               value: "${FANART_API_KEY}"
           volumeMounts:
