@@ -1,0 +1,101 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: feishin
+  namespace: media
+spec:
+  strategy:
+    type: Recreate
+  replicas: 1
+  selector:
+    matchLabels:
+      app: feishin
+  template:
+    metadata:
+      labels:
+        app: feishin
+    spec:
+      priorityClassName: critical-media
+      dnsPolicy: ClusterFirstWithHostNet
+      dnsConfig:
+        searches:
+          - ${WAN_HOSTNAME}
+      hostNetwork: true
+      securityContext:
+        runAsUser: 0
+        runAsGroup: 0
+      containers:
+        - name: feishin
+          image: ghcr.io/jeffvli/feishin:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 9180
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          env:
+            - name: TZ
+              value: "America/Sao_Paulo"
+            - name: SERVER_NAME
+              value: "Navidrome"
+            - name: SERVER_URL
+              value: "https://navidrome.media.${WAN_HOSTNAME}"
+            - name: SERVER_TYPE
+              value: "navidrome"
+            - name: SERVER_LOCK
+              value: "true"
+            - name: ANALYTICS_DISABLED
+              value: "true"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: feishin
+  namespace: media
+spec:
+  selector:
+    app: feishin
+  ports:
+    - name: http
+      port: 9180
+      targetPort: 9180
+  type: LoadBalancer
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  annotations:
+    external-dns.alpha.kubernetes.io/target: "${DOCKER_HOST_IP}"
+  name: feishin-lan
+  namespace: media
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: Host(`feishin.media.lan`) || Host(`feishin.media.${WAN_HOSTNAME}`) || Host(`feishin-service`)
+      kind: Rule
+      services:
+        - name: feishin
+          port: 9180
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  annotations:
+    external-dns.alpha.kubernetes.io/target: "${DOCKER_HOST_IP}"
+  name: feishin-wan
+  namespace: media
+spec:
+  entryPoints:
+    - web-external
+  routes:
+    - match: Host(`feishin.media.${WAN_HOSTNAME}`)
+      kind: Rule
+      services:
+        - name: feishin
+          port: 9180
