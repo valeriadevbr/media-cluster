@@ -1,0 +1,212 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: navidrome
+  namespace: media
+spec:
+  strategy:
+    type: Recreate
+  replicas: 1
+  selector:
+    matchLabels:
+      app: navidrome
+  template:
+    metadata:
+      labels:
+        app: navidrome
+    spec:
+      priorityClassName: critical-media
+      dnsPolicy: ClusterFirstWithHostNet
+      dnsConfig:
+        searches:
+          - ${WAN_HOSTNAME}
+      hostNetwork: true
+      securityContext:
+        runAsUser: ${PUID}
+        runAsGroup: ${PGID}
+        fsGroup: ${PGID}
+      containers:
+        - name: navidrome
+          image: deluan/navidrome:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 4533
+          livenessProbe:
+            httpGet:
+              path: /ping
+              port: 4533
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /ping
+              port: 4533
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "1000m"
+            limits:
+              memory: "2Gi"
+              cpu: 2000m
+          env:
+            # Network
+            - name: ND_AUTHWINDOWLENGTH
+              value: "20s"
+            - name: ND_AUTHREQUESTLIMIT
+              value: "5"
+            - name: ND_SESSIONTIMEOUT
+              value: "48h"
+            # Logging
+            - name: ND_LOGLEVEL
+              value: "debug"
+            - name: ND_ENABLEINSIGHTSCOLLECTOR
+              value: "false"
+            # UI
+            - name: ND_DEFAULTLANGUAGE
+              value: "pt-BR"
+            - name: ND_DEFAULTTHEME
+              value: "Dark"
+            - name: ND_UIWELCOMEMESSAGE
+              value: >-
+                Todo o conteúdo e mídia distribuídos na rede DevilCOM Network são de propriedade exclusiva e destinam-se apenas ao uso interno autorizado.
+                É expressamente proibido copiar, armazenar, distribuir ou compartilhar qualquer parte desses materiais com terceiros ou fora desta rede.
+                O não cumprimento deste aviso sujeita o infrator a medidas legais e à responsabilização civil e criminal nos termos da lei.
+                Ao acessar este conteúdo, você concorda com estes termos.
+            # Paths
+            - name: ND_MUSICFOLDER
+              value: "/media/Music"
+            - name: ND_DATAFOLDER
+              value: "/data/data"
+            - name: ND_CACHEFOLDER
+              value: "/data/cache"
+            - name: ND_CONFIGFILE
+              value: "/data/navidrome.toml"
+            # Scanner
+            - name: ND_SCANNER_ENABLED
+              value: "true"
+            - name: ND_SCANNER_SCHEDULE
+              value: "@every 2h"
+            - name: ND_SCANNER_WATCHERWAIT
+              value: "20s"
+            - name: ND_SCANNER_SCANONSTARTUP
+              value: "true"
+            - name: ND_SCANNER_FOLLOWSYMLINKS
+              value: "true"
+            - name: ND_SCANNER_PURGEMISSING
+              value: "always"
+            - name: ND_RECENTLYADDEDBYMODTIME
+              value: "true"
+            # Share
+            - name: ND_ENABLESHARING
+              value: "true"
+            - name: ND_DEFAULTSHAREEXPIRATION
+              value: "168h"
+            # Transcoding
+            - name: ND_ENABLETRANSCODING
+              value: "true"
+            - name: ND_ENABLETRANSCODINGCONFIG
+              value: "true"
+            - name: ND_AUTOTRANSCODEDOWNLOAD
+              value: "false"
+            # Cache
+            - name: ND_TRANSCODINGCACHESIZE
+              value: "20GB"
+            - name: ND_IMAGECACHESIZE
+              value: "2GB"
+            # Integrations
+            - name: ND_DEEZER_ENABLED
+              value: "true"
+            - name: ND_DEEZER_LANGUAGE
+              value: "pt-BR"
+            - name: ND_LASTFM_ENABLED
+              value: "true"
+            - name: ND_LASTFM_LANGUAGE
+              value: "pt-BR"
+            - name: ND_LASTFM_APIKEY
+              value: "${LASTFM_API_KEY}"
+            - name: ND_LASTFM_SECRET
+              value: "${LASTFM_SECRET}"
+            - name: ND_SPOTIFY_ID
+              value: "${SPOTIFY_ID}"
+            - name: ND_SPOTIFY_SECRET
+              value: "${SPOTIFY_SECRET}"
+            # Misc
+            - name: ND_ENABLELEGACYAUTH
+              value: "true"
+            - name: ND_DEFAULTDOWNSAMPLINGFORMAT
+              value: "opus"
+            # Performance Tuning
+            - name: ND_DEVARTWORKMAXREQUESTS
+              value: "20"
+            - name: ND_DEVARTWORKTHROTTLEBACKLOGLIMIT
+              value: "200"
+            - name: ND_COVERARTPRIORITY
+              value: "folder.*, embedded, external"
+            # Timezone
+            - name: TZ
+              value: "America/Sao_Paulo"
+          volumeMounts:
+            - name: configs
+              mountPath: /data
+              subPath: navidrome
+            - name: media
+              mountPath: /media
+              readOnly: true
+      volumes:
+        - name: configs
+          persistentVolumeClaim:
+            claimName: configs-pvc
+        - name: media
+          persistentVolumeClaim:
+            claimName: media-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: navidrome
+  namespace: media
+spec:
+  selector:
+    app: navidrome
+  ports:
+    - name: http
+      port: 4533
+      targetPort: 4533
+  type: LoadBalancer
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  annotations:
+    external-dns.alpha.kubernetes.io/target: "${DOCKER_HOST_IP}"
+  name: navidrome-lan
+  namespace: media
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: Host(`navidrome.media.lan`) || Host(`navidrome.media.${WAN_HOSTNAME}`) || Host(`navidrome-service`)
+      kind: Rule
+      services:
+        - name: navidrome
+          port: 4533
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  annotations:
+    external-dns.alpha.kubernetes.io/target: "${DOCKER_HOST_IP}"
+  name: navidrome-wan
+  namespace: media
+spec:
+  entryPoints:
+    - web-external
+  routes:
+    - match: Host(`navidrome.media.${WAN_HOSTNAME}`)
+      kind: Rule
+      services:
+        - name: navidrome
+          port: 4533

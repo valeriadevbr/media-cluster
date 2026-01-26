@@ -22,25 +22,28 @@ ports:
     port: 8000
     exposedPort: 80
     nodePort: 80
-    middlewares:
-      - "ingress-traefik-error-pages@kubernetescrd"
+    http:
+      middlewares:
+        - ingress-traefik-error-pages@kubernetescrd
   web-wan:
     port: 44000
     exposedPort: 44000
     nodePort: 44000
     expose:
       default: true
-    middlewares:
-      - "ingress-traefik-error-pages@kubernetescrd"
+    http:
+      middlewares:
+        - ingress-traefik-error-pages@kubernetescrd
   websecure:
     port: 8443
     exposedPort: 443
     nodePort: 443
-    middlewares:
-      - "ingress-traefik-error-pages@kubernetescrd"
+    http:
+      middlewares:
+        - ingress-traefik-error-pages@kubernetescrd
+      tls:
+        enabled: true
     http3:
-      enabled: true
-    tls:
       enabled: true
   websecure-wan:
     port: 44300
@@ -48,11 +51,12 @@ ports:
     nodePort: 44300
     expose:
       default: true
-    middlewares:
-      - "ingress-traefik-error-pages@kubernetescrd"
+    http:
+      middlewares:
+        - ingress-traefik-error-pages@kubernetescrd
+      tls:
+        enabled: true
     http3:
-      enabled: true
-    tls:
       enabled: true
 
 api:
@@ -77,10 +81,6 @@ deployment:
     capabilities:
       add:
         - NET_BIND_SERVICE
-
-ping:
-  enabled: true
-  entryPoint: traefik
 
 logs:
   general:

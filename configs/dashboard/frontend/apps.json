@@ -1,0 +1,165 @@
+[
+  {
+    "title": "Servidores",
+    "apps": [
+      {
+        "name": "Plex",
+        "url": "https://plex.media.apedamo.mywire.org",
+        "urlAlt": "http://plex.media.lan",
+        "pingUrl": "http://plex-service/identity",
+        "color": "#e5a00d",
+        "icon": "plex.svg"
+      },
+      {
+        "name": "Emby",
+        "url": "https://emby.media.apedamo.mywire.org",
+        "urlAlt": "http://emby.media.lan",
+        "pingUrl": "http://emby-service/System/Ping",
+        "color": "#5dd054",
+        "icon": "emby.svg"
+      },
+      {
+        "name": "Navidrome",
+        "url": "https://navidrome.media.apedamo.mywire.org",
+        "urlAlt": "http://navidrome.media.lan",
+        "pingUrl": "http://navidrome-service/ping",
+        "color": "#0084ff",
+        "icon": "navidrome.svg"
+      }
+    ]
+  },
+  {
+    "title": "Gestão de Mídia",
+    "apps": [
+      {
+        "name": "Sonarr",
+        "url": "https://sonarr.media.apedamo.mywire.org",
+        "urlAlt": "http://sonarr.media.lan",
+        "pingUrl": "http://sonarr-service/ping",
+        "color": "#00c0fa",
+        "icon": "sonarr.svg"
+      },
+      {
+        "name": "Radarr",
+        "url": "https://radarr.media.apedamo.mywire.org",
+        "urlAlt": "http://radarr.media.lan",
+        "pingUrl": "http://radarr-service/ping",
+        "color": "#ffc230",
+        "icon": "radarr.svg"
+      },
+      {
+        "name": "Lidarr",
+        "url": "https://lidarr.media.apedamo.mywire.org",
+        "urlAlt": "http://lidarr.media.lan",
+        "pingUrl": "http://lidarr-service/ping",
+        "color": "#00936e",
+        "icon": "lidarr.svg"
+      },
+      {
+        "name": "Bazarr",
+        "url": "https://bazarr.media.apedamo.mywire.org",
+        "urlAlt": "http://bazarr.media.lan",
+        "pingUrl": "http://bazarr-service",
+        "color": "#b76bf7",
+        "icon": "bazarr.svg"
+      },
+      {
+        "name": "Prowlarr",
+        "url": "https://prowlarr.media.apedamo.mywire.org",
+        "urlAlt": "http://prowlarr.media.lan",
+        "pingUrl": "http://prowlarr-service/ping",
+        "color": "#ff3333",
+        "icon": "prowlarr.svg"
+      },
+      {
+        "name": "Jackett",
+        "url": "https://jackett.media.apedamo.mywire.org",
+        "urlAlt": "http://jackett.media.lan",
+        "pingUrl": "http://jackett-service/UI/Dashboard",
+        "color": "#b7f76b",
+        "icon": "jackett.svg"
+      },
+      {
+        "name": "Profilarr",
+        "url": "https://profilarr.media.apedamo.mywire.org",
+        "urlAlt": "http://profilarr.media.lan",
+        "pingUrl": "http://profilarr-service/ping",
+        "color": "#6b9cf7",
+        "icon": "profilarr.svg"
+      },
+      {
+        "name": "Lingarr",
+        "url": "https://lingarr.media.apedamo.mywire.org",
+        "urlAlt": "http://lingarr.media.lan",
+        "pingUrl": "http://lingarr-service",
+        "color": "#7b6254",
+        "icon": "lingarr.svg"
+      }
+    ]
+  },
+  {
+    "title": "Downloads",
+    "apps": [
+      {
+        "name": "qBittorrent",
+        "url": "https://qbittorrent.media.apedamo.mywire.org",
+        "urlAlt": "http://qbittorrent.media.lan",
+        "pingUrl": "http://qbittorrent-service",
+        "color": "#2f67ba",
+        "icon": "qbittorrent.svg"
+      },
+      {
+        "name": "Slskd",
+        "url": "https://slskd.media.apedamo.mywire.org",
+        "urlAlt": "http://slskd.media.lan",
+        "pingUrl": "http://slskd-service",
+        "color": "#00c3ff",
+        "icon": "slskd.svg"
+      }
+    ]
+  },
+  {
+    "title": "Infraestrutura",
+    "apps": [
+      {
+        "name": "Gateway",
+        "url": "https://gateway.infra.apedamo.mywire.org",
+        "pingUrl": "http://192.168.2.254",
+        "color": "#fb923c",
+        "icon": "gateway.svg"
+      },
+      {
+        "name": "AdGuard Home",
+        "url": "https://adguard.infra.apedamo.mywire.org",
+        "urlAlt": "http://adguard.infra.lan",
+        "pingUrl": "http://adguard-service.infra",
+        "color": "#68bc71",
+        "icon": "adguard-home.svg"
+      },
+      {
+        "name": "LibreSpeedTest",
+        "url": "https://speedtest.infra.apedamo.mywire.org",
+        "urlAlt": "http://speedtest.infra.lan",
+        "pingUrl": "http://speedtest.infra:3000",
+        "color": "#00c3ff",
+        "icon": "openspeedtest.svg"
+      },
+      {
+        "name": "Traefik (Infra)",
+        "url": "https://traefik.infra.apedamo.mywire.org",
+        "urlAlt": "https://traefik.infra.lan",
+        "pingUrl": "http://infra-cluster-control-plane:9000/ping",
+        "color": "#24a1c1",
+        "icon": "traefik-proxy.svg"
+      },
+      {
+        "name": "Traefik (Media)",
+        "url": "https://traefik.media.apedamo.mywire.org",
+        "urlAlt": "https://traefik.media.lan",
+        "pingUrl": "http://traefik-media-service/ping",
+        "color": "#24a1c1",
+        "icon": "traefik-proxy.svg"
+      }
+    ]
+  }
+]

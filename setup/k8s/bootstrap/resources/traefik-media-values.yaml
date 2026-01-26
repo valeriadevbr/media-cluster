@@ -20,15 +20,17 @@ ports:
   web:
     port: 8000
     nodePort: 80
-    middlewares:
-      - "ingress-traefik-error-pages@kubernetescrd"
+    http:
+      middlewares:
+        - ingress-traefik-error-pages@kubernetescrd
   web-external:
     port: 8001
     nodePort: 81
     expose:
       default: true
-    middlewares:
-      - "ingress-traefik-error-pages@kubernetescrd"
+    http:
+      middlewares:
+        - ingress-traefik-error-pages@kubernetescrd
 
 api:
   dashboard: true
@@ -49,12 +51,8 @@ deployment:
     runAsUser: 65532
     runAsGroup: 65532
 
-ping:
-  enabled: true
-  entryPoint: traefik
-
 logs:
   general:
-    level: ERROR
+    level: DEBUG
   access:
-    enabled: false
+    enabled: true

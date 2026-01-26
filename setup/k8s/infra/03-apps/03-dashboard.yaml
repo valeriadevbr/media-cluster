@@ -58,10 +58,10 @@ spec:
           resources:
             requests:
               cpu: 10m
-              memory: 32Mi
+              memory: 128Mi
             limits:
               cpu: 50m
-              memory: 64Mi
+              memory: 256Mi
           volumeMounts:
             - name: content
               subPath: dashboard/backend/pinger.py
@@ -206,6 +206,15 @@ apiVersion: v1
 kind: Service
 metadata:
   name: slskd-service
+  namespace: dashboard
+spec:
+  type: ExternalName
+  externalName: media-cluster-control-plane
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: navidrome-service
   namespace: dashboard
 spec:
   type: ExternalName

@@ -9,4 +9,5 @@ set +a
 if [[ "$OS" == "Darwin" ]]; then
   sudo sysctl -w kern.maxfiles=1048576
   sudo sysctl -w kern.maxfilesperproc=1048576
+  "${SETUP_PATH}/utils/set-pf-rules.sh"
 fi
