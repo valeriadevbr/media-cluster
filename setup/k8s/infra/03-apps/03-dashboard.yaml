@@ -223,6 +223,15 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
+  name: feishin-service
+  namespace: dashboard
+spec:
+  type: ExternalName
+  externalName: media-cluster-control-plane
+---
+apiVersion: v1
+kind: Service
+metadata:
   name: traefik-media-service
   namespace: dashboard
 spec:
