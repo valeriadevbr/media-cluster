@@ -24,7 +24,7 @@ exec 3>&1
 
 # Constantes
 readonly LOG_FILE="/tmp/arr-lidarr-album-art.log"
-readonly MIN_WIDTH=500
+readonly MIN_WIDTH=400
 readonly COVER_SIZE="1200x1200"
 readonly CURL_OPTS="--connect-timeout 10 --max-time 30 -s -L \
 -A 'LidarrConnectScript/1.0'"
@@ -207,8 +207,8 @@ download_artwork() {
   # 0. Verificação de Qualidade Existente (Fast Exit/Skip Download)
   if [[ -f "$final_cover" ]]; then
     local current_width=$(magick identify -format "%w" "$final_cover" 2>/dev/null)
-    if [[ -n "$current_width" ]] && ((current_width >= target_width)); then
-      log_msg "Qualidade suficiente encontrada (${current_width}px >= ${target_width}px)."
+    if [[ -n "$current_width" ]] && ((current_width >= MIN_WIDTH)); then
+      log_msg "Qualidade suficiente encontrada (${current_width}px >= ${MIN_WIDTH}px)."
       log_msg "Pulando download, mas prosseguindo para embutimento."
       return 0 # Sucesso (já temos a imagem)
     fi
