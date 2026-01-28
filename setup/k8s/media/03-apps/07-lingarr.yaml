@@ -1,10 +1,12 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: lingarr
   namespace: media
 spec:
+  serviceName: lingarr
   replicas: 1
+  podManagementPolicy: OrderedReady
   selector:
     matchLabels:
       app: lingarr
@@ -13,6 +15,7 @@ spec:
       labels:
         app: lingarr
     spec:
+      terminationGracePeriodSeconds: 60
       containers:
         - name: lingarr
           image: lingarr/lingarr:latest

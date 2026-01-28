@@ -1,10 +1,12 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: sonarr
   namespace: media
 spec:
+  serviceName: sonarr
   replicas: 1
+  podManagementPolicy: OrderedReady
   selector:
     matchLabels:
       app: sonarr
@@ -13,6 +15,7 @@ spec:
       labels:
         app: sonarr
     spec:
+      terminationGracePeriodSeconds: 60
       containers:
         - name: sonarr
           image: lscr.io/linuxserver/sonarr:latest

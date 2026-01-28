@@ -1,10 +1,12 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: bazarr
   namespace: media
 spec:
+  serviceName: bazarr
   replicas: 1
+  podManagementPolicy: OrderedReady
   selector:
     matchLabels:
       app: bazarr
@@ -13,6 +15,7 @@ spec:
       labels:
         app: bazarr
     spec:
+      terminationGracePeriodSeconds: 60
       containers:
         - name: bazarr
           image: lscr.io/linuxserver/bazarr:latest

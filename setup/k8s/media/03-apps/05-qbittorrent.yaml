@@ -1,12 +1,14 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: qbittorrent
   namespace: media
   labels:
     app: qbittorrent
 spec:
+  serviceName: qbittorrent
   replicas: 1
+  podManagementPolicy: OrderedReady
   selector:
     matchLabels:
       app: qbittorrent
@@ -15,6 +17,7 @@ spec:
       labels:
         app: qbittorrent
     spec:
+      terminationGracePeriodSeconds: 60
       containers:
         - name: qbittorrent
           image: lscr.io/linuxserver/qbittorrent:latest

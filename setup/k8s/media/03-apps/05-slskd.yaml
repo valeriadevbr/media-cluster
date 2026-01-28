@@ -1,10 +1,12 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: slskd
   namespace: media
 spec:
+  serviceName: slskd
   replicas: 1
+  podManagementPolicy: OrderedReady
   selector:
     matchLabels:
       app: slskd
@@ -13,6 +15,7 @@ spec:
       labels:
         app: slskd
     spec:
+      terminationGracePeriodSeconds: 60
       containers:
         - name: slskd
           image: slskd/slskd:latest

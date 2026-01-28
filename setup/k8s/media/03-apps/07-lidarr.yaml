@@ -1,10 +1,12 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: lidarr
   namespace: media
 spec:
+  serviceName: lidarr
   replicas: 1
+  podManagementPolicy: OrderedReady
   selector:
     matchLabels:
       app: lidarr
@@ -13,6 +15,7 @@ spec:
       labels:
         app: lidarr
     spec:
+      terminationGracePeriodSeconds: 60
       containers:
         - name: lidarr
           image: ghcr.io/hotio/lidarr:pr-plugins

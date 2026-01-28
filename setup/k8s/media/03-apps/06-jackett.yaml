@@ -4,6 +4,8 @@ metadata:
   name: jackett
   namespace: media
 spec:
+  strategy:
+    type: Recreate
   replicas: 1
   selector:
     matchLabels:
@@ -13,6 +15,7 @@ spec:
       labels:
         app: jackett
     spec:
+      terminationGracePeriodSeconds: 30
       containers:
         - name: jackett
           image: lscr.io/linuxserver/jackett:latest
