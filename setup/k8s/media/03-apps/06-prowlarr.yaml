@@ -46,6 +46,18 @@ spec:
               value: "${PGID}"
             - name: TZ
               value: "America/Sao_Paulo"
+            - name: PROWLARR__POSTGRES__HOST
+              value: "postgres-lb.media.svc.cluster.local"
+            - name: PROWLARR__POSTGRES__PORT
+              value: "5432"
+            - name: PROWLARR__POSTGRES__USER
+              value: "prowlarr"
+            - name: PROWLARR__POSTGRES__PASSWORD
+              value: "${PROWLARR_DB_PASSWORD}"
+            - name: PROWLARR__POSTGRES__MAINDB
+              value: "prowlarr_main"
+            - name: PROWLARR__POSTGRES__LOGDB
+              value: "prowlarr_logs"
           volumeMounts:
             - name: configs
               mountPath: /config

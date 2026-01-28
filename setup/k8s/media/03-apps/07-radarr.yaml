@@ -22,7 +22,7 @@ spec:
               name: radarr
           resources:
             requests:
-              memory: "256Mi"
+              memory: "128Mi"
               cpu: "100m"
             limits:
               memory: "1Gi"
@@ -52,6 +52,18 @@ spec:
               value: "linuxserver/mods:universal-package-install"
             - name: INSTALL_PACKAGES
               value: "mkvtoolnix"
+            - name: RADARR__POSTGRES__HOST
+              value: "postgres-lb.media.svc.cluster.local"
+            - name: RADARR__POSTGRES__PORT
+              value: "5432"
+            - name: RADARR__POSTGRES__USER
+              value: "radarr"
+            - name: RADARR__POSTGRES__PASSWORD
+              value: "${RADARR_DB_PASSWORD}"
+            - name: RADARR__POSTGRES__MAINDB
+              value: "radarr_main"
+            - name: RADARR__POSTGRES__LOGDB
+              value: "radarr_logs"
           volumeMounts:
             - name: configs
               mountPath: /config

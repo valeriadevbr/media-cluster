@@ -35,8 +35,8 @@ spec:
               containerPort: 8920
           resources:
             requests:
-              memory: "2Gi"
-              cpu: "1000m"
+              memory: "512Mi"
+              cpu: "200m"
             limits:
               memory: "6Gi"
           livenessProbe:

@@ -100,6 +100,18 @@ spec:
               value: "UTC" # <-- fix para lidarr não mostrar a data de release errada
             - name: FANART_API_KEY
               value: "${FANART_API_KEY}"
+            - name: LIDARR__POSTGRES__HOST
+              value: "postgres-lb.media.svc.cluster.local"
+            - name: LIDARR__POSTGRES__PORT
+              value: "5432"
+            - name: LIDARR__POSTGRES__USER
+              value: "lidarr"
+            - name: LIDARR__POSTGRES__PASSWORD
+              value: "${LIDARR_DB_PASSWORD}"
+            - name: LIDARR__POSTGRES__MAINDB
+              value: "lidarr_main"
+            - name: LIDARR__POSTGRES__LOGDB
+              value: "lidarr_logs"
           volumeMounts:
             - name: configs
               mountPath: /config

@@ -20,7 +20,10 @@ ssl/**/*.yaml
 !/configs/bind/
 !/configs/dashboard/
 !/configs/kind/
-!/configs/grafana/
+!/configs/postgres/
+/configs/postgres/data
+!/configs/postgres/config/
+!/configs/postgres/scripts/
 
 # Specific Config Exclusions
 /configs/bind/cache
@@ -30,6 +33,3 @@ ssl/**/*.yaml
 /configs/bind/config/named.conf.transfer-key
 !/configs/bind/config/zones/.gitkeep
 /configs/bind/log
-
-/setup/k8s/02-infra/99-monitoring.yaml
-/setup/k8s/02-infra/99-monitoring-crds.yaml

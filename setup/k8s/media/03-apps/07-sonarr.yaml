@@ -22,7 +22,7 @@ spec:
               name: sonarr
           resources:
             requests:
-              memory: "256Mi"
+              memory: "128Mi"
               cpu: "100m"
             limits:
               memory: "1Gi"
@@ -52,6 +52,18 @@ spec:
               value: "linuxserver/mods:universal-package-install"
             - name: INSTALL_PACKAGES
               value: "mkvtoolnix"
+            - name: SONARR__POSTGRES__HOST
+              value: "postgres-lb.media.svc.cluster.local"
+            - name: SONARR__POSTGRES__PORT
+              value: "5432"
+            - name: SONARR__POSTGRES__USER
+              value: "sonarr"
+            - name: SONARR__POSTGRES__PASSWORD
+              value: "${SONARR_DB_PASSWORD}"
+            - name: SONARR__POSTGRES__MAINDB
+              value: "sonarr_main"
+            - name: SONARR__POSTGRES__LOGDB
+              value: "sonarr_logs"
           volumeMounts:
             - name: configs
               mountPath: /config
