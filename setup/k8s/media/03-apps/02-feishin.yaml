@@ -82,20 +82,3 @@ spec:
       services:
         - name: feishin
           port: 9180
----
-apiVersion: traefik.io/v1alpha1
-kind: IngressRoute
-metadata:
-  annotations:
-    external-dns.alpha.kubernetes.io/target: "${DOCKER_HOST_IP}"
-  name: feishin-wan
-  namespace: media
-spec:
-  entryPoints:
-    - web-external
-  routes:
-    - match: Host(`feishin.media.${WAN_HOSTNAME}`)
-      kind: Rule
-      services:
-        - name: feishin
-          port: 9180
