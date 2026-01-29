@@ -135,7 +135,7 @@ spec:
               value: "${SPOTIFY_SECRET}"
             # Misc
             - name: ND_ENABLELEGACYAUTH
-              value: "true"
+              value: "false"
             - name: ND_DEFAULTDOWNSAMPLINGFORMAT
               value: "opus"
             # CORS
