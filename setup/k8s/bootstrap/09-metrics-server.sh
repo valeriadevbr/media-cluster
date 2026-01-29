@@ -1,6 +1,17 @@
 #!/bin/bash
 set -e
+set -a
+. "$(dirname -- "$0")/../../includes/load-env.sh"
+set +a
 
-echo "Instalando Metrics Server..."
-kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml >/dev/null
-kubectl patch deployment metrics-server -n kube-system --type='json' -p='[{"op": "add", "path": "/spec/template/spec/containers/0/args/-", "value": "--kubelet-insecure-tls"}]' >/dev/null
+# Lista de contextos para iterar
+CONTEXTS=("kind-${INFRA_CLUSTER_NAME}" "kind-${MEDIA_CLUSTER_NAME}")
+
+for CONTEXT in "${CONTEXTS[@]}"; do
+  echo "Instalando Metrics Server no contexto: $CONTEXT..."
+  kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml --context "$CONTEXT" >/dev/null
+  kubectl patch deployment metrics-server -n kube-system --type='json' -p='[{"op": "add", "path": "/spec/template/spec/containers/0/args/-", "value": "--kubelet-insecure-tls"}]' --context "$CONTEXT" >/dev/null
+  echo "✓ Metrics Server instalado com sucesso no contexto: $CONTEXT"
+done
+
+echo "✓ Metrics Server instalado em todos os clusters"
