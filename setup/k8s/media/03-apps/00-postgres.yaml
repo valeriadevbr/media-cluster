@@ -37,6 +37,8 @@ spec:
               value: "${SONARR_DB_PASSWORD}"
             - name: RADARR_DB_PASSWORD
               value: "${RADARR_DB_PASSWORD}"
+            - name: BAZARR_DB_PASSWORD
+              value: "${BAZARR_DB_PASSWORD}"
             - name: PGDATA
               value: "/var/lib/postgresql/data/pgdata"
             - name: TZ
@@ -80,6 +82,13 @@ spec:
               mountPath: /etc/postgresql
               subPath: postgres/config
               readOnly: true
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                  - /bin/sh
+                  - -c
+                  - /docker-entrypoint-initdb.d/01-init-apps.sh > /proc/1/fd/1 2>&1
           args:
             - -c
             - config_file=/etc/postgresql/postgresql.conf

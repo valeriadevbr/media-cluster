@@ -48,7 +48,6 @@ init_app_db() {
     \c ${APP_NAME}_main
     REVOKE ALL ON SCHEMA public FROM public;
     GRANT ALL ON SCHEMA public TO ${APP_NAME};
-    GRANT ALL ON SCHEMA public TO ${APP_NAME};
     ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO ${APP_NAME};
     ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO ${APP_NAME};
 
@@ -66,5 +65,6 @@ init_app_db "lidarr" "$LIDARR_DB_PASSWORD"
 init_app_db "sonarr" "$SONARR_DB_PASSWORD"
 init_app_db "radarr" "$RADARR_DB_PASSWORD"
 init_app_db "prowlarr" "$PROWLARR_DB_PASSWORD"
+init_app_db "bazarr" "$BAZARR_DB_PASSWORD"
 
 echo "✅ All initializations completed!"
