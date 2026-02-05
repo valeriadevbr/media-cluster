@@ -41,7 +41,7 @@ spec:
               subPath: adguard
               mountPath: /opt/adguardhome/work
             - name: configs
-              subPath: adguard-conf
+              subPath: adguard/config
               mountPath: /opt/adguardhome/conf
             - name: certs
               mountPath: /opt/adguardhome/certs

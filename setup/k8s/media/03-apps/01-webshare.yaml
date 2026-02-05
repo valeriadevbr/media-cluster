@@ -45,12 +45,14 @@ spec:
             - name: EXTRA_CONFIG
               value: |
                 auth iponly
-                allow * * *.media.apedamo.mywire.org * *
+                allow * * *.media.lan * *
+                allow * * *.infra.lan * *
                 allow * * *.plex.direct * *
                 allow * * 10.96.0.0/16 * *
                 allow * * 10.244.0.0/16 * *
                 allow * * *.svc.cluster.local * *
                 allow * * *.media.svc.cluster.local * *
+                allow * * *.infra.svc.cluster.local * *
                 allow * * lidarr,sonarr,radarr,readarr,prowlarr,bazarr,flaresolverr,jackett * *
                 parent 1000 connect+ 0.0.0.0 0
                 allow *
