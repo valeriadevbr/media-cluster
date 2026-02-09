@@ -39,6 +39,8 @@ spec:
               value: "${RADARR_DB_PASSWORD}"
             - name: BAZARR_DB_PASSWORD
               value: "${BAZARR_DB_PASSWORD}"
+            - name: PROWLARR_DB_PASSWORD
+              value: "${PROWLARR_DB_PASSWORD}"
             - name: PGDATA
               value: "/var/lib/postgresql/data/pgdata"
             - name: TZ

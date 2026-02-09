@@ -25,6 +25,14 @@
         "pingUrl": "http://navidrome-service/ping",
         "color": "#0084ff",
         "icon": "navidrome.svg"
+      },
+      {
+        "name": "Spotyval",
+        "url": "https://spotyval.media.apedamo.mywire.org",
+        "urlAlt": "http://spotyval.media.lan",
+        "pingUrl": "http://feishin-service",
+        "color": "#ececec",
+        "icon": "feishin.svg"
       }
     ]
   },

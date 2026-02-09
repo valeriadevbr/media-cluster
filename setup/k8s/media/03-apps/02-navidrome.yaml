@@ -69,12 +69,6 @@ spec:
               value: "pt-BR"
             - name: ND_DEFAULTTHEME
               value: "Dark"
-            - name: ND_UIWELCOMEMESSAGE
-              value: >-
-                Todo o conteúdo e mídia distribuídos na rede DevilCOM Network são de propriedade exclusiva e destinam-se apenas ao uso interno autorizado.
-                É expressamente proibido copiar, armazenar, distribuir ou compartilhar qualquer parte desses materiais com terceiros ou fora desta rede.
-                O não cumprimento deste aviso sujeita o infrator a medidas legais e à responsabilização civil e criminal nos termos da lei.
-                Ao acessar este conteúdo, você concorda com estes termos.
             # Paths
             - name: ND_MUSICFOLDER
               value: "/media/Music"
@@ -140,7 +134,7 @@ spec:
               value: "opus"
             # CORS
             - name: ND_CORS_ALLOWEDORIGINS
-              value: "https://feishin.media.${WAN_HOSTNAME}"
+              value: "https://spotyval.media.${WAN_HOSTNAME}"
             # Performance Tuning
             - name: ND_DEVARTWORKMAXREQUESTS
               value: "20"
