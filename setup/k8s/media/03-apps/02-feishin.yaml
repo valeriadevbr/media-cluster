@@ -42,7 +42,7 @@ spec:
             - name: TZ
               value: "America/Sao_Paulo"
             - name: SERVER_NAME
-              value: "Spotyval"
+              value: "Spotival"
             - name: SERVER_URL
               value: "https://navidrome.media.${WAN_HOSTNAME}"
             - name: SERVER_TYPE
@@ -78,7 +78,7 @@ spec:
     - web
     - web-external
   routes:
-    - match: Host(`spotyval.media.lan`) || Host(`spotyval.media.${WAN_HOSTNAME}`)
+    - match: Host(`spotival.media.lan`) || Host(`spotival.media.${WAN_HOSTNAME}`)
       kind: Rule
       services:
         - name: feishin

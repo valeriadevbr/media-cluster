@@ -2,18 +2,21 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: external-dns
-  namespace: media
+  namespace: infra
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: external-dns
 rules:
-  - apiGroups: ["traefik.io", "traefik.containo.us"]
-    resources: ["ingressroutes", "ingressroutetcps", "ingressrouteudps"]
-    verbs: ["get", "watch", "list"]
   - apiGroups: [""]
     resources: ["services", "endpoints", "pods", "nodes"]
+    verbs: ["get", "watch", "list"]
+  - apiGroups: ["extensions", "networking.k8s.io"]
+    resources: ["ingresses"]
+    verbs: ["get", "watch", "list"]
+  - apiGroups: ["traefik.containo.us", "traefik.io"]
+    resources: ["ingressroutes", "ingressroutetcps", "ingressrouteudps"]
     verbs: ["get", "watch", "list"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -27,13 +30,13 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: external-dns
-    namespace: media
+    namespace: infra
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: external-dns
-  namespace: media
+  namespace: infra
 spec:
   strategy:
     type: Recreate
@@ -50,15 +53,19 @@ spec:
         - name: external-dns
           image: registry.k8s.io/external-dns/external-dns:v0.15.1
           args:
+            - --source=service
+            - --source=ingress
             - --source=traefik-proxy
             - --traefik-disable-legacy
-            - --domain-filter=media.lan.
-            - --domain-filter=media.${WAN_HOSTNAME}.
             - --domain-filter=infra.lan.
             - --domain-filter=infra.${WAN_HOSTNAME}.
+            - --domain-filter=media.lan.
+            - --domain-filter=media.${WAN_HOSTNAME}.
             - --provider=rfc2136
-            - --rfc2136-host=homelab-cluster-control-plane
-            - --rfc2136-port=30053
+            - --rfc2136-host=dns.infra.svc.cluster.local
+            - --rfc2136-port=53
+            - --rfc2136-zone=infra.lan
+            - --rfc2136-zone=infra.${WAN_HOSTNAME}
             - --rfc2136-zone=media.lan
             - --rfc2136-zone=media.${WAN_HOSTNAME}
             - --rfc2136-tsig-secret-alg=hmac-sha256

@@ -27,9 +27,9 @@
         "icon": "navidrome.svg"
       },
       {
-        "name": "Spotyval",
-        "url": "https://spotyval.media.apedamo.mywire.org",
-        "urlAlt": "http://spotyval.media.lan",
+        "name": "Spotival",
+        "url": "https://spotival.media.apedamo.mywire.org",
+        "urlAlt": "http://spotival.media.lan",
         "pingUrl": "http://feishin.media.svc.cluster.local:9180",
         "color": "#ececec",
         "icon": "feishin.svg"
