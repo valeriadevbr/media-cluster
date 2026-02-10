@@ -7,6 +7,7 @@ set +a
 
 readonly BACKUP_FILE="${CONFIGS_PATH}/backups/wan-cert.yaml"
 readonly TSIG_KEYS_FILE="${CONFIGS_PATH}/bind/config/named.conf.externaldns-key"
+readonly SECRET_NAME="wan-wildcard-tls"
 
 echo "Criando secret da CA Local para cert-manager..."
 kubectl create secret tls local-ca-key-pair \
@@ -45,6 +46,14 @@ fi
 if [ -f "$BACKUP_FILE" ]; then
   echo "♻️  Restaurando certificado WAN do backup (Infra)..."
   kubectl apply --context "kind-${CLUSTER_NAME}" -f "$BACKUP_FILE"
+
+  # Add reflector annotations to enable automatic sync later
+  kubectl annotate secret "$SECRET_NAME" -n infra \
+    reflector.emberstack.com/reflection-allowed="true" \
+    reflector.emberstack.com/reflection-allowed-namespaces="media" \
+    reflector.emberstack.com/reflection-auto="true" \
+    reflector.emberstack.com/reflection-auto-namespaces="media" \
+    --overwrite --context "kind-${CLUSTER_NAME}"
 
   echo "♻️  Replicando certificado WAN do backup (Media)..."
   cat "$BACKUP_FILE" | sed 's/namespace: infra/namespace: media/' | kubectl apply --context "kind-${CLUSTER_NAME}" -f -

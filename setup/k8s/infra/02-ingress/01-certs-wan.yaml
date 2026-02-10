@@ -23,6 +23,14 @@ metadata:
   namespace: infra
 spec:
   secretName: wan-wildcard-tls
+  secretTemplate:
+    annotations:
+      reflector.emberstack.com/reflection-allowed: "true"
+      reflector.emberstack.com/reflection-allowed-namespaces: "media"
+      reflector.emberstack.com/reflection-auto: "true"
+      reflector.emberstack.com/reflection-auto-namespaces: "media"
+  privateKey:
+    rotationPolicy: Always
   issuerRef:
     name: letsencrypt-dynu
     kind: ClusterIssuer

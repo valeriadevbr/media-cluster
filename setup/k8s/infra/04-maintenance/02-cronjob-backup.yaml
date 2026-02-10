@@ -13,26 +13,20 @@ spec:
             - name: backup
               image: bitnami/kubectl:latest
               command:
-                - /bin/sh
-                - -c
-                - |
-                  echo "Backing up wan-wildcard-tls secret..."
-                  mkdir -p /mnt/configs/backups
-                  kubectl get secret wan-wildcard-tls -n infra -o yaml > /tmp/secret.yaml
-                  # Simple cleanup of metadata to allow clean apply later
-                  grep -v 'creationTimestamp:' /tmp/secret.yaml | \
-                  grep -v 'resourceVersion:' | \
-                  grep -v 'uid:' | \
-                  grep -v 'selfLink:' | \
-                  grep -v 'managedFields:' > /mnt/configs/backups/wan-cert.yaml
-                  echo "Backup completed to /mnt/configs/backups/wan-cert.yaml"
+                - /bin/bash
+                - /mnt/scripts/k8s/backup-wan-cert.sh
               volumeMounts:
                 - name: configs
-                  mountPath: /mnt/configs
+                  subPath: backups
+                  mountPath: /mnt/backups
+                - name: scripts
+                  mountPath: /mnt/scripts
           restartPolicy: OnFailure
           serviceAccountName: wan-cert-backup
           volumes:
             - name: configs
-              hostPath:
-                path: /mnt/configs
-                type: Directory
+              persistentVolumeClaim:
+                claimName: configs-pvc
+            - name: scripts
+              persistentVolumeClaim:
+                claimName: scripts-pvc
