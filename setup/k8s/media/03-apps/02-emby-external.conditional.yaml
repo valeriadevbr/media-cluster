@@ -36,7 +36,7 @@ spec:
   entryPoints:
     - web
   routes:
-    - match: Host(`emby.media.lan`) || Host(`emby.media.${WAN_HOSTNAME}`) || Host(`emby-service`)
+    - match: Host(`emby.media.lan`) || Host(`emby.media.${WAN_HOSTNAME}`)
       kind: Rule
       services:
         - name: emby

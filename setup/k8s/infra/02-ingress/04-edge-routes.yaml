@@ -5,7 +5,7 @@ metadata:
   namespace: infra
 spec:
   type: ExternalName
-  externalName: media-cluster-control-plane
+  externalName: traefik.ingress-traefik-media.svc.cluster.local
   ports:
     - name: web
       port: 80
@@ -17,7 +17,7 @@ metadata:
   namespace: infra
 spec:
   type: ExternalName
-  externalName: media-cluster-control-plane
+  externalName: traefik.ingress-traefik-media.svc.cluster.local
   ports:
     - name: web
       port: 81
@@ -40,9 +40,9 @@ spec:
           passHostHeader: true
       middlewares:
         - name: gzip
-          namespace: ingress-traefik
+          namespace: ingress-traefik-infra
         - name: error-pages
-          namespace: ingress-traefik
+          namespace: ingress-traefik-infra
   tls: {}
 ---
 apiVersion: traefik.io/v1alpha1
@@ -97,8 +97,8 @@ spec:
           passHostHeader: true
       middlewares:
         - name: gzip
-          namespace: ingress-traefik
-        - name: error-pages
-          namespace: ingress-traefik
+          namespace: ingress-traefik-infra
+        - name: error-pages-aggressive
+          namespace: ingress-traefik-infra
   tls:
     secretName: wan-wildcard-tls

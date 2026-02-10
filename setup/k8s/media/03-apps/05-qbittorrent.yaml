@@ -111,7 +111,7 @@ spec:
   entryPoints:
     - web
   routes:
-    - match: Host(`qbittorrent.media.lan`) || Host(`qbittorrent.media.${WAN_HOSTNAME}`) || Host(`qbittorrent-service`)
+    - match: Host(`qbittorrent.media.lan`) || Host(`qbittorrent.media.${WAN_HOSTNAME}`)
       kind: Rule
       services:
         - name: qbittorrent

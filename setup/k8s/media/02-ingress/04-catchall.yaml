@@ -3,6 +3,7 @@ kind: IngressRoute
 metadata:
   name: media-catchall
   namespace: media
+  annotations:
 spec:
   entryPoints:
     - web

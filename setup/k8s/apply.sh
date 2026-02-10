@@ -7,9 +7,9 @@ set +a
 
 if [ -z "$1" ]; then
   echo "Uso: $0 <caminho_do_arquivo_yaml> [cluster]"
-  echo "Se não informado, cluster: \"$MEDIA_CLUSTER_NAME\"."
+  echo "Se não informado, cluster: \"$CLUSTER_NAME\"."
   exit 1
 fi
 
-CLUSTER="${2:-$MEDIA_CLUSTER_NAME}"
+CLUSTER="${2:-$CLUSTER_NAME}"
 apply_k8s_file "$1" "$CLUSTER"

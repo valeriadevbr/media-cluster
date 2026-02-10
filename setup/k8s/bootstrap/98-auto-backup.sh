@@ -31,12 +31,12 @@ while true; do
   fi
 
   # Checa status Ready
-  STATUS=$(kubectl get certificate wan-wildcard-tls -n infra --context "kind-${INFRA_CLUSTER_NAME}" -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}' 2>/dev/null)
+  STATUS=$(kubectl get certificate wan-wildcard-tls -n infra --context "kind-${CLUSTER_NAME}" -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}' 2>/dev/null)
 
   if [ "$STATUS" == "True" ]; then
     echo "✅ [Auto-Backup] Certificado está PRONTO! Salvando..."
 
-    kubectl get secret wan-wildcard-tls -n infra --context "kind-${INFRA_CLUSTER_NAME}" -o yaml |
+    kubectl get secret wan-wildcard-tls -n infra --context "kind-${CLUSTER_NAME}" -o yaml |
       grep -v "creationTimestamp" |
       grep -v "resourceVersion" |
       grep -v "uid" |

@@ -6,7 +6,7 @@
         "name": "Plex",
         "url": "https://plex.media.apedamo.mywire.org",
         "urlAlt": "http://plex.media.lan",
-        "pingUrl": "http://plex-service/identity",
+        "pingUrl": "http://plex.media.svc.cluster.local:32400/identity",
         "color": "#e5a00d",
         "icon": "plex.svg"
       },
@@ -14,7 +14,7 @@
         "name": "Emby",
         "url": "https://emby.media.apedamo.mywire.org",
         "urlAlt": "http://emby.media.lan",
-        "pingUrl": "http://emby-service/System/Ping",
+        "pingUrl": "http://emby.media.svc.cluster.local:8096/System/Ping",
         "color": "#5dd054",
         "icon": "emby.svg"
       },
@@ -22,7 +22,7 @@
         "name": "Navidrome",
         "url": "https://navidrome.media.apedamo.mywire.org",
         "urlAlt": "http://navidrome.media.lan",
-        "pingUrl": "http://navidrome-service/ping",
+        "pingUrl": "http://navidrome.media.svc.cluster.local:4533/ping",
         "color": "#0084ff",
         "icon": "navidrome.svg"
       },
@@ -30,7 +30,7 @@
         "name": "Spotyval",
         "url": "https://spotyval.media.apedamo.mywire.org",
         "urlAlt": "http://spotyval.media.lan",
-        "pingUrl": "http://feishin-service",
+        "pingUrl": "http://feishin.media.svc.cluster.local:9180",
         "color": "#ececec",
         "icon": "feishin.svg"
       }
@@ -43,7 +43,7 @@
         "name": "Sonarr",
         "url": "https://sonarr.media.apedamo.mywire.org",
         "urlAlt": "http://sonarr.media.lan",
-        "pingUrl": "http://sonarr-service/ping",
+        "pingUrl": "http://sonarr.media.svc.cluster.local:8989/ping",
         "color": "#00c0fa",
         "icon": "sonarr.svg"
       },
@@ -51,7 +51,7 @@
         "name": "Radarr",
         "url": "https://radarr.media.apedamo.mywire.org",
         "urlAlt": "http://radarr.media.lan",
-        "pingUrl": "http://radarr-service/ping",
+        "pingUrl": "http://radarr.media.svc.cluster.local:7878/ping",
         "color": "#ffc230",
         "icon": "radarr.svg"
       },
@@ -59,7 +59,7 @@
         "name": "Lidarr",
         "url": "https://lidarr.media.apedamo.mywire.org",
         "urlAlt": "http://lidarr.media.lan",
-        "pingUrl": "http://lidarr-service/ping",
+        "pingUrl": "http://lidarr.media.svc.cluster.local:8686/ping",
         "color": "#00936e",
         "icon": "lidarr.svg"
       },
@@ -67,7 +67,7 @@
         "name": "Bazarr",
         "url": "https://bazarr.media.apedamo.mywire.org",
         "urlAlt": "http://bazarr.media.lan",
-        "pingUrl": "http://bazarr-service",
+        "pingUrl": "http://bazarr.media.svc.cluster.local:6767",
         "color": "#b76bf7",
         "icon": "bazarr.svg"
       },
@@ -75,7 +75,7 @@
         "name": "Prowlarr",
         "url": "https://prowlarr.media.apedamo.mywire.org",
         "urlAlt": "http://prowlarr.media.lan",
-        "pingUrl": "http://prowlarr-service/ping",
+        "pingUrl": "http://prowlarr.media.svc.cluster.local:9696/ping",
         "color": "#ff3333",
         "icon": "prowlarr.svg"
       },
@@ -83,7 +83,7 @@
         "name": "Jackett",
         "url": "https://jackett.media.apedamo.mywire.org",
         "urlAlt": "http://jackett.media.lan",
-        "pingUrl": "http://jackett-service/UI/Dashboard",
+        "pingUrl": "http://jackett.media.svc.cluster.local:9117/UI/Dashboard",
         "color": "#b7f76b",
         "icon": "jackett.svg"
       },
@@ -91,7 +91,7 @@
         "name": "Profilarr",
         "url": "https://profilarr.media.apedamo.mywire.org",
         "urlAlt": "http://profilarr.media.lan",
-        "pingUrl": "http://profilarr-service/ping",
+        "pingUrl": "http://profilarr.media.svc.cluster.local:6868/ping",
         "color": "#6b9cf7",
         "icon": "profilarr.svg"
       },
@@ -99,7 +99,7 @@
         "name": "Lingarr",
         "url": "https://lingarr.media.apedamo.mywire.org",
         "urlAlt": "http://lingarr.media.lan",
-        "pingUrl": "http://lingarr-service",
+        "pingUrl": "http://lingarr.media.svc.cluster.local:9876",
         "color": "#7b6254",
         "icon": "lingarr.svg"
       }
@@ -112,7 +112,7 @@
         "name": "qBittorrent",
         "url": "https://qbittorrent.media.apedamo.mywire.org",
         "urlAlt": "http://qbittorrent.media.lan",
-        "pingUrl": "http://qbittorrent-service",
+        "pingUrl": "http://qbittorrent.media.svc.cluster.local:8081",
         "color": "#2f67ba",
         "icon": "qbittorrent.svg"
       },
@@ -120,7 +120,7 @@
         "name": "Slskd",
         "url": "https://slskd.media.apedamo.mywire.org",
         "urlAlt": "http://slskd.media.lan",
-        "pingUrl": "http://slskd-service",
+        "pingUrl": "http://slskd.media.svc.cluster.local:5030",
         "color": "#00c3ff",
         "icon": "slskd.svg"
       }
@@ -140,7 +140,7 @@
         "name": "AdGuard Home",
         "url": "https://adguard.infra.apedamo.mywire.org",
         "urlAlt": "http://adguard.infra.lan",
-        "pingUrl": "http://adguard-service.infra",
+        "pingUrl": "http://adguard-service.infra.svc.cluster.local",
         "color": "#68bc71",
         "icon": "adguard-home.svg"
       },
@@ -148,7 +148,7 @@
         "name": "LibreSpeedTest",
         "url": "https://speedtest.infra.apedamo.mywire.org",
         "urlAlt": "http://speedtest.infra.lan",
-        "pingUrl": "http://speedtest.infra:3000",
+        "pingUrl": "http://speedtest.infra.svc.cluster.local:3000",
         "color": "#00c3ff",
         "icon": "openspeedtest.svg"
       },
@@ -156,7 +156,7 @@
         "name": "Traefik (Infra)",
         "url": "https://traefik.infra.apedamo.mywire.org",
         "urlAlt": "https://traefik.infra.lan",
-        "pingUrl": "http://infra-cluster-control-plane:9000/ping",
+        "pingUrl": "http://traefik.ingress-traefik-infra.svc.cluster.local:9000/ping",
         "color": "#24a1c1",
         "icon": "traefik-proxy.svg"
       },
@@ -164,7 +164,7 @@
         "name": "Traefik (Media)",
         "url": "https://traefik.media.apedamo.mywire.org",
         "urlAlt": "https://traefik.media.lan",
-        "pingUrl": "http://traefik-media-service/ping",
+        "pingUrl": "http://traefik.ingress-traefik-media.svc.cluster.local:9000/ping",
         "color": "#24a1c1",
         "icon": "traefik-proxy.svg"
       }

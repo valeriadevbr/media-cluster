@@ -28,6 +28,8 @@ kind: IngressRoute
 metadata:
   name: test
   namespace: media
+  annotations:
+    kubernetes.io/ingress.class: traefik-media
 spec:
   entryPoints:
     - web

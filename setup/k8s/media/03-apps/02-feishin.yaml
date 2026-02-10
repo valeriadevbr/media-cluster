@@ -64,7 +64,7 @@ spec:
     - name: http
       port: 9180
       targetPort: 9180
-  type: LoadBalancer
+  type: ClusterIP
 ---
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
@@ -76,8 +76,9 @@ metadata:
 spec:
   entryPoints:
     - web
+    - web-external
   routes:
-    - match: Host(`spotyval.media.lan`) || Host(`spotyval.media.${WAN_HOSTNAME}`) || Host(`feishin-service`)
+    - match: Host(`spotyval.media.lan`) || Host(`spotyval.media.${WAN_HOSTNAME}`)
       kind: Rule
       services:
         - name: feishin

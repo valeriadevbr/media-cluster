@@ -3,6 +3,14 @@ providers:
     allowExternalNameServices: true
     allowCrossNamespace: true
     enabled: true
+    namespaces:
+      - infra
+      - ingress-traefik-infra
+
+ingressClass:
+  enabled: true
+  isDefaultClass: true
+  name: traefik-infra
 
 service:
   type: NodePort
@@ -24,7 +32,7 @@ ports:
     nodePort: 80
     http:
       middlewares:
-        - ingress-traefik-error-pages@kubernetescrd
+        - ingress-traefik-infra-error-pages@kubernetescrd
   web-wan:
     port: 44000
     exposedPort: 44000
@@ -33,14 +41,14 @@ ports:
       default: true
     http:
       middlewares:
-        - ingress-traefik-error-pages@kubernetescrd
+        - ingress-traefik-infra-error-pages@kubernetescrd
   websecure:
     port: 8443
     exposedPort: 443
     nodePort: 443
     http:
       middlewares:
-        - ingress-traefik-error-pages@kubernetescrd
+        - ingress-traefik-infra-error-pages@kubernetescrd
       tls:
         enabled: true
     http3:
@@ -53,7 +61,7 @@ ports:
       default: true
     http:
       middlewares:
-        - ingress-traefik-error-pages@kubernetescrd
+        - ingress-traefik-infra-error-pages@kubernetescrd
       tls:
         enabled: true
     http3:

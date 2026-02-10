@@ -23,12 +23,12 @@ apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
   name: error-pages
-  namespace: ingress-traefik
+  namespace: ingress-traefik-media
 spec:
   errors:
     status:
       - "400"
-      - "402"
+      - "402-403"
       - "404-599"
     query: "/{status}.html"
     service:
@@ -50,6 +50,6 @@ apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
   name: gzip
-  namespace: ingress-traefik
+  namespace: ingress-traefik-media
 spec:
   compress: {}

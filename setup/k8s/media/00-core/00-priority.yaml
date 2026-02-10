@@ -4,4 +4,4 @@ metadata:
   name: critical-media
 value: 1000000
 globalDefault: false
-description: "Prioridade para serviços críticos de mídia (Plex/Emby)"
+description: "Prioridade para serviços críticos de mídia"

@@ -241,6 +241,8 @@ kind: IngressRoute
 metadata:
   name: connectivity-monitor
   namespace: media
+  annotations:
+    kubernetes.io/ingress.class: traefik-media
 spec:
   entryPoints:
     - web

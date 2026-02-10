@@ -2,7 +2,7 @@ apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
   name: gzip
-  namespace: ingress-traefik
+  namespace: ingress-traefik-infra
 spec:
   compress: {}
 ---
@@ -10,11 +10,27 @@ apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
   name: error-pages
-  namespace: ingress-traefik
+  namespace: ingress-traefik-infra
 spec:
   errors:
     status:
       - "502-504"
+    query: "/{status}.html"
+    service:
+      name: custom-error-pages
+      namespace: infra
+      port: 80
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: error-pages-aggressive
+  namespace: ingress-traefik-infra
+spec:
+  errors:
+    status:
+      - "400"
+      - "402-599"
     query: "/{status}.html"
     service:
       name: custom-error-pages

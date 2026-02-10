@@ -18,19 +18,26 @@ nodes:
       - containerPort: 53 # DNS UDP
         hostPort: 53
         protocol: UDP
-      - containerPort: 853 # DoT TCP
-        hostPort: 853
-        protocol: TCP
-      - containerPort: 853 # DoT UDP
-        hostPort: 853
-        protocol: UDP
       - containerPort: 80 # HTTP
         hostPort: 80
         protocol: TCP
       - containerPort: 443 # HTTPS
         hostPort: 443
         protocol: TCP
-      - containerPort: 9000 # TRAEFIK
+      - containerPort: 853 # DoT TCP
+        hostPort: 853
+        protocol: TCP
+      - containerPort: 853 # DoT UDP
+        hostPort: 853
+        protocol: UDP
+      - containerPort: 8096 # Emby HTTPS
+        hostPort: 8096
+        protocol: TCP
+      - containerPort: 8920 # Emby HTTPS
+        hostPort: 8920
+        protocol: TCP
+      - containerPort: 32400 # Plex HTTP+HTTPS
+        hostPort: 32400
         protocol: TCP
       - containerPort: 44000 # HTTP WAN
         hostPort: 44000
@@ -38,10 +45,25 @@ nodes:
       - containerPort: 44300 # HTTPS WAN
         hostPort: 44300
         protocol: TCP
+      - containerPort: 50300 # Soulseek Peer TCP
+        hostPort: 50300
+        protocol: TCP
+      - containerPort: 53471 # qBittorrent Peer TCP
+        hostPort: 53471
+        protocol: TCP
+      - containerPort: 53471 # qBittorrent Peer UDP
+        hostPort: 53471
+        protocol: UDP
     extraMounts:
       - hostPath: ${CONFIGS_PATH}
         containerPath: /mnt/configs
+      - hostPath: ${MEDIA_PATH}
+        containerPath: /mnt/media
       - hostPath: ${SCRIPTS_PATH}
         containerPath: /mnt/scripts
+      - hostPath: ${DOWNLOADS_PATH}
+        containerPath: /mnt/downloads
+      - hostPath: ${CERTS_PATH}
+        containerPath: /mnt/ssl
       - hostPath: ${CONFIGS_PATH}/kind/resolv.conf
         containerPath: /etc/kubernetes/resolv.conf

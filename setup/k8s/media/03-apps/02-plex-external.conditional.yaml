@@ -34,7 +34,7 @@ spec:
   entryPoints:
     - web
   routes:
-    - match: Host(`plex.media.lan`) || Host(`plex.media.${WAN_HOSTNAME}`) || Host(`plex-service`)
+    - match: Host(`plex.media.lan`) || Host(`plex.media.${WAN_HOSTNAME}`)
       kind: Rule
       services:
         - name: plex

@@ -165,7 +165,7 @@ spec:
   entryPoints:
     - web
   routes:
-    - match: Host(`lidarr.media.lan`) || Host(`lidarr.media.${WAN_HOSTNAME}`) || Host(`lidarr-service`)
+    - match: Host(`lidarr.media.lan`) || Host(`lidarr.media.${WAN_HOSTNAME}`)
       kind: Rule
       services:
         - name: lidarr

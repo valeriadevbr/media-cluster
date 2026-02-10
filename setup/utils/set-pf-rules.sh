@@ -36,6 +36,10 @@ scrub in all                 # Limpeza de pacotes (evita ataques de fragmentaç�
 # 1. LIBERAÇÃO TOTAL DE SAÍDA
 pass out quick all flags any allow-opts
 
+pass quick on bridge100 all
+pass quick on bridge101 all
+pass quick on bridge102 all
+
 # 2. REGRAS SILENCIOSAS (SEM LOG) - REDE LOCAL E CONFIANÇA
 pass in quick on ${LAN_INTERFACE} from 192.168.2.0/24 to any flags any allow-opts
 pass in quick on ${LAN_INTERFACE} proto udp from any to any port {5353,1900,1902,56700,57621,9999,10101,546,547,67,68,3702}

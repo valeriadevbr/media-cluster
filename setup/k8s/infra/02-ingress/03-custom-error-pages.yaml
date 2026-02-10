@@ -651,6 +651,7 @@ kind: IngressRoute
 metadata:
     name: custom-error-pages
     namespace: infra
+    annotations:
 spec:
     entryPoints:
         - web

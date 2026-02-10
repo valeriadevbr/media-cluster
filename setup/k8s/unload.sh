@@ -6,10 +6,13 @@ set +a
 
 echo "🧹 Iniciando limpeza COMPLETA..."
 
-echo "1️⃣  Descarregando Cluster Media..."
+echo "1️⃣  Limpando Contexto Media..."
 "$(dirname -- "$0")/unload-media.sh"
 
-echo "2️⃣  Descarregando Cluster Infra..."
+echo "2️⃣  Limpando Contexto Infra..."
 "$(dirname -- "$0")/unload-infra.sh"
 
-echo "✨ Todos os clusters foram removidos com sucesso!"
+echo "🔥 Deletando Cluster Kind Unificado '${CLUSTER_NAME}'..."
+kind delete cluster --name "${CLUSTER_NAME}"
+
+echo "✨ Tudo foi removido com sucesso!"

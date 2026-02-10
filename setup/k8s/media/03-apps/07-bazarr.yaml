@@ -92,13 +92,14 @@ kind: IngressRoute
 metadata:
   annotations:
     external-dns.alpha.kubernetes.io/target: "${DOCKER_HOST_IP}"
+    kubernetes.io/ingress.class: traefik-media
   name: bazarr-lan
   namespace: media
 spec:
   entryPoints:
     - web
   routes:
-    - match: Host(`bazarr.media.lan`) || Host(`bazarr.media.${WAN_HOSTNAME}`) || Host(`bazarr-service`)
+    - match: Host(`bazarr.media.lan`) || Host(`bazarr.media.${WAN_HOSTNAME}`)
       kind: Rule
       services:
         - name: bazarr

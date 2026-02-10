@@ -3,12 +3,28 @@ providers:
     enabled: true
     allowExternalNameServices: true
     allowCrossNamespace: true
+    namespaces:
+      - media
+      - ingress-traefik-media
+
+ingressClass:
+  enabled: true
+  isDefaultClass: false
+  name: traefik-media
 
 service:
-  type: NodePort
+  type: ClusterIP
 
 persistence:
   enabled: false
+
+resources:
+  requests:
+    memory: "256Mi"
+    cpu: "100m"
+  limits:
+    memory: "1Gi"
+    cpu: "1000m"
 
 ports:
   traefik:
@@ -19,18 +35,18 @@ ports:
     protocol: TCP
   web:
     port: 8000
-    nodePort: 80
+    exposedPort: 80
     http:
       middlewares:
-        - ingress-traefik-error-pages@kubernetescrd
+        - ingress-traefik-media-error-pages@kubernetescrd
   web-external:
     port: 8001
-    nodePort: 81
+    exposedPort: 81
     expose:
       default: true
     http:
       middlewares:
-        - ingress-traefik-error-pages@kubernetescrd
+        - ingress-traefik-media-error-pages@kubernetescrd
 
 api:
   dashboard: true
@@ -53,6 +69,6 @@ deployment:
 
 logs:
   general:
-    level: DEBUG
+    level: ERROR
   access:
-    enabled: true
+    enabled: false

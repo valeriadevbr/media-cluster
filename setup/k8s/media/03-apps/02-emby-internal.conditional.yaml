@@ -103,8 +103,8 @@ spec:
     - name: https
       port: 8920
       targetPort: 8920
-  type: LoadBalancer
-  externalTrafficPolicy: Local
+  type: ClusterIP
+  clusterIP: None
 ---
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
@@ -117,7 +117,7 @@ spec:
   entryPoints:
     - web
   routes:
-    - match: Host(`emby.media.lan`) || Host(`emby.media.${WAN_HOSTNAME}`) || Host(`emby-service`)
+    - match: Host(`emby.media.lan`) || Host(`emby.media.${WAN_HOSTNAME}`)
       kind: Rule
       services:
         - name: emby

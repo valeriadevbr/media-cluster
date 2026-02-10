@@ -6,7 +6,7 @@ subst_manifest() {
 
 apply_k8s_file() {
   local file="$1"
-  local cluster_name="${2:-$MEDIA_CLUSTER_NAME}"
+  local cluster_name="${2:-$CLUSTER_NAME}"
   if [[ "$file" == *"crd"* ]]; then
     echo "Applying CRD with server-side apply: $file (Cluster: $cluster_name)"
     subst_manifest "$file" | kubectl apply --context="kind-${cluster_name}" --server-side -f -
@@ -17,7 +17,7 @@ apply_k8s_file() {
 
 apply_with_subst() {
   local target="$1"
-  local cluster_name="${2:-$MEDIA_CLUSTER_NAME}"
+  local cluster_name="${2:-$CLUSTER_NAME}"
   if [ -d "$target" ]; then
     for file in "$target"*.yaml; do
       if [[ "$file" == *".conditional.yaml" ]]; then

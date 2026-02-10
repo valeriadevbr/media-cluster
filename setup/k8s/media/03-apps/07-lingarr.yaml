@@ -91,7 +91,7 @@ spec:
   entryPoints:
     - web
   routes:
-    - match: Host(`lingarr.media.lan`) || Host(`lingarr.media.${WAN_HOSTNAME}`) || Host(`lingarr-service`)
+    - match: Host(`lingarr.media.lan`) || Host(`lingarr.media.${WAN_HOSTNAME}`)
       kind: Rule
       services:
         - name: lingarr

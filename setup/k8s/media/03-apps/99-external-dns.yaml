@@ -54,8 +54,10 @@ spec:
             - --traefik-disable-legacy
             - --domain-filter=media.lan.
             - --domain-filter=media.${WAN_HOSTNAME}.
+            - --domain-filter=infra.lan.
+            - --domain-filter=infra.${WAN_HOSTNAME}.
             - --provider=rfc2136
-            - --rfc2136-host=infra-cluster-control-plane
+            - --rfc2136-host=homelab-cluster-control-plane
             - --rfc2136-port=30053
             - --rfc2136-zone=media.lan
             - --rfc2136-zone=media.${WAN_HOSTNAME}

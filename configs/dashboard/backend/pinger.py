@@ -1,3 +1,5 @@
+import sys
+print("Starting pinger.py script...", file=sys.stdout, flush=True)
 import asyncio
 import websockets
 import json
@@ -48,7 +50,9 @@ def perform_request(req):
             urllib.request.HTTPHandler()
         )
 
+        print(f"DEBUG: Opening {req.full_url}...", file=sys.stdout, flush=True)
         with opener.open(req, timeout=5) as resp:
+            print(f"DEBUG: Opened {req.full_url} - Code {resp.getcode()}", file=sys.stdout, flush=True)
             return resp.getcode()
     except urllib.error.HTTPError as e:
         # Treat 4xx/5xx/3xx as "Online" (technically reachable)
@@ -84,6 +88,7 @@ async def process_check(websocket, app_name, url):
         'url': url,
         'status': 'up' if is_up else 'down'
     }
+    print(f"Sending {app_name} ({url}) status: {response['status']}", file=sys.stdout, flush=True)
     try:
         await websocket.send(json.dumps(response))
     except websockets.ConnectionClosed:

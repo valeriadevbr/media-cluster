@@ -106,7 +106,7 @@ spec:
     - web
     - websecure
   routes:
-    - match: Host(`adguard.infra.lan`) || Host(`adguard.infra.${WAN_HOSTNAME}`) || Host(`adguard-service`)
+    - match: Host(`adguard.infra.lan`) || Host(`adguard.infra.${WAN_HOSTNAME}`)
       kind: Rule
       services:
         - name: adguard-service

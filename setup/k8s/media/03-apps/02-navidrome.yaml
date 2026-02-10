@@ -185,7 +185,7 @@ spec:
   entryPoints:
     - web
   routes:
-    - match: Host(`navidrome.media.lan`) || Host(`navidrome.media.${WAN_HOSTNAME}`) || Host(`navidrome-service`)
+    - match: Host(`navidrome.media.lan`) || Host(`navidrome.media.${WAN_HOSTNAME}`)
       kind: Rule
       services:
         - name: navidrome

@@ -12,13 +12,13 @@ helm repo update traefik >/dev/null
 
 subst_manifest "$(dirname "$0")/resources/traefik-infra-values.yaml" |
   helm upgrade --install traefik traefik/traefik \
-    --kube-context "kind-${INFRA_CLUSTER_NAME}" \
+    --kube-context "kind-${CLUSTER_NAME}" \
     --create-namespace \
-    --namespace ingress-traefik \
+    --namespace ingress-traefik-infra \
     -f - \
     --wait >/dev/null
 
 echo "Aguardando Traefik (Infra)..."
-kubectl rollout status deployment traefik -n ingress-traefik --context "kind-${INFRA_CLUSTER_NAME}"
+kubectl rollout status deployment traefik -n ingress-traefik-infra --context "kind-${CLUSTER_NAME}"
 
 echo "Traefik Infra pronto."

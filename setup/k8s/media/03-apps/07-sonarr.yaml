@@ -117,7 +117,7 @@ spec:
   entryPoints:
     - web
   routes:
-    - match: Host(`sonarr.media.lan`) || Host(`sonarr.media.${WAN_HOSTNAME}`) || Host(`sonarr-service`)
+    - match: Host(`sonarr.media.lan`) || Host(`sonarr.media.${WAN_HOSTNAME}`)
       kind: Rule
       services:
         - name: sonarr
