@@ -10,7 +10,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: manual
   hostPath:
-    path: /mnt/configs
+    path: /Users/valeria/code/media-cluster/configs
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -39,7 +39,7 @@ spec:
   accessModes:
     - ReadWriteMany
   hostPath:
-    path: /mnt/media
+    path: /Volumes/Plex/media
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -70,7 +70,7 @@ spec:
   accessModes:
     - ReadWriteOnce
   hostPath:
-    path: /mnt/scripts
+    path: /Users/valeria/code/media-cluster/scripts
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -101,7 +101,7 @@ spec:
   accessModes:
     - ReadWriteMany
   hostPath:
-    path: /mnt/downloads
+    path: /Users/valeria/Downloads
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -119,33 +119,4 @@ spec:
     matchLabels:
       type: local-downloads
 ---
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: certs-pv
-  labels:
-    type: local-certs
-spec:
-  storageClassName: manual
-  capacity:
-    storage: 10Mi
-  accessModes:
-    - ReadOnlyMany
-  hostPath:
-    path: /mnt/ssl
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: certs-pvc
-  namespace: media
-spec:
-  storageClassName: manual
-  accessModes:
-    - ReadOnlyMany
-  resources:
-    requests:
-      storage: 10Mi
-  selector:
-    matchLabels:
-      type: local-certs
+

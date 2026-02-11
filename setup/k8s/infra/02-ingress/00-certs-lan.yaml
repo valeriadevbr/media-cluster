@@ -1,6 +1,26 @@
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
+  name: selfsigned-issuer
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: local-ca
+  namespace: cert-manager
+spec:
+  isCA: true
+  commonName: "DevilCOM Local CA"
+  secretName: local-ca-key-pair
+  issuerRef:
+    name: selfsigned-issuer
+    kind: ClusterIssuer
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
   name: local-ca
 spec:
   ca:
@@ -11,6 +31,11 @@ kind: Certificate
 metadata:
   name: media-lan-tls
   namespace: infra
+  annotations:
+    reflector.emberstack.com/reflection-allowed: "true"
+    reflector.emberstack.com/reflection-allowed-namespaces: "ingress-traefik-infra,ingress-traefik-media"
+    reflector.emberstack.com/reflection-auto: "true"
+    reflector.emberstack.com/reflection-auto-namespaces: "ingress-traefik-infra,ingress-traefik-media"
 spec:
   secretName: media-lan-tls
   duration: 2160h

@@ -11,9 +11,9 @@ helm repo update emberstack >/dev/null
 echo "Instalando Kubernetes Reflector..."
 
 helm upgrade --install reflector emberstack/reflector \
-  --kube-context "kind-${CLUSTER_NAME}" \
+  --kube-context "${K8S_CONTEXT}" \
   --namespace ingress-traefik-infra \
   --wait >/dev/null
 
 echo "Aguardando reflector..."
-kubectl rollout status deployment reflector -n ingress-traefik-infra --context "kind-${CLUSTER_NAME}"
+kubectl rollout status deployment reflector -n ingress-traefik-infra --context "${K8S_CONTEXT}"

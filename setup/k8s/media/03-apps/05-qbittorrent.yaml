@@ -92,12 +92,10 @@ spec:
     - name: torrent-tcp
       port: 53471
       targetPort: 53471
-      nodePort: 53471
       protocol: TCP
     - name: torrent-udp
       port: 53471
       targetPort: 53471
-      nodePort: 53471
       protocol: UDP
 ---
 apiVersion: traefik.io/v1alpha1

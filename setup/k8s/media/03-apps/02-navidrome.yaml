@@ -16,11 +16,6 @@ spec:
         app: navidrome
     spec:
       priorityClassName: critical-media
-      dnsPolicy: ClusterFirstWithHostNet
-      dnsConfig:
-        searches:
-          - ${WAN_HOSTNAME}
-      hostNetwork: true
       securityContext:
         runAsUser: ${PUID}
         runAsGroup: ${PGID}

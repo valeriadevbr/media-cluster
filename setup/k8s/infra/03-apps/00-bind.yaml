@@ -53,16 +53,14 @@ metadata:
 spec:
   selector:
     app: dns
-  type: NodePort
-  clusterIP: 10.96.0.53
+  type: ClusterIP
+  clusterIP: 192.168.194.239
   ports:
     - name: dns-udp
       port: 53
       targetPort: 53
-      nodePort: 30053
       protocol: UDP
     - name: dns-tcp
       port: 53
       targetPort: 53
-      nodePort: 30053
       protocol: TCP

@@ -12,7 +12,7 @@ echo "1️⃣  Limpando Contexto Media..."
 echo "2️⃣  Limpando Contexto Infra..."
 "$(dirname -- "$0")/unload-infra.sh"
 
-echo "🔥 Deletando Cluster Kind Unificado '${CLUSTER_NAME}'..."
-kind delete cluster --name "${CLUSTER_NAME}"
+echo "🧹 Removendo pod sysctl-patch (OrbStack)..."
+kubectl delete pod sysctl-patch --ignore-not-found=true
 
 echo "✨ Tudo foi removido com sucesso!"

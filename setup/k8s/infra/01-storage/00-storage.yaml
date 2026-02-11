@@ -10,7 +10,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: manual
   hostPath:
-    path: /mnt/configs
+    path: /Users/valeria/code/media-cluster/configs
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -38,7 +38,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: manual
   hostPath:
-    path: /mnt/scripts
+    path: /Users/valeria/code/media-cluster/scripts
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim

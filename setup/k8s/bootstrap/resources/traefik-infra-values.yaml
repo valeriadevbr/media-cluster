@@ -13,7 +13,7 @@ ingressClass:
   name: traefik-infra
 
 service:
-  type: NodePort
+  type: LoadBalancer
 
 persistence:
   enabled: false
@@ -22,21 +22,18 @@ ports:
   traefik:
     port: 9000
     expose:
-      default: true
+      default: false
     exposedPort: 9000
-    nodePort: 9000
     protocol: TCP
   web:
     port: 8000
     exposedPort: 80
-    nodePort: 80
     http:
       middlewares:
         - ingress-traefik-infra-error-pages@kubernetescrd
   web-wan:
     port: 44000
     exposedPort: 44000
-    nodePort: 44000
     expose:
       default: true
     http:
@@ -45,7 +42,6 @@ ports:
   websecure:
     port: 8443
     exposedPort: 443
-    nodePort: 443
     http:
       middlewares:
         - ingress-traefik-infra-error-pages@kubernetescrd
@@ -56,7 +52,6 @@ ports:
   websecure-wan:
     port: 44300
     exposedPort: 44300
-    nodePort: 44300
     expose:
       default: true
     http:
@@ -95,3 +90,14 @@ logs:
     level: ERROR
   access:
     enabled: false
+rbac:
+  enabled: true
+  namespaced: false # For EndpointSlices and Nodes access
+
+additionalArguments:
+  - --providers.kubernetesingress.ingressclass=traefik-infra
+# Extra RBAC rules for v3.1 support (EndpointSlices, Nodes, etc.)
+# Note: Newer charts might handle this, but adding it to be safe for this specific bootstrap.
+# Actually, the chart usually handles this if rbac.enabled=true.
+# But let's follow the POC's explicit needs if we encounter issues.
+# For now, let's just ensure LoadBalancer is set.

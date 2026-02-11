@@ -16,11 +16,6 @@ spec:
         app: plex
     spec:
       priorityClassName: critical-media
-      dnsPolicy: ClusterFirstWithHostNet
-      dnsConfig:
-        searches:
-          - ${WAN_HOSTNAME}
-      hostNetwork: true
       containers:
         - name: plex
           image: plexinc/pms-docker:latest

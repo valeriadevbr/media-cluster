@@ -8,11 +8,11 @@ set +a
 echo "Aplicando recursos globais..."
 
 echo "📝 Aplicando CoreDNS Patch..."
-apply_k8s_file "${K8S_PATH}/global/00-coredns-patch.yaml" "$CLUSTER_NAME"
-kubectl rollout restart deployment coredns -n kube-system --context="kind-${CLUSTER_NAME}"
-kubectl rollout status deployment coredns -n kube-system --context="kind-${CLUSTER_NAME}"
+apply_k8s_file "${K8S_PATH}/global/00-coredns-patch.yaml" "$K8S_CONTEXT"
+kubectl rollout restart deployment coredns -n kube-system --context="${K8S_CONTEXT}"
+kubectl rollout status deployment coredns -n kube-system --context="${K8S_CONTEXT}"
 
 echo "🌍 Aplicando ExternalDNS Global..."
-apply_k8s_file "${K8S_PATH}/global/01-external-dns.yaml" "$CLUSTER_NAME"
+apply_k8s_file "${K8S_PATH}/global/01-external-dns.yaml" "$K8S_CONTEXT"
 
 echo "✅ Recursos globais aplicados com sucesso."

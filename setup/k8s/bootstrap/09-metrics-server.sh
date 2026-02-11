@@ -5,7 +5,7 @@ set -a
 set +a
 
 # Lista de contextos para iterar
-CONTEXT="kind-${CLUSTER_NAME}"
+CONTEXT="${K8S_CONTEXT}"
 
 echo "Instalando Metrics Server no contexto: $CONTEXT..."
 kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml --context "$CONTEXT" >/dev/null

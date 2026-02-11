@@ -79,7 +79,7 @@ metadata:
 spec:
   selector:
     app: slskd
-  type: NodePort
+  type: LoadBalancer
   externalTrafficPolicy: Local
   ports:
     - name: slskd-webui
@@ -88,7 +88,6 @@ spec:
     - name: slskd-peer
       port: 50300
       targetPort: 50300
-      nodePort: 50300
       protocol: TCP
 ---
 apiVersion: traefik.io/v1alpha1

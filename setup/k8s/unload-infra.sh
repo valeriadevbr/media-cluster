@@ -5,8 +5,7 @@ source "$(dirname -- "$0")/../.env"
 source "$(dirname -- "$0")/../includes/k8s-utils.sh"
 set +a
 
-CLUSTER_NAME="$CLUSTER_NAME"
-CONTEXT="kind-${CLUSTER_NAME}"
+CONTEXT="${K8S_CONTEXT}"
 BASE_PATH="${K8S_PATH}/infra"
 
 echo "--------------------------------------------------"
