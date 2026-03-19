@@ -1,115 +1,185 @@
 # Media Cluster
 
-Uma stack completa de servidor de mídia baseada em Kubernetes, rodando em ambiente **Dual Cluster** no Kind (Kubernetes in Docker). Este projeto automatiza o deploy de uma suíte de mídia completa, priorizando a resiliência de infraestrutura e o isolamento de aplicações.
-
-## 🏗 Arquitetura Dual-Cluster
-
-O ambiente foi desenhado para separar responsabilidades críticas (DNS/Rede) das aplicações pesadas (Mídia/Transcodificação), garantindo que a infraestrutura básica sobreviva a falhas ou reinícios do cluster de aplicações.
-
-### 1. `infra-cluster` (Infraestrutura)
-*   **Responsabilidade**: Serviços essenciais e de baixo nível.
-*   **Componentes Principais**:
-    *   **BIND9 (DNS)**: Resolve domínios `.media.lan` para toda a rede (Split-Horizon).
-    *   **Traefik (Ingress)**: Roteamento de entrada para serviços de infra.
-    *   **Cert-Manager**: Gestão de certificados (opcional/futuro).
-*   **Objetivo**: Manter a resolução de nomes ativa mesmo se o `media-cluster` estiver indisponível ou sendo recriado.
-
-### 2. `media-cluster` (Aplicações)
-*   **Responsabilidade**: Hospedar as aplicações de mídia e gerenciamento.
-*   **Componentes Principais**:
-    *   **Media Servers**: Plex, Emby (com suporte a transcodificação e acesso direto via HostPort se configurado).
-    *   **Arrs**: Sonarr, Radarr, Lidarr, Bazarr, Prowlarr.
-    *   **Downloaders**: qBittorrent, Slskd.
-    *   **Traefik (Ingress)**: Roteamento dedicado para as aplicações de mídia.
-*   **Network Tuning**: O bootstrap deste cluster aplica configurações de sysctl (TCP buffers, MTU, TSO/GRO offload) otimizadas para alto tráfego de mídia.
+Uma stack completa de servidor de mídia baseada em Kubernetes, rodando em um único cluster **Kind** (Kubernetes in Docker) no macOS. O projeto automatiza o deploy de toda a suíte de mídia, separando responsabilidades por **namespaces** (`infra` e `media`) dentro de um único cluster chamado `homelab-cluster`.
 
 ---
 
-## ☸️ Gerenciando Contextos (Contexts)
+## 🏗 Arquitetura
 
-Como existem dois clusters rodando simultaneamente, é crucial saber em qual cluster você está executando comandos `kubectl`.
+O cluster utiliza dois namespaces para isolar responsabilidades:
 
-| Cluster | Contexto Kubernetes | Uso |
-| :--- | :--- | :--- |
-| **Infra** | `kind-infra-cluster` | DNS, Core Networking |
-| **Media** | `kind-media-cluster` | Apps de Mídia, Torrents, Logs de Apps |
+### Namespace `infra`
+Serviços essenciais e de infraestrutura de rede:
 
-### Comandos Úteis
+| Serviço | Função |
+| :--- | :--- |
+| **BIND9** | DNS local com Split-Horizon para domínios `.media.lan` |
+| **AdGuard Home** | Bloqueio de anúncios e DNS secundário |
+| **Traefik** | Ingress controller (roteamento e TLS via Cert-Manager) |
+| **Cert-Manager** | Gestão de certificados TLS (ACME / Dynu) |
+| **External-DNS** | Sincronização de registros DNS com o BIND9 |
+| **Dashboard** | Kubernetes Dashboard |
+| **Speedtest** | Teste de velocidade de internet |
 
-Alternar entre contextos:
-```bash
-# Trabalhar no cluster de Mídia
-kubectl config use-context kind-media-cluster
+### Namespace `media`
+Aplicações de mídia e automação:
 
-# Trabalhar no cluster de Infra
-kubectl config use-context kind-infra-cluster
-```
-
-Executar comando em um cluster específico sem mudar o contexto atual:
-```bash
-kubectl get pods -n infra --context kind-infra-cluster
-kubectl get pods -n media --context kind-media-cluster
-```
+| Serviço | Função |
+| :--- | :--- |
+| **Plex** | Servidor de mídia principal |
+| **Emby** | Servidor de mídia alternativo |
+| **Navidrome** | Streaming de música (estilo Subsonic) |
+| **Feishin** | Cliente web para Navidrome |
+| **qBittorrent** | Download via torrent |
+| **Slskd** | Cliente Soulseek (música) |
+| **Sonarr** | Gestão automática de séries |
+| **Radarr** | Gestão automática de filmes |
+| **Lidarr** | Gestão automática de músicas |
+| **Bazarr** | Download automático de legendas |
+| **Lingarr** | Tradução de legendas com IA |
+| **Prowlarr** | Indexador central (Arrs) |
+| **Jackett** | Indexador adicional |
+| **FlareSolverr** | Bypass de Cloudflare para indexadores |
+| **Profilarr** | Gestão de perfis de qualidade nos Arrs |
+| **Postgres** | Banco de dados relacional compartilhado |
+| **Webshare** | Compartilhamento de arquivos via web |
 
 ---
 
 ## 🚀 Instalação e Setup
 
 ### 1. Pré-requisitos
-*   **Docker** ou **OrbStack**
-*   **Kind** (`brew install kind`)
-*   **Kubectl** (`brew install kubectl`)
-*   **Configuração**: Copie `.env.template` para `.env` e configure as variáveis de ambiente.
 
-### 2. Inicialização (Bootstrap)
+- **Docker** ou **OrbStack**
+- **Kind** (`brew install kind`)
+- **Kubectl** (`brew install kubectl`)
+- **Helm** (`brew install helm`)
 
-O processo de bootstrap foi unificado. O script principal orquestra a criação dos clusters, tunning de rede e aplicação dos recursos.
+### 2. Configuração
+
+Copie o template de variáveis de ambiente e preencha com os seus valores:
+
+```bash
+cp setup/.env.template setup/.env
+```
+
+Principais variáveis a configurar:
+
+| Variável | Descrição |
+| :--- | :--- |
+| `CLUSTER_NAME` | Nome do cluster Kind (padrão: `homelab-cluster`) |
+| `DOCKER_HOST_IP` | IP do host Docker na rede interna |
+| `MEDIA_PATH` | Caminho para a biblioteca de mídia |
+| `PLEX_AUTH_TOKEN` / `PLEX_CLAIM` | Credenciais do Plex |
+| `ACME_EMAIL` / `DYNU_API_KEY` | Configuração de TLS via ACME |
+| `POSTGRES_*` / `*_DB_PASSWORD` | Credenciais do banco de dados |
+| `WG_*` | Configurações do WireGuard |
+| `MEDIA_SERVERS_IN_CLUSTER` | `true` para expor Plex/Emby via HostPort |
+
+### 3. Bootstrap
+
+O script principal orquestra a criação do cluster e o deploy de todos os recursos:
 
 ```bash
 ./setup/init.sh
 ```
-*Se preferir rodar manualmente as etapas de K8s:*
+
+*Para rodar apenas as etapas de Kubernetes (sem tools do host):*
 ```bash
-# Cria os clusters e aplica TODOS os recursos (Infra e Media)
 ./setup/k8s/setup.sh
 ```
 
-Isso executará sequencialmente os scripts em `setup/k8s/bootstrap/`:
-1.  `01-cluster-infra.sh`: Sobe o cluster Infra e aplica tunning de rede.
-2.  `02-cluster-media.sh`: Sobe o cluster Media, injeta portas (se configurado) e aplica tunning.
-3.  `...`: Instalação de CRDs, Secrets e Cert-Manager.
-4.  `09-resources-infra.sh`: Aplica deployments do cluster Infra (Ingress, DNS, etc).
-5.  `09-resources-media.sh`: Aplica deployments do cluster Media (Plex, Arrs, etc).
+O bootstrap executa sequencialmente os scripts em `setup/k8s/bootstrap/`:
+
+| Script | O que faz |
+| :--- | :--- |
+| `00-tools.sh` | Valida ferramentas necessárias (kind, kubectl, helm…) |
+| `01-cluster.sh` | Cria o cluster Kind e aplica tunning de rede (sysctl, MTU, offloading) |
+| `02-namespaces.sh` | Cria os namespaces `infra` e `media` |
+| `03-global.sh` | Aplica recursos globais (CoreDNS patch, External-DNS) |
+| `04-bind-keys.sh` | Gera chaves TSIG para o BIND9 |
+| `05-secrets.sh` | Cria Secrets (TLS, API keys, credenciais) |
+| `06-cert-manager.sh` | Instala o Cert-Manager via Helm |
+| `07-traefik-infra.sh` | Instala o Traefik do namespace `infra` |
+| `08-traefik-media.sh` | Instala o Traefik do namespace `media` |
+| `09-metrics-server.sh` | Instala o Metrics Server |
+| `10-reflector.sh` | Instala o Reflector (replicação de Secrets entre namespaces) |
+| `11-resources-infra.sh` | Aplica todos os manifests do namespace `infra` |
+| `11-resources-media.sh` | Aplica todos os manifests do namespace `media` |
 
 ---
 
 ## ⚙️ Configurações Avançadas
 
-### Tunning de Rede & Performance
-Durante a criação dos clusters, os seguintes ajustes são aplicados aos nós (control-plane) via `sysctl` e `ethtool` para garantir performance máxima em tráfego de rede local e evitar gargalos em transferências SMB/NFS ou streaming 4K:
-*   **MTU**: Ajustado para compatibilidade com a rede Docker.
-*   **Offloading**: TSO, GSO e GRO são desativados para melhor compatibilidade com alguns drivers de rede virtualizados.
-*   **TCP Buffers**: `rmem` e `wmem` ampliados para suportar janelas TCP maiores.
+### Tunning de Rede
+
+Durante a criação do cluster, os seguintes ajustes são aplicados ao nó via `sysctl` e `ethtool`:
+
+- **MTU**: Ajustado para compatibilidade com a rede Docker.
+- **Offloading**: TSO, GSO e GRO são desativados para melhor compatibilidade com drivers de rede virtualizados.
+- **TCP Buffers**: `rmem` e `wmem` ampliados para suportar janelas TCP maiores em streaming e transferências SMB/NFS.
 
 ### Mapeamento de Portas (HostPorts)
+
 A variável `MEDIA_SERVERS_IN_CLUSTER` no `.env` controla como Plex e Emby são expostos:
-*   **`true`**: As portas (ex: 8920, 32400) são mapeadas diretamente no Host (via `hostPort` e `extraPortMappings` do Kind). Isso permite descoberta automática de DLNA/L2.
-*   **`false`**: As aplicações rodam isoladas e o acesso é feito primariamente via Ingress (Traefik).
+
+- **`true`**: As portas (ex: 32400, 8920) são mapeadas diretamente no host via `hostPort` e `extraPortMappings` do Kind, permitindo descoberta DLNA/L2.
+- **`false`**: As aplicações são acessadas exclusivamente via Ingress (Traefik).
+
+### WireGuard
+
+O projeto inclui suporte a WireGuard para acesso remoto seguro. As configurações de peers são feitas no `.env` e os arquivos de configuração são gerados em `setup/wireguard-macos/`.
 
 ---
 
 ## 📁 Estrutura de Pastas
 
-*   **`setup/k8s/bootstrap/`**: Scripts de ciclo de vida do cluster (Criação -> Configuração -> Deploy de Recursos).
-*   **`setup/k8s/infra/`**: Manifestos Kubernetes do cluster Infra.
-*   **`setup/k8s/media/`**: Manifestos Kubernetes do cluster Media.
-*   **`setup/includes/`**: Bibliotecas de funções Shell compartilhadas (`k8s-utils.sh`, `load-env.sh`).
-*   **`scripts/`**: Utilitários para o usuário final.
+```
+media-cluster/
+├── configs/                        # Configurações de apps (AdGuard, Plex, etc.)
+├── scripts/
+│   ├── host/                       # Scripts de manutenção do host macOS
+│   ├── arr/                        # Scripts utilitários para os Arrs
+│   └── k8s/                        # Scripts utilitários para o cluster
+├── ssl/                            # Certificados TLS locais
+└── setup/
+    ├── .env.template               # Template de variáveis de ambiente
+    ├── init.sh                     # Ponto de entrada principal
+    ├── includes/                   # Bibliotecas Shell compartilhadas
+    │   ├── load-env.sh
+    │   ├── k8s-utils.sh
+    │   └── pkg-utils.sh
+    └── k8s/
+        ├── setup.sh                # Orquestrador do bootstrap K8s
+        ├── unload.sh               # Remove o cluster
+        ├── bootstrap/              # Scripts de criação e configuração do cluster
+        ├── global/                 # Recursos aplicados globalmente (CoreDNS, External-DNS)
+        ├── infra/                  # Manifests do namespace infra
+        │   ├── 00-core/            # PriorityClass
+        │   ├── 01-storage/         # PersistentVolumes e PVCs
+        │   ├── 02-ingress/         # IngressRoutes (Traefik)
+        │   ├── 03-apps/            # Deployments (BIND9, AdGuard, Dashboard…)
+        │   └── 04-maintenance/     # CronJobs e RBAC de manutenção
+        └── media/                  # Manifests do namespace media
+            ├── 00-core/            # PriorityClass
+            ├── 01-storage/         # PersistentVolumes e PVCs
+            ├── 02-ingress/         # IngressRoutes (Traefik)
+            └── 03-apps/            # Deployments (Plex, Sonarr, Lidarr…)
+```
 
-## 🧹 Unload / Destruição
+---
 
-Para remover ambos os clusters e limpar o ambiente:
+## 🧹 Remoção
+
+Para remover o cluster e limpar o ambiente:
 
 ```bash
-./setup/k8s/unload.sh
+./setup/unload.sh
+```
+
+Para remover apenas um dos namespaces de recursos (sem destruir o cluster):
+
+```bash
+./setup/k8s/unload-infra.sh
+./setup/k8s/unload-media.sh
 ```
