@@ -45,6 +45,8 @@ spec:
               value: "Spotival"
             - name: SERVER_URL
               value: "https://navidrome.media.${WAN_HOSTNAME}"
+            - name: REMOTE_URL
+              value: "https://navidrome.media.${WAN_HOSTNAME}"
             - name: SERVER_TYPE
               value: "navidrome"
             - name: SERVER_LOCK
