@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 set -a
-. "$(dirname -- "$0")/../../setup/includes/load-env.sh"
+. "$(dirname -- "$0")/../../../setup/includes/load-env.sh"
 set +a
 
 # Caminho da biblioteca de música

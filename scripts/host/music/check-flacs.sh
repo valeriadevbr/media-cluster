@@ -1,8 +1,8 @@
 #!/bin/bash
 set -e
 set -a
-. "$(dirname -- "$0")/../../setup/includes/load-env.sh"
-. "$(dirname -- "$0")/../../setup/includes/pkg-utils.sh"
+. "$(dirname -- "$0")/../../../setup/includes/load-env.sh"
+. "$(dirname -- "$0")/../../../setup/includes/pkg-utils.sh"
 set +a
 
 LOG_FILE="${ROOT_PATH}/report.csv"
