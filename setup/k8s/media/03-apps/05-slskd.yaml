@@ -56,7 +56,7 @@ spec:
               mountPath: /app
               subPath: slskd
             - name: downloads
-              mountPath: /app/downloads
+              mountPath: /downloads
             - name: media
               mountPath: /music
               subPath: Music
