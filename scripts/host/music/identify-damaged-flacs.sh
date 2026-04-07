@@ -5,6 +5,15 @@ set -a
 . "$(dirname -- "$0")/../../../setup/includes/pkg-utils.sh"
 set +a
 
+LOG_FILE=""
+while getopts "o:" opt; do
+  case $opt in
+    o) LOG_FILE="$OPTARG" ;;
+    *) echo "Uso: $0 [-o log_file] [diretorios...]" >&2; exit 1 ;;
+  esac
+done
+shift $((OPTIND-1))
+
 if [ $# -gt 0 ]; then
   DIRS=("$@")
 else
@@ -21,14 +30,16 @@ done
 install_sys_pkg "flac"
 
 TMP_ERROR_LOG="/tmp/flac_error.log"
-LOG_FILE="./flac_validation.log"
 
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m'
 
->"$LOG_FILE"
+if [[ -n "$LOG_FILE" ]]; then
+  mkdir -p "$(dirname "$LOG_FILE")"
+  >"$LOG_FILE"
+fi
 
 DAMAGED_COUNT=0
 UNVERIFIABLE_COUNT=0
@@ -43,19 +54,23 @@ while IFS= read -r -d '' file; do
 
   if ! flac -t --silent "$file" 2>"$TMP_ERROR_LOG"; then
     ERROR_MSG=$(head -n 1 "$TMP_ERROR_LOG" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
-    echo -e "${RED}${TIMESTAMP}\t❌\tKO\t${FULL_PATH}\t${ERROR_MSG}${NC}"
-    echo -e "${TIMESTAMP}\t❌\tKO\t${FULL_PATH}\t${ERROR_MSG}" >>"$LOG_FILE"
+    echo -e "${RED}${TIMESTAMP}\tKO\t${FULL_PATH}\t${ERROR_MSG}${NC}"
+    if [[ -n "$LOG_FILE" ]]; then
+      echo -e "${TIMESTAMP}\tKO\t${FULL_PATH}\t${ERROR_MSG}" >>"$LOG_FILE"
+    fi
     ((DAMAGED_COUNT++))
     continue
   fi
 
   MD5=$(metaflac --show-md5sum "$file")
   if [[ "$MD5" =~ ^0+$ ]] || [[ -z "$MD5" ]]; then
-    echo -e "${YELLOW}${TIMESTAMP}\t⚠️\tNOMD5\t${FULL_PATH}${NC}"
-    echo -e "${TIMESTAMP}\t⚠️\tNOMD5\t${FULL_PATH}" >>"$LOG_FILE"
+    echo -e "${YELLOW}${TIMESTAMP}\tNOMD5\t${FULL_PATH}${NC}"
+    if [[ -n "$LOG_FILE" ]]; then
+      echo -e "${TIMESTAMP}\tNOMD5\t${FULL_PATH}" >>"$LOG_FILE"
+    fi
     ((UNVERIFIABLE_COUNT++))
   else
-    echo -e "${GREEN}${TIMESTAMP}\t✅\tOK\t${FULL_PATH}${NC}"
+    echo -e "${GREEN}${TIMESTAMP}\tOK\t${FULL_PATH}${NC}"
   fi
 
 done < <(find "${DIRS[@]}" -type f -name "*.flac" -print0 | sort -z)

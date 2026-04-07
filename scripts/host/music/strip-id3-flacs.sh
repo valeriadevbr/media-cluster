@@ -1,14 +1,24 @@
 #!/bin/bash
 set -e
+set -a
+. "$(dirname -- "$0")/../../../setup/includes/load-env.sh"
+. "$(dirname -- "$0")/../../../setup/includes/pkg-utils.sh"
+set +a
 
-TARGET_DIR="$1"
-
-if [[ -z "$TARGET_DIR" || ! -d "$TARGET_DIR" ]]; then
-  echo "Uso: $0 <diretorio_musica>"
+if [ $# -eq 0 ]; then
+  echo "Uso: $0 <caminho_musica_ou_diretorio> [caminhos...]"
   exit 1
 fi
+PATHS=("$@")
 
-echo "Iniciando varredura recursiva por ID3v2 em: $TARGET_DIR..."
+for p in "${PATHS[@]}"; do
+  if [[ ! -e "$p" ]]; then
+    echo "ERRO: Caminho não encontrado: $p"
+    exit 1
+  fi
+done
+
+echo "Iniciando varredura por ID3 em: ${PATHS[*]}..."
 
 TOTAL_FILES=0
 CLEANED_COUNT=0
@@ -60,7 +70,7 @@ while IFS= read -r -d '' file; do
     ((SKIPPED_COUNT++))
   fi
 
-done < <(find "$TARGET_DIR" -type f -name "*.flac" -print0 | sort -z)
+done < <(find "${PATHS[@]}" -type f -name "*.flac" -print0 | sort -z)
 
 echo "--------------------------------------"
 echo "Concluído! Total: $TOTAL_FILES | Limpos: $CLEANED_COUNT | Pulados: $SKIPPED_COUNT"
