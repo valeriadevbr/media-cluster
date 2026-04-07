@@ -1,6 +1,8 @@
 # General
 .DS_Store
 report.csv
+*.log
+*.csv
 
 # Secrets & Environment
 *.env
