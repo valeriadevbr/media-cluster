@@ -14,9 +14,10 @@ generate_local_cert() {
   local pfx_path="${out_dir}/${filename}.pfx"
   local pem_path="${out_dir}/${filename}.pem"
 
-  # Gera chave e CSR
-  openssl req -new -newkey rsa:2048 -nodes \
-    -keyout "$key_path" \
+  # Gera chave ECDSA P256 e CSR
+  openssl ecparam -genkey -name prime256v1 -noout -out "$key_path"
+  openssl req -new -nodes \
+    -key "$key_path" \
     -out "$csr_path" \
     -config "$san_cnf"
 
