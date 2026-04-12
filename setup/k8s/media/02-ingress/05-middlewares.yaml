@@ -52,4 +52,18 @@ metadata:
   name: gzip
   namespace: ingress-traefik-media
 spec:
-  compress: {}
+  compress:
+    includedContentTypes:
+      - "text/html"
+      - "text/css"
+      - "text/plain"
+      - "text/javascript"
+      - "text/xml"
+      - "application/json"
+      - "application/javascript"
+      - "application/xml"
+      - "application/xhtml+xml"
+      - "application/rss+xml"
+      - "application/atom+xml"
+      - "image/svg+xml"
+    minResponseBodyBytes: 1024

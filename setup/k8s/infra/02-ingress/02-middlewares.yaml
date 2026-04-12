@@ -4,7 +4,21 @@ metadata:
   name: gzip
   namespace: ingress-traefik-infra
 spec:
-  compress: {}
+  compress:
+    includedContentTypes:
+      - "text/html"
+      - "text/css"
+      - "text/plain"
+      - "text/javascript"
+      - "text/xml"
+      - "application/json"
+      - "application/javascript"
+      - "application/xml"
+      - "application/xhtml+xml"
+      - "application/rss+xml"
+      - "application/atom+xml"
+      - "image/svg+xml"
+    minResponseBodyBytes: 1024
 ---
 apiVersion: traefik.io/v1alpha1
 kind: Middleware
